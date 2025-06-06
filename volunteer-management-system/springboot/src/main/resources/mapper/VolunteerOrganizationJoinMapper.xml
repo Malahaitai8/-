@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.VolunteerOrganizationJoinMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.VolunteerOrganizationJoin">
+        <id property="volunteerId" column="VolunteerID" jdbcType="CHAR"/>
+        <id property="orgId" column="OrgID" jdbcType="CHAR"/>
+        <result property="joinTime" column="JoinTime" jdbcType="TIMESTAMP"/>
+        <result property="memberStatus" column="MemberStatus" jdbcType="NVARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        VolunteerID, OrgID, JoinTime, MemberStatus
+    </sql>
+
+    <!-- insert, updateMemberStatus, deleteByPrimaryKey, selectByPrimaryKey, selectByVolunteerId, selectByOrgId, selectByOrgIdAndStatus
+         are defined with annotations in the Mapper interface for simplicity as they are straightforward.
+         If more complex logic or dynamic SQL were needed for them, they could be moved here.
+    -->
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.example.springboot.entity.VolunteerOrganizationJoin">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_VolunteerOrganizationJoin
+        <where>
+            <if test="volunteerId != null and volunteerId != ''">
+                AND VolunteerID = #{volunteerId,jdbcType=CHAR}
+            </if>
+            <if test="orgId != null and orgId != ''">
+                AND OrgID = #{orgId,jdbcType=CHAR}
+            </if>
+            <if test="memberStatus != null and memberStatus != ''">
+                AND MemberStatus = #{memberStatus,jdbcType=NVARCHAR}
+            </if>
+            <!-- Add other potential filter criteria here -->
+        </where>
+        ORDER BY JoinTime DESC
+    </select>
+
+</mapper>

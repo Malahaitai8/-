@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.VolunteerTrainingMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.VolunteerTraining">
+        <id property="trainingId" column="TrainingID" jdbcType="CHAR"/>
+        <result property="orgId" column="OrgID" jdbcType="CHAR"/>
+        <result property="trainingName" column="TrainingName" jdbcType="NVARCHAR"/>
+        <result property="theme" column="Theme" jdbcType="NVARCHAR"/>
+        <result property="startTime" column="StartTime" jdbcType="TIMESTAMP"/> <!-- SMALLDATETIME mapped to TIMESTAMP -->
+        <result property="endTime" column="EndTime" jdbcType="TIMESTAMP"/>   <!-- SMALLDATETIME mapped to TIMESTAMP -->
+        <result property="location" column="Location" jdbcType="NVARCHAR"/>
+        <result property="recruitmentCount" column="RecruitmentCount" jdbcType="INTEGER"/>
+        <result property="trainingStatus" column="TrainingStatus" jdbcType="NVARCHAR"/>
+        <result property="creationTime" column="CreationTime" jdbcType="TIMESTAMP"/> <!-- SMALLDATETIME mapped to TIMESTAMP -->
+        <result property="reviewerAdminId" column="ReviewerAdminID" jdbcType="CHAR"/>
+        <result property="contactPersonPhone" column="ContactPersonPhone" jdbcType="NVARCHAR"/>
+        <result property="trainingRating" column="TrainingRating" jdbcType="INTEGER"/>
+        <result property="isRatingAggregated" column="IsRatingAggregated" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        TrainingID, OrgID, TrainingName, Theme, StartTime, EndTime, Location, RecruitmentCount,
+        TrainingStatus, CreationTime, ReviewerAdminID, ContactPersonPhone, TrainingRating, IsRatingAggregated
+    </sql>
+
+    <insert id="insert" parameterType="com.example.springboot.entity.VolunteerTraining">
+        INSERT INTO tbl_VolunteerTraining (
+            TrainingID, OrgID, TrainingName, Theme, StartTime, EndTime, Location,
+            RecruitmentCount, TrainingStatus, <!-- CreationTime has default GETDATE() --> ContactPersonPhone
+            <if test="reviewerAdminId != null">, ReviewerAdminID</if>
+            <if test="trainingRating != null">, TrainingRating</if>
+            <if test="isRatingAggregated != null">, IsRatingAggregated</if>
+        )
+        VALUES (
+            #{trainingId,jdbcType=CHAR}, #{orgId,jdbcType=CHAR}, #{trainingName,jdbcType=NVARCHAR},
+            #{theme,jdbcType=NVARCHAR}, #{startTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP},
+            #{location,jdbcType=NVARCHAR}, #{recruitmentCount,jdbcType=INTEGER},
+            #{trainingStatus,jdbcType=NVARCHAR}, #{contactPersonPhone,jdbcType=NVARCHAR}
+            <if test="reviewerAdminId != null">, #{reviewerAdminId,jdbcType=CHAR}</if>
+            <if test="trainingRating != null">, #{trainingRating,jdbcType=INTEGER}</if>
+            <if test="isRatingAggregated != null">, #{isRatingAggregated,jdbcType=CHAR}</if>
+        )
+    </insert>
+
+    <update id="updateById" parameterType="com.example.springboot.entity.VolunteerTraining">
+        UPDATE tbl_VolunteerTraining
+        SET
+            OrgID = #{orgId,jdbcType=CHAR},
+            TrainingName = #{trainingName,jdbcType=NVARCHAR},
+            Theme = #{theme,jdbcType=NVARCHAR},
+            StartTime = #{startTime,jdbcType=TIMESTAMP},
+            EndTime = #{endTime,jdbcType=TIMESTAMP},
+            Location = #{location,jdbcType=NVARCHAR},
+            RecruitmentCount = #{recruitmentCount,jdbcType=INTEGER},
+            TrainingStatus = #{trainingStatus,jdbcType=NVARCHAR},
+            <if test="reviewerAdminId != null">ReviewerAdminID = #{reviewerAdminId,jdbcType=CHAR},</if>
+            <if test="reviewerAdminId == null">ReviewerAdminID = NULL,</if>
+            ContactPersonPhone = #{contactPersonPhone,jdbcType=NVARCHAR},
+            <if test="trainingRating != null">TrainingRating = #{trainingRating,jdbcType=INTEGER},</if>
+            <if test="trainingRating == null">TrainingRating = NULL,</if>
+            IsRatingAggregated = #{isRatingAggregated,jdbcType=CHAR}
+        WHERE TrainingID = #{trainingId,jdbcType=CHAR}
+    </update>
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.example.springboot.entity.VolunteerTraining">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_VolunteerTraining
+        <where>
+            <if test="trainingName != null and trainingName != ''">
+                AND TrainingName LIKE CONCAT('%', #{trainingName,jdbcType=NVARCHAR}, '%')
+            </if>
+            <if test="orgId != null and orgId != ''">
+                AND OrgID = #{orgId,jdbcType=CHAR}
+            </if>
+            <if test="theme != null and theme != ''">
+                AND Theme LIKE CONCAT('%', #{theme,jdbcType=NVARCHAR}, '%')
+            </if>
+            <if test="location != null and location != ''">
+                AND Location LIKE CONCAT('%', #{location,jdbcType=NVARCHAR}, '%')
+            </if>
+            <if test="trainingStatus != null and trainingStatus != ''">
+                AND TrainingStatus = #{trainingStatus,jdbcType=NVARCHAR}
+            </if>
+            <if test="contactPersonPhone != null and contactPersonPhone != ''">
+                AND ContactPersonPhone = #{contactPersonPhone,jdbcType=NVARCHAR}
+            </if>
+        </where>
+        ORDER BY CreationTime DESC
+    </select>
+
+    <select id="selectByOrgId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_VolunteerTraining
+        WHERE OrgID = #{orgId,jdbcType=CHAR}
+        ORDER BY StartTime DESC
+    </select>
+
+    <select id="selectByStatus" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_VolunteerTraining
+        WHERE TrainingStatus = #{trainingStatus,jdbcType=NVARCHAR}
+        ORDER BY StartTime DESC
+    </select>
+
+    <select id="selectByTheme" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_VolunteerTraining
+        WHERE Theme = #{theme,jdbcType=NVARCHAR}
+        ORDER BY StartTime DESC
+    </select>
+
+    <update id="updateTrainingStatus">
+        UPDATE tbl_VolunteerTraining
+        SET
+            TrainingStatus = #{trainingStatus,jdbcType=NVARCHAR}
+            <if test="reviewerAdminId != null">
+                , ReviewerAdminID = #{reviewerAdminId,jdbcType=CHAR}
+            </if>
+        WHERE TrainingID = #{trainingId,jdbcType=CHAR}
+    </update>
+
+</mapper>

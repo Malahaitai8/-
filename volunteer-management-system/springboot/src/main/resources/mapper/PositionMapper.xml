@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.PositionMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.Position">
+        <id property="positionId" column="PositionID" jdbcType="CHAR"/>
+        <result property="positionName" column="PositionName" jdbcType="NVARCHAR"/>
+        <result property="activityId" column="ActivityID" jdbcType="CHAR"/>
+        <result property="positionServiceHours" column="PositionServiceHours" jdbcType="INTEGER"/>
+        <result property="requiredVolunteers" column="RequiredVolunteers" jdbcType="INTEGER"/>
+        <result property="recruitedVolunteers" column="RecruitedVolunteers" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        PositionID, PositionName, ActivityID, PositionServiceHours, RequiredVolunteers, RecruitedVolunteers
+    </sql>
+
+    <!-- insert, deleteById, selectById, selectByActivityId, updateRecruitedVolunteers, deleteByActivityId
+         are defined with annotations in the Mapper interface for simplicity.
+         If more complex logic or dynamic SQL were needed for them, they could be moved here.
+    -->
+
+    <update id="updateById" parameterType="com.example.springboot.entity.Position">
+        UPDATE tbl_Position
+        <set>
+            <if test="positionName != null and positionName != ''">
+                PositionName = #{positionName,jdbcType=NVARCHAR},
+            </if>
+            <if test="activityId != null and activityId != ''"> <!-- Usually ActivityID is not updated for an existing position, but included for completeness -->
+                ActivityID = #{activityId,jdbcType=CHAR},
+            </if>
+            <if test="positionServiceHours != null">
+                PositionServiceHours = #{positionServiceHours,jdbcType=INTEGER},
+            </if>
+            <if test="requiredVolunteers != null">
+                RequiredVolunteers = #{requiredVolunteers,jdbcType=INTEGER},
+            </if>
+            <if test="recruitedVolunteers != null">
+                RecruitedVolunteers = #{recruitedVolunteers,jdbcType=INTEGER},
+            </if>
+        </set>
+        WHERE PositionID = #{positionId,jdbcType=CHAR}
+    </update>
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.example.springboot.entity.Position">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_Position
+        <where>
+            <if test="positionName != null and positionName != ''">
+                AND PositionName LIKE CONCAT('%', #{positionName,jdbcType=NVARCHAR}, '%')
+            </if>
+            <if test="activityId != null and activityId != ''">
+                AND ActivityID = #{activityId,jdbcType=CHAR}
+            </if>
+            <!-- Add other potential filter criteria here -->
+        </where>
+        ORDER BY ActivityID, PositionName
+    </select>
+
+</mapper>

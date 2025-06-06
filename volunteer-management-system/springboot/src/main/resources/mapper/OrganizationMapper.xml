@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.OrganizationMapper">
+
+    <resultMap id="OrganizationResultMap" type="com.example.springboot.entity.Organization">
+        <id property="orgId" column="OrgID"/>
+        <result property="orgName" column="OrgName"/>
+        <result property="orgLoginUserName" column="OrgLoginUserName"/>
+        <result property="orgLoginPassword" column="OrgLoginPassword"/>
+        <result property="contactPersonPhone" column="ContactPersonPhone"/>
+        <result property="serviceRegion" column="ServiceRegion"/>
+        <result property="orgScale" column="OrgScale"/>
+        <result property="orgRating" column="OrgRating"/>
+        <result property="orgAccountStatus" column="OrgAccountStatus"/>
+        <result property="totalServiceHours" column="TotalServiceHours"/>
+        <result property="activityCount" column="ActivityCount"/>
+        <result property="trainingCount" column="TrainingCount"/>
+    </resultMap>
+
+    <update id="updateStatusByOrgId">
+        UPDATE tbl_Organization
+        SET OrgAccountStatus = #{newStatus, jdbcType=NVARCHAR}
+        WHERE OrgID = #{orgId, jdbcType=CHAR}
+    </update>
+
+    <sql id="Base_Column_List">
+        OrgID
+        , OrgName, OrgLoginUserName, OrgLoginPassword, ContactPersonPhone,
+        ServiceRegion, OrgScale, OrgRating, OrgAccountStatus, TotalServiceHours,
+        ActivityCount, TrainingCount
+    </sql>
+
+    <!-- selectByOrgLoginUserName, selectByOrgId, deleteByOrgId 已通过 @Select/@Delete 注解在接口中定义 -->
+
+    <insert id="insert" parameterType="com.example.springboot.entity.Organization">
+        INSERT INTO tbl_Organization
+        (OrgName, OrgLoginUserName, OrgLoginPassword, ContactPersonPhone,
+         ServiceRegion, OrgScale)
+        VALUES (#{orgName, jdbcType=NVARCHAR}, #{orgLoginUserName, jdbcType=NVARCHAR},
+                #{orgLoginPassword, jdbcType=NVARCHAR}, #{contactPersonPhone, jdbcType=NVARCHAR},
+                #{serviceRegion, jdbcType=NVARCHAR},
+                #{orgScale, jdbcType=INTEGER})
+    </insert>
+
+
+    <update id="updateByOrgId" parameterType="com.example.springboot.entity.Organization">
+        UPDATE tbl_Organization
+        <set>
+            <if test="orgName != null and orgName != ''">OrgName = #{orgName, jdbcType=NVARCHAR},</if>
+            <if test="orgLoginUserName != null and orgLoginUserName != ''">OrgLoginUserName =
+                #{orgLoginUserName, jdbcType=NVARCHAR},
+            </if>
+            <if test="orgLoginPassword != null and orgLoginPassword != ''">OrgLoginPassword =
+                #{orgLoginPassword, jdbcType=NVARCHAR},
+            </if>
+            <if test="contactPersonPhone != null and contactPersonPhone != ''">ContactPersonPhone =
+                #{contactPersonPhone, jdbcType=NVARCHAR},
+            </if>
+            <if test="serviceRegion != null and serviceRegion != ''">ServiceRegion =
+                #{serviceRegion, jdbcType=NVARCHAR},
+            </if>
+            <if test="orgScale != null">OrgScale = #{orgScale, jdbcType=INTEGER},</if>
+
+            <if test="orgRating != null">OrgRating = #{orgRating, jdbcType=DECIMAL},</if>
+            <if test="orgAccountStatus != null and orgAccountStatus != ''">OrgAccountStatus =
+                #{orgAccountStatus, jdbcType=NVARCHAR},
+            </if>
+            <if test="totalServiceHours != null">TotalServiceHours = #{totalServiceHours, jdbcType=INTEGER},</if>
+            <if test="activityCount != null">ActivityCount = #{activityCount, jdbcType=INTEGER},</if>
+            <if test="trainingCount != null">TrainingCount = #{trainingCount, jdbcType=INTEGER},</if>
+        </set>
+        WHERE OrgID = #{orgId, jdbcType=CHAR}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE tbl_Organization
+        SET OrgLoginPassword = #{newPassword, jdbcType=NVARCHAR} <!-- 密码应加密存储 -->
+        WHERE OrgID = #{orgId, jdbcType=CHAR}
+    </update>
+
+    <select id="selectAll" resultMap="OrganizationResultMap" parameterType="com.example.springboot.entity.Organization">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM tbl_Organization
+        <where>
+            <if test="orgName != null and orgName != ''">
+                AND OrgName LIKE CONCAT('%', #{orgName, jdbcType=NVARCHAR}, '%')
+            </if>
+            <if test="orgLoginUserName != null and orgLoginUserName != ''">
+                AND OrgLoginUserName LIKE CONCAT('%', #{orgLoginUserName, jdbcType=NVARCHAR}, '%')
+            </if>
+            <if test="serviceRegion != null and serviceRegion != ''">
+                AND ServiceRegion = #{serviceRegion, jdbcType=NVARCHAR}
+            </if>
+            <if test="orgAccountStatus != null and orgAccountStatus != ''">
+                AND OrgAccountStatus = #{orgAccountStatus, jdbcType=NVARCHAR}
+            </if>
+            <if test="orgId != null and orgId != ''">
+                AND OrgID = #{orgId, jdbcType=CHAR}
+            </if>
+        </where>
+        ORDER BY OrgID DESC
+    </select>
+
+    <select id="selectByOrgNameFuzzy" resultMap="OrganizationResultMap" parameterType="java.lang.String">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM tbl_Organization
+        WHERE OrgName LIKE CONCAT('%', #{orgName, jdbcType=NVARCHAR}, '%')
+        ORDER BY OrgID DESC
+    </select>
+
+</mapper>

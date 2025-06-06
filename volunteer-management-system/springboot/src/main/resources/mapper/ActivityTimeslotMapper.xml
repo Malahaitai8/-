@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.ActivityTimeslotMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.ActivityTimeslot">
+        <id property="timeslotId" column="TimeslotID" jdbcType="CHAR"/>
+        <result property="eventId" column="EventID" jdbcType="CHAR"/>
+        <result property="startTime" column="StartTime" jdbcType="TIMESTAMP"/> <!-- SMALLDATETIME mapped to TIMESTAMP -->
+        <result property="endTime" column="EndTime" jdbcType="TIMESTAMP"/>   <!-- SMALLDATETIME mapped to TIMESTAMP -->
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        TimeslotID, EventID, StartTime, EndTime
+    </sql>
+
+    <!-- insert, updateById, deleteById, selectById, selectByEventId, deleteByEventId
+         are defined with annotations in the Mapper interface for simplicity.
+         If more complex logic or dynamic SQL were needed for them, they could be moved here.
+    -->
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.example.springboot.entity.ActivityTimeslot">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_ActivityTimeslot
+        <where>
+            <if test="eventId != null and eventId != ''">
+                AND EventID = #{eventId,jdbcType=CHAR}
+            </if>
+            <!-- Add other potential filter criteria here, e.g., date ranges -->
+        </where>
+        ORDER BY EventID, StartTime
+    </select>
+
+</mapper>

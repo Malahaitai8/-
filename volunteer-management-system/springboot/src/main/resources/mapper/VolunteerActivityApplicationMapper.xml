@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.VolunteerActivityApplicationMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.VolunteerActivityApplication">
+        <id property="applicationId" column="ApplicationID" jdbcType="CHAR"/>
+        <result property="volunteerId" column="VolunteerID" jdbcType="CHAR"/>
+        <result property="activityId" column="ActivityID" jdbcType="CHAR"/>
+        <result property="intendedPositionId" column="IntendedPositionID" jdbcType="CHAR"/>
+        <result property="applicationTime" column="ApplicationTime" jdbcType="TIMESTAMP"/> <!-- DATETIME mapped to TIMESTAMP -->
+        <result property="applicationStatus" column="ApplicationStatus" jdbcType="NVARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        ApplicationID, VolunteerID, ActivityID, IntendedPositionID, ApplicationTime, ApplicationStatus
+    </sql>
+
+    <!-- insert, updateStatus, deleteById, selectById, selectByVolunteerId, selectByActivityId, selectByActivityIdAndStatus
+         are defined with annotations in the Mapper interface for simplicity.
+    -->
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.example.springboot.entity.VolunteerActivityApplication">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_VolunteerActivityApplication
+        <where>
+            <if test="volunteerId != null and volunteerId != ''">
+                AND VolunteerID = #{volunteerId,jdbcType=CHAR}
+            </if>
+            <if test="activityId != null and activityId != ''">
+                AND ActivityID = #{activityId,jdbcType=CHAR}
+            </if>
+            <if test="intendedPositionId != null and intendedPositionId != ''">
+                AND IntendedPositionID = #{intendedPositionId,jdbcType=CHAR}
+            </if>
+            <if test="applicationStatus != null and applicationStatus != ''">
+                AND ApplicationStatus = #{applicationStatus,jdbcType=NVARCHAR}
+            </if>
+        </where>
+        ORDER BY ApplicationTime DESC
+    </select>
+
+    <select id="checkExistingApplicationByPositionAndStatus" resultType="int">
+        SELECT COUNT(*)
+        FROM tbl_VolunteerActivityApplication
+        WHERE VolunteerID = #{volunteerId,jdbcType=CHAR}
+          AND ActivityID = #{activityId,jdbcType=CHAR}
+          <if test="intendedPositionId != null and intendedPositionId != ''">
+            AND IntendedPositionID = #{intendedPositionId,jdbcType=CHAR}
+          </if>
+          <if test="intendedPositionId == null or intendedPositionId == ''">
+            AND IntendedPositionID IS NULL
+          </if>
+          AND ApplicationStatus IN
+            <foreach item="statusItem" collection="statuses" open="(" separator="," close=")">
+                #{statusItem,jdbcType=NVARCHAR}
+            </foreach>
+    </select>
+
+</mapper>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.ComplaintMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.Complaint">
+        <id property="complaintId" column="ComplaintID" jdbcType="CHAR"/>
+        <result property="complaintTime" column="ComplaintTime" jdbcType="TIMESTAMP"/>
+        <result property="complainantId" column="ComplainantID" jdbcType="CHAR"/>
+        <result property="complaintTargetId" column="ComplaintTargetID" jdbcType="CHAR"/>
+        <result property="complaintType" column="ComplaintType" jdbcType="NVARCHAR"/>
+        <result property="complaintContent" column="ComplaintContent" jdbcType="NVARCHAR"/> <!-- NVARCHAR(MAX) might need jdbcType=LONGNVARCHAR or CLOB depending on driver -->
+        <result property="evidenceLink" column="EvidenceLink" jdbcType="NVARCHAR"/>
+        <result property="processingStatus" column="ProcessingStatus" jdbcType="NVARCHAR"/>
+        <result property="processingResult" column="ProcessingResult" jdbcType="NVARCHAR"/> <!-- NVARCHAR(MAX) -->
+        <result property="latestProcessingTime" column="LatestProcessingTime" jdbcType="TIMESTAMP"/>
+        <result property="handlerAdminId" column="HandlerAdminID" jdbcType="CHAR"/>
+        <result property="visitTime" column="VisitTime" jdbcType="TIMESTAMP"/>
+        <result property="visitResult" column="VisitResult" jdbcType="NVARCHAR"/>
+        <result property="arbitrationRound" column="ArbitrationRound" jdbcType="INTEGER"/>
+        <result property="reviewAdminId" column="ReviewAdminID" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        ComplaintID, ComplaintTime, ComplainantID, ComplaintTargetID, ComplaintType, ComplaintContent,
+        EvidenceLink, ProcessingStatus, ProcessingResult, LatestProcessingTime, HandlerAdminID,
+        VisitTime, VisitResult, ArbitrationRound, ReviewAdminID
+    </sql>
+
+    <insert id="insert" parameterType="com.example.springboot.entity.Complaint">
+        INSERT INTO tbl_Complaint (
+            ComplaintID, ComplainantID, ComplaintTargetID, ComplaintType, ComplaintContent
+            <if test="complaintTime != null">, ComplaintTime</if> <!-- DB has default GETDATE() -->
+            <if test="evidenceLink != null">, EvidenceLink</if>
+            <if test="processingStatus != null">, ProcessingStatus</if> <!-- DB has default '未处理' -->
+            <if test="processingResult != null">, ProcessingResult</if>
+            <if test="latestProcessingTime != null">, LatestProcessingTime</if>
+            <if test="handlerAdminId != null">, HandlerAdminID</if>
+            <if test="visitTime != null">, VisitTime</if>
+            <if test="visitResult != null">, VisitResult</if> <!-- DB has default '满意' -->
+            <if test="arbitrationRound != null">, ArbitrationRound</if>
+            <if test="reviewAdminId != null">, ReviewAdminID</if>
+        )
+        VALUES (
+            #{complaintId,jdbcType=CHAR}, #{complainantId,jdbcType=CHAR}, #{complaintTargetId,jdbcType=CHAR},
+            #{complaintType,jdbcType=NVARCHAR}, #{complaintContent,jdbcType=NVARCHAR}
+            <if test="complaintTime != null">, #{complaintTime,jdbcType=TIMESTAMP}</if>
+            <if test="evidenceLink != null">, #{evidenceLink,jdbcType=NVARCHAR}</if>
+            <if test="processingStatus != null">, #{processingStatus,jdbcType=NVARCHAR}</if>
+            <if test="processingResult != null">, #{processingResult,jdbcType=NVARCHAR}</if>
+            <if test="latestProcessingTime != null">, #{latestProcessingTime,jdbcType=TIMESTAMP}</if>
+            <if test="handlerAdminId != null">, #{handlerAdminId,jdbcType=CHAR}</if>
+            <if test="visitTime != null">, #{visitTime,jdbcType=TIMESTAMP}</if>
+            <if test="visitResult != null">, #{visitResult,jdbcType=NVARCHAR}</if>
+            <if test="arbitrationRound != null">, #{arbitrationRound,jdbcType=INTEGER}</if>
+            <if test="reviewAdminId != null">, #{reviewAdminId,jdbcType=CHAR}</if>
+        )
+    </insert>
+
+    <update id="updateById" parameterType="com.example.springboot.entity.Complaint">
+        UPDATE tbl_Complaint
+        SET
+            ComplainantID = #{complainantId,jdbcType=CHAR},
+            ComplaintTargetID = #{complaintTargetId,jdbcType=CHAR},
+            ComplaintType = #{complaintType,jdbcType=NVARCHAR},
+            ComplaintContent = #{complaintContent,jdbcType=NVARCHAR},
+            EvidenceLink = #{evidenceLink,jdbcType=NVARCHAR},
+            ProcessingStatus = #{processingStatus,jdbcType=NVARCHAR},
+            ProcessingResult = #{processingResult,jdbcType=NVARCHAR},
+            LatestProcessingTime = #{latestProcessingTime,jdbcType=TIMESTAMP},
+            HandlerAdminID = #{handlerAdminId,jdbcType=CHAR},
+            VisitTime = #{visitTime,jdbcType=TIMESTAMP},
+            VisitResult = #{visitResult,jdbcType=NVARCHAR},
+            ArbitrationRound = #{arbitrationRound,jdbcType=INTEGER},
+            ReviewAdminID = #{reviewAdminId,jdbcType=CHAR}
+            <!-- ComplaintTime is usually not updated after creation -->
+        WHERE ComplaintID = #{complaintId,jdbcType=CHAR}
+    </update>
+
+    <update id="updateProcessingDetails" parameterType="com.example.springboot.entity.Complaint">
+        UPDATE tbl_Complaint
+        SET
+            ProcessingStatus = #{processingStatus,jdbcType=NVARCHAR},
+            ProcessingResult = #{processingResult,jdbcType=NVARCHAR},
+            LatestProcessingTime = #{latestProcessingTime,jdbcType=TIMESTAMP},
+            HandlerAdminID = #{handlerAdminId,jdbcType=CHAR},
+            VisitTime = #{visitTime,jdbcType=TIMESTAMP},
+            VisitResult = #{visitResult,jdbcType=NVARCHAR},
+            ArbitrationRound = #{arbitrationRound,jdbcType=INTEGER},
+            ReviewAdminID = #{reviewAdminId,jdbcType=CHAR}
+        WHERE ComplaintID = #{complaintId,jdbcType=CHAR}
+    </update>
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.example.springboot.entity.Complaint">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_Complaint
+        <where>
+            <if test="complainantId != null and complainantId != ''">
+                AND ComplainantID = #{complainantId,jdbcType=CHAR}
+            </if>
+            <if test="complaintTargetId != null and complaintTargetId != ''">
+                AND ComplaintTargetID = #{complaintTargetId,jdbcType=CHAR}
+            </if>
+            <if test="complaintType != null and complaintType != ''">
+                AND ComplaintType = #{complaintType,jdbcType=NVARCHAR}
+            </if>
+            <if test="processingStatus != null and processingStatus != ''">
+                AND ProcessingStatus = #{processingStatus,jdbcType=NVARCHAR}
+            </if>
+            <if test="handlerAdminId != null and handlerAdminId != ''">
+                AND HandlerAdminID = #{handlerAdminId,jdbcType=CHAR}
+            </if>
+        </where>
+        ORDER BY ComplaintTime DESC
+    </select>
+
+    <select id="selectByComplainantId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM tbl_Complaint
+        WHERE ComplainantID = #{complainantId,jdbcType=CHAR}
+        ORDER BY ComplaintTime DESC
+    </select>
+
+    <select id="selectByComplaintTargetId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM tbl_Complaint
+        WHERE ComplaintTargetID = #{complaintTargetId,jdbcType=CHAR}
+        ORDER BY ComplaintTime DESC
+    </select>
+
+    <select id="selectByProcessingStatus" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM tbl_Complaint
+        WHERE ProcessingStatus = #{processingStatus,jdbcType=NVARCHAR}
+        ORDER BY ComplaintTime DESC
+    </select>
+
+    <select id="selectByComplaintType" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM tbl_Complaint
+        WHERE ComplaintType = #{complaintType,jdbcType=NVARCHAR}
+        ORDER BY ComplaintTime DESC
+    </select>
+
+</mapper>

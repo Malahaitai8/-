@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.VolunteerTrainingParticipationMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.VolunteerTrainingParticipation">
+        <id property="volunteerId" column="VolunteerID" jdbcType="CHAR"/>
+        <id property="trainingId" column="TrainingID" jdbcType="CHAR"/> <!-- Composite Key Part -->
+        <result property="isCheckedIn" column="IsCheckedIn" jdbcType="NCHAR"/>
+        <result property="orgToVolunteerRating" column="OrgToVolunteerRating" jdbcType="INTEGER"/>
+        <result property="volunteerToOrgRating" column="VolunteerToOrgRating" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        VolunteerID, TrainingID, IsCheckedIn, OrgToVolunteerRating, VolunteerToOrgRating
+    </sql>
+
+    <!-- insert, deleteByPrimaryKey, selectByPrimaryKey, updateCheckInStatus, updateOrgToVolunteerRating, updateVolunteerToOrgRating
+         are defined with annotations in the Mapper interface for simplicity.
+    -->
+
+    <update id="updateByPrimaryKey" parameterType="com.example.springboot.entity.VolunteerTrainingParticipation">
+        UPDATE tbl_VolunteerTrainingParticipation
+        <set>
+            <if test="isCheckedIn != null and isCheckedIn != ''">
+                IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR},
+            </if>
+            <if test="orgToVolunteerRating != null">
+                OrgToVolunteerRating = #{orgToVolunteerRating,jdbcType=INTEGER},
+            </if>
+            <if test="volunteerToOrgRating != null">
+                VolunteerToOrgRating = #{volunteerToOrgRating,jdbcType=INTEGER},
+            </if>
+        </set>
+        WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND TrainingID = #{trainingId,jdbcType=CHAR}
+    </update>
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.example.springboot.entity.VolunteerTrainingParticipation">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_VolunteerTrainingParticipation
+        <where>
+            <if test="volunteerId != null and volunteerId != ''">
+                AND VolunteerID = #{volunteerId,jdbcType=CHAR}
+            </if>
+            <if test="trainingId != null and trainingId != ''">
+                AND TrainingID = #{trainingId,jdbcType=CHAR}
+            </if>
+            <if test="isCheckedIn != null and isCheckedIn != ''">
+                AND IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR}
+            </if>
+        </where>
+        ORDER BY TrainingID, VolunteerID
+    </select>
+
+    <select id="selectByVolunteerId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM tbl_VolunteerTrainingParticipation
+        WHERE VolunteerID = #{volunteerId,jdbcType=CHAR}
+        ORDER BY TrainingID
+    </select>
+
+    <select id="selectByTrainingId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM tbl_VolunteerTrainingParticipation
+        WHERE TrainingID = #{trainingId,jdbcType=CHAR}
+        ORDER BY VolunteerID
+    </select>
+
+</mapper>

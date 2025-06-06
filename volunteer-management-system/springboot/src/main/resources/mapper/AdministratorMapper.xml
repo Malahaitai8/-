@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.AdministratorMapper">
+
+<!--  检验登录密码错误问题  -->
+    <select id="callAdminLogin" statementType="CALLABLE" resultType="com.example.springboot.entity.Administrator" parameterType="map">
+        {CALL dbo.sp_AdminLogin(
+            #{adminIdentifier, mode=IN, jdbcType=NVARCHAR},
+            #{password, mode=IN, jdbcType=NVARCHAR}
+        )}
+    </select>
+
+    <insert id="insert" parameterType="com.example.springboot.entity.Administrator">
+        INSERT INTO administrator (
+            AdminID,
+            Name,
+            Gender,
+            IDCardNumber,
+            PhoneNumber,
+            Password,
+            PermissionScope,
+            ServiceArea,
+            CurrentPosition,
+            PermissionLevel
+        )
+        VALUES (
+            #{adminId},
+            #{name},
+            #{gender},
+            #{idCardNumber},
+            #{phoneNumber},
+            #{password},
+            #{permissionScope},
+            #{serviceArea},
+            #{currentPosition},
+            #{permissionLevel}
+        )
+    </insert>
+
+    <!-- 保留您已有的 ResultMap 和其他 SQL 语句 -->
+    <resultMap id="AdminResultMap" type="com.example.springboot.entity.Administrator">
+        <id property="adminId" column="AdminID"/>
+        <result property="name" column="Name"/>
+        <result property="gender" column="Gender"/>
+        <result property="idCardNumber" column="IDCardNumber"/> <!-- 与实体类一致 -->
+        <result property="phoneNumber" column="PhoneNumber"/>
+        <result property="password" column="Password"/>
+        <result property="serviceArea" column="ServiceArea"/>
+        <result property="currentPosition" column="CurrentPosition"/>
+        <result property="permissionLevel" column="PermissionLevel"/>
+    </resultMap>
+
+    <!-- ... 您其他的 SQL ... -->
+
+    <update id="updateById" parameterType="com.example.springboot.entity.Administrator">
+        UPDATE tbl_Administrator <!-- 假设您的表名是 tbl_Administrator -->
+        SET
+            Name = #{name},
+            Gender = #{gender},
+            IDCardNumber = #{idCardNumber},
+            PhoneNumber = #{phoneNumber},
+            <!-- 通常不在此处更新密码, 前端已处理 delete dataToSave.password; -->
+            <!-- Password = #{password, jdbcType=NVARCHAR}, -->
+            ServiceArea = #{serviceArea},
+            CurrentPosition = #{currentPosition},
+            PermissionLevel = #{permissionLevel,},
+        WHERE AdminID = #{adminId, jdbcType=CHAR}
+    </update>
+
+
+<!--    <delete id="deleteById" parameterType="String">-->
+<!--        DELETE FROM administrator-->
+<!--        WHERE AdminID = #{adminId}-->
+<!--    </delete>-->
+
+    <select id="selectAll" resultType="com.example.springboot.entity.Administrator">
+        SELECT * FROM administrator
+        <where>
+            <if test="name != null">AND Name LIKE CONCAT('%', #{name}, '%')</if>
+            <if test="permissionScope != null">AND PermissionScope = #{permissionScope}</if>
+            <if test="currentPosition != null">AND CurrentPosition = #{currentPosition}</if>
+        </where>
+        ORDER BY AdminID DESC
+    </select>
+
+
+<update id="updatePassword">
+        UPDATE tbl_Administrator
+        SET Password = #{newPassword, jdbcType=NVARCHAR} <!-- 实际应存储加密后的密码 -->
+        WHERE AdminID = #{adminId, jdbcType=CHAR}
+    </update>
+<!--    <select id="selectByID" parameterType="String" resultType="com.example.springboot.entity.Administrator">-->
+<!--        SELECT * FROM administrator-->
+<!--        WHERE AdminID = #{adminId}-->
+<!--    </select>-->
+
+<!--    <select id="selectByName" parameterType="String" resultType="com.example.springboot.entity.Administrator">-->
+<!--        SELECT * FROM administrator-->
+<!--        WHERE Name = #{name}-->
+<!--    </select>-->
+
+</mapper>

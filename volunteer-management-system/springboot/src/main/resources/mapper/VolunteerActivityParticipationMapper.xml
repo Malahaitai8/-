@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.VolunteerActivityParticipationMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.VolunteerActivityParticipation">
+        <id property="volunteerId" column="VolunteerID" jdbcType="CHAR"/>
+        <id property="actualPositionId" column="ActualPositionID" jdbcType="CHAR"/> <!-- Composite Key Part -->
+        <result property="activityId" column="ActivityID" jdbcType="CHAR"/>
+        <result property="isCheckedIn" column="IsCheckedIn" jdbcType="NCHAR"/>
+        <result property="volunteerToOrgRating" column="VolunteerToOrgRating" jdbcType="INTEGER"/>
+        <result property="orgToVolunteerRating" column="OrgToVolunteerRating" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        VolunteerID, ActivityID, ActualPositionID, IsCheckedIn, VolunteerToOrgRating, OrgToVolunteerRating
+    </sql>
+
+    <!-- insert, deleteByPrimaryKey, selectByPrimaryKey, updateCheckInStatus, updateVolunteerToOrgRating, updateOrgToVolunteerRating
+         are defined with annotations in the Mapper interface for simplicity.
+    -->
+
+    <update id="updateByPrimaryKey" parameterType="com.example.springboot.entity.VolunteerActivityParticipation">
+        UPDATE tbl_VolunteerActivityParticipation
+        <set>
+            <!-- ActivityID is part of the context, not typically updated directly here unless changing the whole participation record context -->
+            <if test="activityId != null and activityId != ''"> <!-- This might be redundant if PK implies ActivityID through ActualPositionID's context -->
+                ActivityID = #{activityId,jdbcType=CHAR},
+            </if>
+            <if test="isCheckedIn != null and isCheckedIn != ''">
+                IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR},
+            </if>
+            <if test="volunteerToOrgRating != null">
+                VolunteerToOrgRating = #{volunteerToOrgRating,jdbcType=INTEGER},
+            </if>
+            <if test="orgToVolunteerRating != null">
+                OrgToVolunteerRating = #{orgToVolunteerRating,jdbcType=INTEGER},
+            </if>
+        </set>
+        WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND ActualPositionID = #{actualPositionId,jdbcType=CHAR}
+    </update>
+
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="com.example.springboot.entity.VolunteerActivityParticipation">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM tbl_VolunteerActivityParticipation
+        <where>
+            <if test="volunteerId != null and volunteerId != ''">
+                AND VolunteerID = #{volunteerId,jdbcType=CHAR}
+            </if>
+            <if test="activityId != null and activityId != ''">
+                AND ActivityID = #{activityId,jdbcType=CHAR}
+            </if>
+            <if test="actualPositionId != null and actualPositionId != ''">
+                AND ActualPositionID = #{actualPositionId,jdbcType=CHAR}
+            </if>
+            <if test="isCheckedIn != null and isCheckedIn != ''">
+                AND IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR}
+            </if>
+        </where>
+        ORDER BY ActivityID, VolunteerID
+    </select>
+
+    <select id="selectByVolunteerId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM tbl_VolunteerActivityParticipation
+        WHERE VolunteerID = #{volunteerId,jdbcType=CHAR}
+        ORDER BY ActivityID
+    </select>
+
+    <select id="selectByActivityId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM tbl_VolunteerActivityParticipation
+        WHERE ActivityID = #{activityId,jdbcType=CHAR}
+        ORDER BY VolunteerID
+    </select>
+
+    <select id="selectByActivityAndPosition" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM tbl_VolunteerActivityParticipation
+        WHERE ActivityID = #{activityId,jdbcType=CHAR} AND ActualPositionID = #{actualPositionId,jdbcType=CHAR}
+        ORDER BY VolunteerID
+    </select>
+
+</mapper>
