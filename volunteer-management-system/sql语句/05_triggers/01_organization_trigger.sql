@@ -219,9 +219,9 @@ GO
 PRINT N'触发器 [trg_update_org_training_count] 已创建/更新。';
 GO
 
--- 触发器 2.1: trg_update_act_planned_total_hours
+-- 触发器 2.1: trg_prevent_delete_last_timeslot_and_update_parent
 -- 监控表：dbo.tbl_ActivityTimeslot (活动/培训时段表)
--- 触发事件：AFTER INSERT, UPDATE, DELETE (在时段记录被插入、更新或删除之后)
+-- 触发事件：INSTEAD OF DELETE (在时段记录被删除之前)
 -- 核心功能：当某活动的详细时段发生变化时，自动重新计算并更新该活动在 
 --            tbl_VolunteerActivity 表中的 ActivityDurationHours (计划总时长) 字段。
 --            (此触发器仅针对活动，不处理培训的总时长)
@@ -459,68 +459,69 @@ GO
 --            或已报名且有效的培训（tbl_VolunteerTrainingParticipation 和 tbl_VolunteerTraining）
 --            的总体时间存在重叠。如果存在时间冲突，则报错并不执行插入；否则，执行原插入操作。
 --------------------------------------------------------------------------------
-IF OBJECT_ID('dbo.trg_check_activity_application_time_conflict', 'TR') IS NOT NULL
-    DROP TRIGGER dbo.trg_check_activity_application_time_conflict;
-GO
+-- THIS TRIGGER IS REDUNDANT AND CONFLICTS WITH trg_InsteadInsert_Application IN 07_id_generation_triggers.sql
+-- IT SHOULD BE REMOVED FROM THIS FILE.
+-- IF OBJECT_ID('dbo.trg_check_activity_application_time_conflict', 'TR') IS NOT NULL
+--     DROP TRIGGER dbo.trg_check_activity_application_time_conflict;
+-- GO
+-- CREATE TRIGGER dbo.trg_check_activity_application_time_conflict
+-- ON dbo.tbl_VolunteerActivityApplication
+-- INSTEAD OF INSERT
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+--     DECLARE @VolunteerID CHAR(15);
+--     DECLARE @NewActivityID CHAR(15);
+--     DECLARE @NewActivityStartTime SMALLDATETIME;
+--     DECLARE @NewActivityEndTime SMALLDATETIME;
+--     DECLARE @ConflictEventID CHAR(15);
+--     DECLARE @ConflictEventType NVARCHAR(20);
 
-CREATE TRIGGER dbo.trg_check_activity_application_time_conflict
-ON dbo.tbl_VolunteerActivityApplication
-INSTEAD OF INSERT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    DECLARE @VolunteerID CHAR(15);
-    DECLARE @NewActivityID CHAR(15);
-    DECLARE @NewActivityStartTime SMALLDATETIME;
-    DECLARE @NewActivityEndTime SMALLDATETIME;
-    DECLARE @ConflictEventID CHAR(15);
-    DECLARE @ConflictEventType NVARCHAR(20);
+--     SELECT @VolunteerID = i.VolunteerID, @NewActivityID = i.ActivityID FROM inserted i;
 
-    SELECT @VolunteerID = i.VolunteerID, @NewActivityID = i.ActivityID FROM inserted i;
+--     SELECT @NewActivityStartTime = va.StartTime, @NewActivityEndTime = va.EndTime
+--     FROM dbo.tbl_VolunteerActivity va WHERE va.ActivityID = @NewActivityID;
 
-    SELECT @NewActivityStartTime = va.StartTime, @NewActivityEndTime = va.EndTime
-    FROM dbo.tbl_VolunteerActivity va WHERE va.ActivityID = @NewActivityID;
+--     IF @NewActivityStartTime IS NULL OR @NewActivityEndTime IS NULL
+--     BEGIN
+--         RAISERROR(N'无法获取新报名活动 "%s" 的有效时间范围。报名失败。', 16, 1, @NewActivityID);
+--         RETURN;
+--     END
 
-    IF @NewActivityStartTime IS NULL OR @NewActivityEndTime IS NULL
-    BEGIN
-        RAISERROR(N'无法获取新报名活动 "%s" 的有效时间范围。报名失败。', 16, 1, @NewActivityID);
-        RETURN;
-    END
+--     -- 检查与已确认参加的活动的时间冲突
+--     SELECT TOP 1 @ConflictEventID = vap.ActivityID, @ConflictEventType = N'活动'
+--     FROM dbo.tbl_VolunteerActivityParticipation vap
+--     JOIN dbo.tbl_VolunteerActivity va_existing ON vap.ActivityID = va_existing.ActivityID
+--     WHERE vap.VolunteerID = @VolunteerID
+--       AND NOT (@NewActivityEndTime <= va_existing.StartTime OR @NewActivityStartTime >= va_existing.EndTime); 
 
-    -- 检查与已确认参加的活动的时间冲突
-    SELECT TOP 1 @ConflictEventID = vap.ActivityID, @ConflictEventType = N'活动'
-    FROM dbo.tbl_VolunteerActivityParticipation vap
-    JOIN dbo.tbl_VolunteerActivity va_existing ON vap.ActivityID = va_existing.ActivityID
-    WHERE vap.VolunteerID = @VolunteerID
-      AND NOT (@NewActivityEndTime <= va_existing.StartTime OR @NewActivityStartTime >= va_existing.EndTime); 
+--     IF @ConflictEventID IS NOT NULL
+--     BEGIN
+--         RAISERROR(N'报名失败：新活动与您已确认参加的%s "%s" 存在时间冲突。', 16, 1, @ConflictEventType, @ConflictEventID);
+--         RETURN;
+--     END
 
-    IF @ConflictEventID IS NOT NULL
-    BEGIN
-        RAISERROR(N'报名失败：新活动与您已确认参加的%s "%s" 存在时间冲突。', 16, 1, @ConflictEventType, @ConflictEventID);
-        RETURN;
-    END
+--     -- 检查与已确认参加的、且有效的（非已结束/已停用/审核不通过）培训的时间冲突
+--     SET @ConflictEventID = NULL; 
+--     SELECT TOP 1 @ConflictEventID = vtp.TrainingID, @ConflictEventType = N'培训'
+--     FROM dbo.tbl_VolunteerTrainingParticipation vtp
+--     JOIN dbo.tbl_VolunteerTraining vt_existing ON vtp.TrainingID = vt_existing.TrainingID
+--     WHERE vtp.VolunteerID = @VolunteerID
+--       AND vt_existing.TrainingStatus NOT IN (N'已结束', N'已停用', N'审核不通过') 
+--       AND NOT (@NewActivityEndTime <= vt_existing.StartTime OR @NewActivityStartTime >= vt_existing.EndTime); 
 
-    -- 检查与已确认参加的、且有效的（非已结束/已停用/审核不通过）培训的时间冲突
-    SET @ConflictEventID = NULL; 
-    SELECT TOP 1 @ConflictEventID = vtp.TrainingID, @ConflictEventType = N'培训'
-    FROM dbo.tbl_VolunteerTrainingParticipation vtp
-    JOIN dbo.tbl_VolunteerTraining vt_existing ON vtp.TrainingID = vt_existing.TrainingID
-    WHERE vtp.VolunteerID = @VolunteerID
-      AND vt_existing.TrainingStatus NOT IN (N'已结束', N'已停用', N'审核不通过') 
-      AND NOT (@NewActivityEndTime <= vt_existing.StartTime OR @NewActivityStartTime >= vt_existing.EndTime); 
+--     IF @ConflictEventID IS NOT NULL
+--     BEGIN
+--         RAISERROR(N'报名失败：新活动与您已报名且有效的%s "%s" 存在时间冲突。', 16, 1, @ConflictEventType, @ConflictEventID);
+--         RETURN;
+--     END
 
-    IF @ConflictEventID IS NOT NULL
-    BEGIN
-        RAISERROR(N'报名失败：新活动与您已报名且有效的%s "%s" 存在时间冲突。', 16, 1, @ConflictEventType, @ConflictEventID);
-        RETURN;
-    END
-
-    INSERT INTO dbo.tbl_VolunteerActivityApplication (ApplicationID, VolunteerID, ActivityID, IntendedPositionID, ApplicationTime, ApplicationStatus)
-    SELECT ApplicationID, VolunteerID, ActivityID, IntendedPositionID, ApplicationTime, ApplicationStatus FROM inserted;
-END;
-GO
-PRINT N'触发器 [trg_check_activity_application_time_conflict] 已创建/更新。';
-GO
+--     INSERT INTO dbo.tbl_VolunteerActivityApplication (ApplicationID, VolunteerID, ActivityID, IntendedPositionID, ApplicationTime, ApplicationStatus)
+--     SELECT ApplicationID, VolunteerID, ActivityID, IntendedPositionID, ApplicationTime, ApplicationStatus FROM inserted;
+-- END;
+-- GO
+-- PRINT N'触发器 [trg_check_activity_application_time_conflict] 已创建/更新。';
+-- GO
 
 
 -- 触发器 4.2: trg_check_training_participation_time_conflict
