@@ -1,4 +1,4 @@
-USE volunteer_web_02; -- 确保在正确的数据库上下文中执行
+USE volunteer_db_test;
 GO
 
 PRINT N'--- 开始测试ID自动生成触发器 ---';

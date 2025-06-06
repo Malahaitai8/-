@@ -1,4 +1,4 @@
-USE volunteer_web_02; -- 确保在正确的数据库上下文中执行
+USE volunteer_db_test;
 GO
 
 PRINT N'--- 开始测试志愿者及组织规模相关触发器 ---';
@@ -181,7 +181,7 @@ GO
 --------------------------------------------------------------------------------
 -- 测试触发器 V.1: trg_UpdateOrgSizeOnMembershipChange
 --------------------------------------------------------------------------------
-USE volunteer_web_02; -- 确保在正确的数据库上下文中执行
+USE volunteer_db_test;
 GO
 
 PRINT N'--- 开始测试触发器 trg_UpdateOrgSizeOnMembershipChange ---';

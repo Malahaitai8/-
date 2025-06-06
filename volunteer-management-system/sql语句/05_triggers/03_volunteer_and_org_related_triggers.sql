@@ -1,4 +1,4 @@
-USE volunteer_web_02; -- 确保在正确的数据库上下文中执行
+USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
 GO
 
 PRINT N'--- 开始创建志愿者及组织规模相关触发器 ---';

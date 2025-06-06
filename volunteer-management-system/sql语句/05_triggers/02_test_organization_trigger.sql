@@ -1,4 +1,4 @@
-USE volunteer_web_02; -- 确保在正确的数据库上下文中执行
+USE volunteer_db_test;
 GO
 
 PRINT N'--- 开始测试组织机构相关触发器 ---';
@@ -136,7 +136,7 @@ SELECT ActivityID, ActivityDurationHours FROM dbo.tbl_VolunteerActivity WHERE Ac
 --------------------------------------------------------------------------------
 -- 测试触发器 3.1: trg_update_activity_accepted_count
 --------------------------------------------------------------------------------
-USE volunteer_web_02; -- 确保在正确的数据库上下文中执行
+USE volunteer_db_test;
 GO
 
 PRINT N'--- 测试触发器 3.1: trg_update_activity_accepted_count ---';
@@ -427,7 +427,7 @@ IF EXISTS (SELECT 1 FROM dbo.tbl_VolunteerTrainingParticipation WHERE VolunteerI
 -- If vol_001 was originally participating with IsCheckedIn = N'是', re-insert that if needed.
 GO
 
-USE volunteer_web_02; -- 确保在正确的数据库上下文中执行
+USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
 GO
 
 --------------------------------------------------------------------------------
@@ -614,7 +614,7 @@ GO
 --------------------------------------------------------------------------------
 -- 测试触发器 (合并版): trg_instead_update_activity_participation
 --------------------------------------------------------------------------------
-USE volunteer_web_02; -- 确保在正确的数据库上下文中执行
+USE volunteer_db_test;
 GO
 
 PRINT N'--- 开始测试触发器 trg_instead_update_activity_participation (已修正版) ---';
