@@ -1,19 +1,19 @@
-// src/stores/volunteerActivityStore.js
 import { defineStore } from 'pinia';
 import request from '@/utils/request.js'; // 您的请求工具
+import { ElMessage } from 'element-plus'; // 导入 ElMessage 用于提示用户
 
 export const useVolunteerActivityStore = defineStore('volunteerActivity', {
   state: () => ({
     activities: [], // 用于存储活动列表
     currentActivityDetail: null, // 用于存储当前查看的活动详情
-    isLoadingList: false,
-    isLoadingDetail: false,
+    isLoadingList: false, //
+    isLoadingDetail: false, //
     isSubmittingApplication: false, // 提交活动申请的状态
     error: null, // 通用错误状态
     pagination: {
-      currentPage: 1,
-      pageSize: 10,
-      totalItems: 0,
+      currentPage: 1, //
+      pageSize: 10, //
+      totalItems: 0, //
     },
   }),
 
@@ -35,7 +35,7 @@ export const useVolunteerActivityStore = defineStore('volunteerActivity', {
       if (!activityData || !activityData.orgId) {
         this.error = '申请活动失败：组织ID (OrgID) 缺失。';
         console.error('Store (VolunteerActivity): OrgID is required to apply for an activity.');
-        // 为了与组件中的错误处理逻辑一致，返回一个包含code和msg的对象
+        ElMessage.error(this.error); // 添加前端提示
         return { code: '400', msg: '组织ID (OrgID) 不能为空以提交申请' };
       }
 
@@ -44,10 +44,12 @@ export const useVolunteerActivityStore = defineStore('volunteerActivity', {
       try {
         console.log('Store (VolunteerActivity): Submitting activity application with data:', activityData);
         // 后端API端点
-        const response = await request.post('/volunteer-activity/apply', activityData);
+        // *** 关键修改：将路径从 '/volunteer-activity/apply' 改为 '/volunteerActivity/apply' ***
+        const response = await request.post('/volunteerActivity/apply', activityData);
 
         if (response.code === '200') {
           console.log('Store (VolunteerActivity): Application submitted successfully.', response.data);
+          ElMessage.success(response.msg || '活动申请成功提交！'); // 添加前端提示
           // 申请成功后可以进行的操作，例如：
           // 1. 如果当前在活动列表页，可以刷新活动列表
           // if (router.currentRoute.value.name === 'OrganizationActivityList') { // 假设的路由名称
@@ -57,14 +59,17 @@ export const useVolunteerActivityStore = defineStore('volunteerActivity', {
         } else {
           this.error = response.msg || '提交活动申请失败';
           console.error('Store (VolunteerActivity): Failed to submit application API error:', response.msg);
+          ElMessage.error(this.error); // 添加前端提示
         }
         return response; // 返回完整的后端响应给调用方
       } catch (err) {
         console.error('Store (VolunteerActivity): Network or system error submitting application:', err);
-        this.error = '提交活动申请时发生网络或系统错误。';
+        // 包含 AxiosError 的 message，提供更详细的网络错误信息
+        this.error = '提交活动申请时发生网络或系统错误。' + (err.message || '');
+        ElMessage.error(this.error); // 添加前端提示
         // 尝试从错误对象中提取后端可能返回的错误信息
         if (err.response && err.response.data) {
-            return err.response.data; // 返回后端错误信息结构
+          return err.response.data; // 返回后端错误信息结构
         }
         // 如果无法提取，则抛出原始错误或返回通用错误结构
         return { code: '500', msg: this.error }; // 或者 throw err;

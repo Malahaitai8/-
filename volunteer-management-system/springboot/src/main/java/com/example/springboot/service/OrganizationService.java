@@ -58,14 +58,12 @@ public class OrganizationService {
         if (!StringUtils.hasText(organization.getOrgName())) {
             throw new CustomException("400", "组织名称不能为空");
         }
-        // 校验负责人电话和组织规模
         if (!StringUtils.hasText(organization.getContactPersonPhone())) {
             throw new CustomException("400", "负责人联系方式不能为空");
         }
         if (organization.getOrgScale() == null || organization.getOrgScale() <= 0) {
             throw new CustomException("400", "组织规模必须为大于0的整数");
         }
-
 
         Organization dbOrganization = organizationMapper.selectByOrgLoginUserName(organization.getOrgLoginUserName().trim());
         if (dbOrganization != null) {
@@ -180,9 +178,9 @@ public class OrganizationService {
         }
         // 实际项目中密码应加密
         // organization.setOrgLoginPassword(passwordEncoder.encode(organization.getOrgLoginPassword()));
-        if (!StringUtils.hasText(organization.getOrgId())) { // 如果前端没传ID，则生成
-            organization.setOrgId("ORG_" + UUID.randomUUID().toString().substring(0, 11).toUpperCase().replace("-",""));
-        }
+//        if (!StringUtils.hasText(organization.getOrgId())) { // 如果前端没传ID，则生成
+//            organization.setOrgId("ORG_" + UUID.randomUUID().toString().substring(0, 11).toUpperCase().replace("-",""));
+//        }
         // 设置默认值
         organization.setOrgRating(organization.getOrgRating() == null ? 0.0 : organization.getOrgRating());
         organization.setOrgAccountStatus(StringUtils.hasText(organization.getOrgAccountStatus()) ? organization.getOrgAccountStatus() : "待审核");
