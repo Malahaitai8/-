@@ -2,6 +2,11 @@
   <el-card>
     <div class="header">
       <h1>人员管理</h1>
+      <el-input
+          v-model="searchQuery"
+          placeholder="搜索人员"
+          style="width: 200px; margin-left: auto;"
+      ></el-input>
     </div>
     <el-button
         type="primary"
@@ -52,7 +57,7 @@ export default {
   },
   methods: {
     home() {
-      this.$router.push('/');
+      this.$router.push('/organization-home');
     },
     member() {
       this.$router.push('/manage-personnel');

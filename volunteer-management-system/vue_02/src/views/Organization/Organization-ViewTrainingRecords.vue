@@ -2,6 +2,11 @@
   <el-card>
     <div class="header">
       <h1>志愿培训记录</h1>
+      <el-input
+          v-model="searchQuery"
+          placeholder="搜索志愿培训"
+          style="width: 200px; margin-left: auto;"
+      ></el-input>
     </div>
     <el-table :data="activity" style="width: 100%; margin-top: 100px">
       <el-table-column prop="id" label="志愿培训ID" width="200">
@@ -44,7 +49,7 @@ export default {
   },
   methods: {
     home() {
-      this.$router.push('/');
+      this.$router.push('/organization-home');
     },
     viewDetails(){
       this.$router.push('/detailed-train-info');
