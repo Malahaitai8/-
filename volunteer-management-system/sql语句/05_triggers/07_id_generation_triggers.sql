@@ -16,12 +16,13 @@
  * ============================================================================
 */
 
-USE volunteer_db_test;
+--USE volunteer_web_02; -- 确保在正确的数据库上下文中执行
+GO
+--USE volunter_db_test
 GO
 
 PRINT N'--- 开始创建ID生成所需的SEQUENCE对象 ---';
 GO
-
 -- 如果存在则删除旧的SEQUENCE对象
 IF OBJECT_ID('dbo.VolunteerID_Seq', 'SO') IS NOT NULL DROP SEQUENCE dbo.VolunteerID_Seq;
 IF OBJECT_ID('dbo.OrganizationID_Seq', 'SO') IS NOT NULL DROP SEQUENCE dbo.OrganizationID_Seq;

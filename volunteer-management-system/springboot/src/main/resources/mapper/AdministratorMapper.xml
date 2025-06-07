@@ -65,7 +65,7 @@
             <!-- Password = #{password, jdbcType=NVARCHAR}, -->
             ServiceArea = #{serviceArea},
             CurrentPosition = #{currentPosition},
-            PermissionLevel = #{permissionLevel,},
+            PermissionLevel = #{permissionLevel,}
         WHERE AdminID = #{adminId, jdbcType=CHAR}
     </update>
 
