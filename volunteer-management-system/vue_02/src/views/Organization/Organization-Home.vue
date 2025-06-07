@@ -24,9 +24,11 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import{useOrganizationStore} from "@/stores/organizationStore.js";
+import { useAdminStore } from '@/stores/adminStore.js';
 import {computed, onMounted} from "vue";
 
 const organizationStore = useOrganizationStore();
+const adminStore = useAdminStore();
 organizationStore.initializeStore();
 const displayNameFromStore = computed(() => organizationStore.displayName);
 const isAuthenticated = computed(() => adminStore.isAuthenticated);

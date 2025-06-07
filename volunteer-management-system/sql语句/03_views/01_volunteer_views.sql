@@ -1,3 +1,6 @@
+USE volunteer_db_test
+GO
+
 IF OBJECT_ID('dbo.v_VolunteerAuxiliaryRating', 'V') IS NOT NULL
     DROP VIEW dbo.v_VolunteerAuxiliaryRating;
 GO
@@ -33,7 +36,6 @@ SELECT
 FROM
     tbl_Volunteer;                   -- 您的志愿者表名
 
-PRINT N'视图 [dbo.v_VolunteerAuxiliaryRating] 已成功创建/更新。';
 GO
 
 
