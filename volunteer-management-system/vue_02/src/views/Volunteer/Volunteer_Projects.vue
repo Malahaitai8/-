@@ -13,11 +13,20 @@
       header-cell-class-name="table-header"
     >
       <el-table-column prop="name" label="项目名称" align="center" />
-      <el-table-column prop="contact" label="联系方式" align="center" />
-      <el-table-column prop="joinDate" label="加入时间" align="center" />
       <el-table-column prop="position" label="岗位" align="center" />
-      <el-table-column prop="serviceTime" label="服务时长" align="center" />
-      <el-table-column prop="status" label="状态" align="center" />
+      <el-table-column prop="signIn" label="是否签到" align="center" />
+      <el-table-column prop="score" label="评价分数" align="center">
+        <template #default="scope">
+          <span v-if="scope.row.score">{{ scope.row.score }} 分</span>
+          <span v-else>未评价</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="评价" align="center">
+        <template #default="scope">
+          <el-button size="small" type="primary" @click="openEvaluateDialog(scope.row)">评价</el-button>
+          <el-button size="small" type="danger" @click="openComplaintDialog(scope.row)">我要投诉</el-button>
+        </template>
+      </el-table-column>
     </el-table>
     <!-- 待定项目表格 -->
     <el-table
@@ -32,10 +41,9 @@
           <span style="color:#d9001b;font-weight:bold;">{{ scope.row.name }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="contact" label="联系方式" align="center" />
       <el-table-column prop="position" label="岗位" align="center" />
       <el-table-column prop="status" label="状态" align="center" />
-      <el-table-column label="操作" align="center">
+      <el-table-column label="评价" align="center">
         <template #default="scope">
           <el-button type="text" style="color:#d9001b;" @click="handleApply(scope.row)">申请中</el-button>
           <el-button type="text" style="color:#d9001b;" @click="handleDelete(scope.row)">删除</el-button>
@@ -58,6 +66,20 @@
       :page-size="pageSize"
       v-model:current-page="myCurrentPage"
     />
+    <!-- 评价弹窗 -->
+    <el-dialog title="填写评价" v-model="evaluateDialogVisible" width="400px">
+      <el-rate
+        v-model="evaluateScore"
+        :max="10"
+        show-score
+        score-template="{value} 分"
+        style="margin-bottom: 16px;"
+      />
+      <template #footer>
+        <el-button @click="evaluateDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitEvaluate">提交</el-button>
+      </template>
+    </el-dialog>
     <el-pagination
       v-if="activeTab === 'pendingProjects' && pendingProjects.length > pageSize"
       style="margin-top: 24px; text-align: right;"
@@ -67,7 +89,43 @@
       :page-size="pageSize"
       v-model:current-page="pendingCurrentPage"
     />
-
+    <!-- 投诉弹窗 -->
+    <el-dialog title="我要投诉" v-model="complaintDialogVisible" width="500px">
+      <el-form :model="complaintForm" ref="complaintFormRef">
+        <el-form-item label="投诉类型" :required="true">
+          <el-select v-model="complaintForm.type" placeholder="请选择投诉类型">
+            <el-option label="服务质量" value="服务质量" />
+            <el-option label="行为不当" value="行为不当" />
+            <el-option label="信息虚假" value="信息虚假" />
+            <el-option label="活动违规" value="活动违规" />
+            <el-option label="其他" value="其他" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="投诉内容" :required="true">
+          <el-input type="textarea" v-model="complaintForm.content" :rows="4" placeholder="请填写投诉内容" />
+        </el-form-item>
+        <el-form-item label="证据文件">
+          <el-upload
+            class="upload-demo"
+            action=""
+            :auto-upload="false"
+            :show-file-list="true"
+            :on-change="handleEvidenceChange"
+            :file-list="complaintForm.evidenceList"
+            accept=".jpg,.jpeg,.png,.txt,.pdf"
+          >
+            <el-button size="small">选择文件</el-button>
+            <template #tip>
+              <div style="color: #aaa;">支持图片或文本文件，非必填</div>
+            </template>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="cancelComplaint">取消</el-button>
+        <el-button type="primary" @click="submitComplaint">提交</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -81,33 +139,25 @@ export default {
     const myProjects = ref([
       {
         name: '社区卫生宣传',
-        contact: '张老师 13800138000',
-        joinDate: '2024-04-01',
         position: '宣传员',
-        serviceTime: '12小时',
-        status: '已完成'
+        signIn: '是',
       },
       {
         name: '无偿献血活动',
-        contact: '李主任 13900139000',
-        joinDate: '2024-03-15',
         position: '志愿者',
-        serviceTime: '8小时',
-        status: '进行中'
-      }
+        signIn: '是',
+      },
       ])
     const pendingProjects = ref([
       {
         name: '“铸魂达尔罕”志愿服务项目',
-        contact: '张坤',
         position: '志愿者',
-        status: '申请中'
+        signIn: '是',
       },
       {
         name: '社区防疫宣传',
-        contact: '李明',
         position: '宣传员',
-        status: '申请中'
+        signIn: '是',
       }
     ])
     // 分页相关
@@ -151,6 +201,55 @@ export default {
       alert(`搜索项目：${searchProject.value}`)
     }
 
+    // 评价弹窗相关
+    const evaluateDialogVisible = ref(false)
+    const evaluateScore = ref(0)
+    const openEvaluateDialog = (row) => {
+      evaluateDialogVisible.value = true
+      evaluateScore.value = row.score || 0
+      currentEvaluateRow.value = row
+    }
+    const submitEvaluate = () => {
+      evaluateDialogVisible.value = false
+      if (currentEvaluateRow.value) {
+        currentEvaluateRow.value.score = evaluateScore.value
+      }
+      window.$message ? window.$message.success(`评价提交成功！分数：${evaluateScore.value}`) : alert(`评价提交成功！分数：${evaluateScore.value}`)
+    }
+    const currentEvaluateRow = ref(null)
+
+    // 投诉相关
+    const complaintDialogVisible = ref(false)
+    const complaintForm = ref({
+      type: '',
+      content: '',
+      evidenceList: []
+    })
+    const complaintFormRef = ref(null)
+    const openComplaintDialog = (row) => {
+      complaintDialogVisible.value = true
+      complaintForm.value = { type: '', content: '', evidenceList: [] }
+    }
+    const handleEvidenceChange = (file, fileList) => {
+      complaintForm.value.evidenceList = fileList
+    }
+    const submitComplaint = () => {
+      if (!complaintForm.value.type) {
+        window.$message ? window.$message.error('请选择投诉类型！') : alert('请选择投诉类型！')
+        return
+      }
+      if (!complaintForm.value.content) {
+        window.$message ? window.$message.error('请填写投诉内容！') : alert('请填写投诉内容！')
+        return
+      }
+      complaintDialogVisible.value = false
+      window.$message ? window.$message.success('投诉成功！') : alert('投诉成功！')
+    }
+    const cancelComplaint = () => {
+      complaintDialogVisible.value = false
+      window.$message ? window.$message.info('投诉已取消') : alert('投诉已取消')
+    }
+
     return {
       myProjects,
       pendingProjects,
@@ -166,7 +265,19 @@ export default {
       handleChange,
       showMoreDialog,
       searchProject,
-      handleSearch
+      handleSearch,
+      evaluateDialogVisible,
+      evaluateScore,
+      openEvaluateDialog,
+      submitEvaluate,
+      currentEvaluateRow,
+      complaintDialogVisible,
+      complaintForm,
+      complaintFormRef,
+      openComplaintDialog,
+      handleEvidenceChange,
+      submitComplaint,
+      cancelComplaint
     }
   }
 }

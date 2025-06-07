@@ -6,11 +6,11 @@
         <span>我的队伍</span>
       </div>
       <el-button
-        type="danger"
-        size="small"
-        class="more-teams-btn"
-        @click="showMoreDialog = true"
-        round
+          type="danger"
+          size="small"
+          class="more-btn-in-menu"
+          @click="goToTeamsMore"
+          round
       >
         <el-icon style="vertical-align: middle; margin-right: 4px;">
           <Plus />
@@ -27,7 +27,6 @@
       header-cell-class-name="table-header"
     >
       <el-table-column prop="name" label="队伍名称" align="center" />
-      <el-table-column prop="contact" label="联系方式" align="center" />
       <el-table-column prop="joinDate" label="加入时间" align="center" />
       <el-table-column prop="status" label="状态" align="center" />
       <el-table-column label="操作" align="center">
@@ -52,16 +51,22 @@
       :page-size="pageSize"
       v-model:current-page="currentPage"
     />
-
-    <!-- 参加更多队伍弹窗 -->
-    <el-dialog title="参加更多队伍" v-model="showMoreDialog" width="400px">
-      <div style="text-align:center;">
-        <el-input placeholder="请输入队伍名称进行搜索" v-model="searchTeam" style="margin-bottom: 20px;" />
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-        <div style="margin-top: 20px; color: #888;">（此处可展示更多可加入的队伍列表）</div>
-      </div>
+    <!-- 队伍详情弹窗 -->
+    <el-dialog title="队伍详细信息" v-model="detailDialogVisible" width="500px">
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="组织ID">{{ detailData.id }}</el-descriptions-item>
+        <el-descriptions-item label="组织名称">{{ detailData.name }}</el-descriptions-item>
+        <el-descriptions-item label="联系方式">{{ detailData.contact }}</el-descriptions-item>
+        <el-descriptions-item label="服务区域">{{ detailData.area }}</el-descriptions-item>
+        <el-descriptions-item label="组织规模">{{ detailData.size }}</el-descriptions-item>
+        <el-descriptions-item label="组织评分">{{ detailData.score }}</el-descriptions-item>
+        <el-descriptions-item label="账户状态">{{ detailData.status }}</el-descriptions-item>
+        <el-descriptions-item label="总服务时长">{{ detailData.totalHours }}</el-descriptions-item>
+        <el-descriptions-item label="活动举办次数">{{ detailData.activityCount }}</el-descriptions-item>
+        <el-descriptions-item label="培训举办次数">{{ detailData.trainingCount }}</el-descriptions-item>
+      </el-descriptions>
       <template #footer>
-        <el-button @click="showMoreDialog = false">关闭</el-button>
+        <el-button @click="detailDialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -70,36 +75,66 @@
 <script>
 import { ref, computed } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'Teams',
   components: { Plus }, // 注册 Plus 图标
   setup() {
+    const router = useRouter()
     // 模拟参与队伍数据
     const teams = ref([
       {
+        id: 'T001',
         name: '社区志愿服务队',
-        contact: '李老师 13112345678',
         joinDate: '2023-08-10',
-        status: '正常'
+        status: '正常',
+        contact: '13800000001',
+        area: '北京',
+        size: '50人',
+        score: 9.2,
+        totalHours: '1200小时',
+        activityCount: 15,
+        trainingCount: 6
       },
       {
+        id: 'T002',
         name: '城市环保志愿团',
-        contact: '王队长 13223456789',
         joinDate: '2023-11-20',
-        status: '活跃'
+        status: '活跃',
+        contact: '13800000002',
+        area: '上海',
+        size: '80人',
+        score: 8.8,
+        totalHours: '2000小时',
+        activityCount: 22,
+        trainingCount: 10
       },
-       {
+      {
+        id: 'T003',
         name: '红十字志愿服务队',
-        contact: '赵主任 13334567890',
         joinDate: '2024-01-15',
-        status: '正常'
+        status: '正常',
+        contact: '13800000003',
+        area: '广州',
+        size: '40人',
+        score: 9.5,
+        totalHours: '900小时',
+        activityCount: 8,
+        trainingCount: 3
       },
-       {
+      {
+        id: 'T004',
         name: '青年志愿者协会',
-        contact: '钱同学 13445678901',
         joinDate: '2024-03-01',
-        status: '活跃'
+        status: '活跃',
+        contact: '13800000004',
+        area: '深圳',
+        size: '120人',
+        score: 9.0,
+        totalHours: '3500小时',
+        activityCount: 30,
+        trainingCount: 15
       }
     ])
     // 分页相关
@@ -127,12 +162,17 @@ export default {
         alert(`已申请退出队伍：${row.name}`)
       }
     }
+    // 队伍详情弹窗相关
+    const detailDialogVisible = ref(false)
+    const detailData = ref({})
     const handleViewDetail = (row) => {
-       alert(`查看队伍详情：${row.name}`)
-       // 这里可以实现跳转到队伍详情页面
-       // router.push({ path: '/teams/detail', query: { teamId: row.id } }) // 假设队伍有id
+      detailData.value = { ...row }
+      detailDialogVisible.value = true
     }
 
+    const goToTeamsMore = () => {
+      router.push('/volunteer/teams-more')
+    }
 
     return {
       teams,
@@ -143,7 +183,10 @@ export default {
       searchTeam,
       handleSearch,
       handleLeave,
-      handleViewDetail
+      handleViewDetail,
+      goToTeamsMore,
+      detailDialogVisible,
+      detailData
     }
   }
 }

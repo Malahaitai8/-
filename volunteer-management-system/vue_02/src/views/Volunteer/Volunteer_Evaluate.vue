@@ -12,8 +12,14 @@
       style="width: 100%; margin-top: 20px;"
       header-cell-class-name="table-header"
     >
+      <el-table-column prop="type" label="评价类型" align="center" />
       <el-table-column prop="group" label="团体名称" align="center" />
-      <el-table-column prop="content" label="评价内容" align="center" />
+      <el-table-column prop="score" label="评价分数" align="center">
+        <template #default="scope">
+          <span v-if="scope.row.score">{{ scope.row.score }} 分</span>
+          <span v-else>未评分</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="project" label="项目名称" align="center" />
       <el-table-column prop="date" label="评价时间" align="center" />
     </el-table>
@@ -44,46 +50,60 @@ export default {
     // 模拟评价数据
     const reviews = ref([
       {
+        type: '志愿活动',
         group: '青年志愿者协会',
         content: '服务态度非常好，积极参与各项活动。',
         project: '社区卫生宣传',
-        date: '2024-05-01 10:23'
+        date: '2024-05-01 10:23',
+        score: 9
       },
       {
+        type: '志愿活动',
         group: '红十字会',
         content: '工作认真负责，团队协作能力强。',
         project: '无偿献血活动',
-        date: '2024-04-15 14:10'
+        date: '2024-04-15 14:10',
+        score: 10
       },
       {
+        type: '志愿活动',
         group: '环保志愿团',
         content: '热心公益，表现优秀。',
         project: '城市清洁行动',
-        date: '2024-03-20 09:00'
+        date: '2024-03-20 09:00',
+        score: 8
       },
       {
+        type: '志愿活动',
         group: '助残志愿队',
         content: '关爱弱势群体，服务细致周到。',
         project: '助残日活动',
-        date: '2024-02-28 16:45'
+        date: '2024-02-28 16:45',
+        score: 9
       },
       {
+        type: '培训',
         group: '社区志愿服务中心',
         content: '积极参与社区服务，获得一致好评。',
         project: '社区防疫宣传',
-        date: '2024-01-18 11:30'
+        date: '2024-01-18 11:30',
+        score: 10
       },
       {
+        type: '培训',
         group: '社区志愿服务中心',
         content: '积极参与社区服务，获得一致好评。',
         project: '社区防疫宣传',
-        date: '2024-01-18 11:30'
+        date: '2024-01-18 11:30',
+        score: 7
       },
       {
+        type: '培训',
         group: '社区志愿服务中心',
         content: '积极参与社区服务，获得一致好评。',
         project: '社区防疫宣传',
-        date: '2024-01-18 11:30'
+        date: '2024-01-18 11:30',
+        score: 8
       }
     ])
     // 分页相关

@@ -13,11 +13,9 @@
         header-cell-class-name="table-header"
     >
       <el-table-column prop="name" label="项目名称" align="center" />
-      <el-table-column prop="contact" label="联系方式" align="center" />
-      <el-table-column prop="joinDate" label="加入时间" align="center" />
-      <el-table-column prop="position" label="岗位" align="center" />
-      <el-table-column prop="serviceTime" label="服务时长" align="center" />
-      <el-table-column prop="status" label="状态" align="center" />
+      <el-table-column prop="position" label="意向岗位" align="center" />
+      <el-table-column prop="joinDate" label="申请时间" align="center" />
+      <el-table-column prop="status" label="申请状态" align="center" />
     </el-table>
     <!-- 空数据提示 -->
     <div v-else class="empty-box">
@@ -47,26 +45,20 @@ export default {
     const projects = ref([
       {
         name: '“铸魂达尔罕”志愿服务项目',
-        contact: '张坤 13800138001',
         joinDate: '2024-05-01',
         position: '志愿者',
-        serviceTime: '—',
         status: '申请中'
       },
       {
         name: '社区防疫宣传',
-        contact: '李明 13900139002',
         joinDate: '2024-04-15',
         position: '宣传员',
-        serviceTime: '—',
         status: '申请中'
       },
       {
         name: '环保知识普及',
-        contact: '王芳 13700137003',
         joinDate: '2024-03-20',
         position: '志愿者',
-        serviceTime: '—',
         status: '申请中'
       }
     ])

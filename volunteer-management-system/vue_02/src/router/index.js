@@ -123,7 +123,17 @@ const routes = [
                 name: 'ProjectApply',
                 component: () => import('../views/Volunteer/Volunteer_PendingProjects.vue')
             },
-            {path: 'teams', name: 'Teams', component: () => import('../views/Volunteer/Volunteer_Teams.vue')}]
+            {path: 'teams', name: 'Teams', component: () => import('../views/Volunteer/Volunteer_Teams.vue')},
+        {
+        path: 'teams-more',
+        name: 'TeamsMore',
+        component: () => import('../views/Volunteer/Volunteer_TeamsMore.vue')
+      },
+      {
+        path: 'projects-more',
+        name: 'ProjectsMore',
+        component: () => import('../views/Volunteer/Volunteer_ProjectsMore.vue')
+      }]
     },
 
 

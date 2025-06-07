@@ -13,10 +13,17 @@
       header-cell-class-name="table-header"
     >
       <el-table-column prop="complaintTime" label="投诉时间" align="center" />
+      <el-table-column prop="target" label="投诉对象" align="center" />
+      <el-table-column prop="type" label="投诉类型" align="center" />
       <el-table-column prop="content" label="投诉内容" align="center" />
-      <el-table-column prop="handleTime" label="处理时间" align="center" />
-      <el-table-column prop="reply" label="回复内容" align="center" />
-      <el-table-column prop="handler" label="处理者" align="center" />
+      <el-table-column prop="state" label="处理状态" align="center" />
+      <el-table-column prop="result" label="处理结果" align="center" />
+      <el-table-column label="回访内容" align="center">
+        <template #default="scope">
+          <el-button size="small" type="success" @click="handleSatisfy(scope.row)">满意</el-button>
+          <el-button size="small" type="danger" @click="handleUnsatisfy(scope.row)">不满意</el-button>
+        </template>
+      </el-table-column>
     </el-table>
     <!-- 空数据提示 -->
     <div v-else class="empty-box">
@@ -46,45 +53,57 @@ export default {
     const complaints = ref([
       {
         complaintTime: '2024-05-10 09:30',
+        target: '志愿服务队A',
+        type: '活动安排',
         content: '志愿活动组织不合理，时间安排冲突。',
-        handleTime: '2024-05-11 10:00',
-        reply: '已优化活动时间安排，感谢反馈。',
-        handler: '管理员A'
+        state: '已处理',
+        result: '调整活动时间',
+        reply: '已优化活动时间安排，感谢反馈。'
       },
       {
         complaintTime: '2024-04-22 14:15',
+        target: '物资管理员',
+        type: '物资分配',
         content: '活动物资分配不均。',
-        handleTime: '2024-04-23 09:20',
-        reply: '已重新分配物资，确保公平。',
-        handler: '管理员B'
+        state: '已处理',
+        result: '重新分配物资',
+        reply: '已重新分配物资，确保公平。'
       },
       {
         complaintTime: '2024-03-18 16:40',
+        target: '审核员',
+        type: '报名审核',
         content: '报名信息未及时审核。',
-        handleTime: '2024-03-19 08:50',
-        reply: '已加快审核进度，感谢理解。',
-        handler: '管理员C'
+        state: '已处理',
+        result: '加快审核进度',
+        reply: '已加快审核进度，感谢理解。'
       },
       {
         complaintTime: '2024-02-05 11:00',
+        target: '志愿服务中心',
+        type: '证书发放',
         content: '志愿者服务证书未发放。',
-        handleTime: '2024-02-06 13:30',
-        reply: '证书已补发，请查收。',
-        handler: '管理员A'
+        state: '已处理',
+        result: '补发证书',
+        reply: '证书已补发，请查收。'
       },
       {
         complaintTime: '2024-01-12 15:25',
+        target: '活动负责人',
+        type: '现场管理',
         content: '活动现场秩序混乱。',
-        handleTime: '2024-01-13 10:10',
-        reply: '已加强现场管理，感谢建议。',
-        handler: '管理员B'
+        state: '已处理',
+        result: '加强管理',
+        reply: '已加强现场管理，感谢建议。'
       },
       {
         complaintTime: '2023-12-20 10:00',
+        target: '系统管理员',
+        type: '系统故障',
         content: '报名系统偶尔无法登录。',
-        handleTime: '2023-12-21 09:00',
-        reply: '系统已修复，感谢反馈。',
-        handler: '管理员C'
+        state: '已处理',
+        result: '修复系统',
+        reply: '系统已修复，感谢反馈。'
       }
     ])
     // 分页相关
@@ -95,11 +114,21 @@ export default {
       return complaints.value.slice(start, start + pageSize)
     })
 
+    // 回访按钮事件
+    const handleSatisfy = (row) => {
+      window.$message ? window.$message.success('感谢您的满意反馈！') : alert('感谢您的满意反馈！')
+    }
+    const handleUnsatisfy = (row) => {
+      window.$message ? window.$message.warning('我们会继续改进，感谢您的反馈！') : alert('我们会继续改进，感谢您的反馈！')
+    }
+
     return {
       complaints,
       pageData,
       pageSize,
-      currentPage
+      currentPage,
+      handleSatisfy,
+      handleUnsatisfy
     }
   }
 }
