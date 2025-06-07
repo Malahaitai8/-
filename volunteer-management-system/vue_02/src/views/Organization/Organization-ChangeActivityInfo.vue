@@ -76,7 +76,7 @@ export default {
   },
   methods: {
     home() {
-      this.$router.push('/');
+      this.$router.push('/organization-home');
     },
     Info() {
       this.$router.push('/detailed-activity-info');

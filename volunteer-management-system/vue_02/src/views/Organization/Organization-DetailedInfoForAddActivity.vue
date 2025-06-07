@@ -73,7 +73,7 @@ export default {
   },
   methods: {
     home() {
-      this.$router.push('/');
+      this.$router.push('/organization-home');
     },
     add() {
       this.$router.push('/add-member-for-activity');

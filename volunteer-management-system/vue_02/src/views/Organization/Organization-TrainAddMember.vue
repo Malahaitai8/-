@@ -39,7 +39,7 @@ export default {
   },
   methods: {
     home() {
-      this.$router.push('/');
+      this.$router.push('/organization-home');
     },
     viewDetails(row) {
       console.log('查看详细信息：', row);
