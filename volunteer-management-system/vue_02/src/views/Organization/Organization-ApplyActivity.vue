@@ -104,7 +104,7 @@ export default {
   },
   methods: {
     home() {
-      this.$router.push("/organization");
+      this.$router.push("/organization-home");
     },
     // 原 apply 方法已删除
     addPosition() {
