@@ -133,7 +133,7 @@
             </el-form-item>
             <!-- 最高学历选择 -->
             <el-form-item label="最高学历" prop="highestEducation" label-width="80px">
-              <el-select v-model="data.form.educationLevel" placeholder="请选择最高学历">
+              <el-select v-model="data.form.highestEducation" placeholder="请选择最高学历">
                 <el-option label="博士研究生" value="博士研究生"></el-option>
                 <el-option label="硕士研究生" value="硕士研究生"></el-option>
                 <el-option label="大学本科" value="大学本科"></el-option>
@@ -150,7 +150,7 @@
             </el-form-item>
             <!-- 从业情况选择 -->
             <el-form-item label="从业情况" prop="employmentStatus" label-width="80px">
-              <el-select v-model="data.form.occupation" placeholder="请选择从业情况">
+              <el-select v-model="data.form.employmentStatus" placeholder="请选择从业情况">
                 <el-option label="国家公务员" value="国家公务员"></el-option>
                 <el-option label="职员" value="职员"></el-option>
                 <el-option label="企业管理人员" value="企业管理人员"></el-option>
