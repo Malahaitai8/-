@@ -9,6 +9,7 @@ public interface VolunteerTrainingParticipationMapper {
 
     /**
      * 插入新的培训参与记录
+     *
      * @param participation 参与记录对象
      * @return 影响行数
      */
@@ -20,6 +21,7 @@ public interface VolunteerTrainingParticipationMapper {
     /**
      * 更新培训参与记录 (例如：签到状态，评分)
      * (SQL defined in XML for flexibility)
+     *
      * @param participation 参与记录对象
      * @return 影响行数
      */
@@ -27,8 +29,9 @@ public interface VolunteerTrainingParticipationMapper {
 
     /**
      * 根据主键删除培训参与记录 (物理删除，谨慎使用)
+     *
      * @param volunteerId 志愿者ID
-     * @param trainingId 培训ID
+     * @param trainingId  培训ID
      * @return 影响行数
      */
     @Delete("DELETE FROM tbl_VolunteerTrainingParticipation WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND TrainingID = #{trainingId,jdbcType=CHAR}")
@@ -36,8 +39,9 @@ public interface VolunteerTrainingParticipationMapper {
 
     /**
      * 根据主键查询培训参与记录
+     *
      * @param volunteerId 志愿者ID
-     * @param trainingId 培训ID
+     * @param trainingId  培训ID
      * @return 参与记录对象
      */
     @Select("SELECT VolunteerID as volunteerId, TrainingID as trainingId, IsCheckedIn as isCheckedIn, " +
@@ -48,6 +52,7 @@ public interface VolunteerTrainingParticipationMapper {
 
     /**
      * 根据志愿者ID查询其所有培训参与记录
+     *
      * @param volunteerId 志愿者ID
      * @return 参与记录列表
      */
@@ -55,6 +60,7 @@ public interface VolunteerTrainingParticipationMapper {
 
     /**
      * 根据培训ID查询该培训的所有参与记录
+     *
      * @param trainingId 培训ID
      * @return 参与记录列表
      */
@@ -62,6 +68,7 @@ public interface VolunteerTrainingParticipationMapper {
 
     /**
      * 查询所有培训参与记录 (可带条件过滤，SQL defined in XML)
+     *
      * @param filterCriteria 过滤条件
      * @return 参与记录列表
      */
@@ -69,8 +76,9 @@ public interface VolunteerTrainingParticipationMapper {
 
     /**
      * 更新签到状态
+     *
      * @param volunteerId 志愿者ID
-     * @param trainingId 培训ID
+     * @param trainingId  培训ID
      * @param isCheckedIn 签到状态 ('是' 或 '否')
      * @return 影响行数
      */
@@ -82,8 +90,9 @@ public interface VolunteerTrainingParticipationMapper {
 
     /**
      * 更新组织对志愿者的评分
-     * @param volunteerId 志愿者ID
-     * @param trainingId 培训ID
+     *
+     * @param volunteerId          志愿者ID
+     * @param trainingId           培训ID
      * @param orgToVolunteerRating 组织给志愿者的评分
      * @return 影响行数
      */
@@ -95,8 +104,9 @@ public interface VolunteerTrainingParticipationMapper {
 
     /**
      * 更新志愿者对组织的评分
-     * @param volunteerId 志愿者ID
-     * @param trainingId 培训ID
+     *
+     * @param volunteerId          志愿者ID
+     * @param trainingId           培训ID
      * @param volunteerToOrgRating 志愿者给组织的评分
      * @return 影响行数
      */
@@ -105,4 +115,20 @@ public interface VolunteerTrainingParticipationMapper {
     int updateVolunteerToOrgRating(@Param("volunteerId") String volunteerId,
                                    @Param("trainingId") String trainingId,
                                    @Param("volunteerToOrgRating") Integer volunteerToOrgRating);
+
+
+    /**
+     * 更新志愿者对培训的评分
+     *
+     * @param volunteerId 志愿者ID
+     * @param trainingId  培训ID
+     * @param rating      评分
+     * @return 影响行数
+     */
+    @Update("UPDATE tbl_VolunteerTrainingParticipation " +
+            "SET VolunteerToOrgRating = #{rating} " +
+            "WHERE VolunteerID = #{volunteerId} AND TrainingID = #{trainingId}")
+    int updateVolunteerRating(@Param("volunteerId") String volunteerId,
+                              @Param("trainingId") String trainingId,
+                              @Param("rating") Integer rating);
 }

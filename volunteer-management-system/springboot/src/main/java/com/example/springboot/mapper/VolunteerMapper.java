@@ -4,12 +4,55 @@ import com.example.springboot.entity.Volunteer;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface VolunteerMapper {
     // 查询所有志愿者
     List<Volunteer> selectAll(Volunteer volunteer); // Assumes XML mapping
+
+    /**
+     * 根据志愿者ID查询其所有已评价的志愿活动
+     *
+     * @param volunteerId 志愿者ID
+     * @return Map列表，每个Map包含 orgName, projectName, rating, reviewTime
+     */
+    @Select("SELECT " +
+            "    o.OrgName AS orgName, " +
+            "    a.ActivityName AS projectName, " +
+            "    p.OrgToVolunteerRating AS rating, " +
+            "    a.EndTime AS reviewTime " +
+            "FROM tbl_VolunteerActivityParticipation p " +
+            "JOIN tbl_VolunteerActivity a ON p.ActivityID = a.ActivityID " +
+            "JOIN tbl_Organization o ON a.OrgID = o.OrgID " +
+            "WHERE p.VolunteerID = #{volunteerId} " +
+            "  AND a.ActivityStatus = N'已结束' " +
+            "  AND p.OrgToVolunteerRating IS NOT NULL " +
+            "ORDER BY a.EndTime DESC")
+    List<Map<String, Object>> findActivityReviewsByVolunteerId(@Param("volunteerId") String volunteerId);
+
+    /**
+     * 根据志愿者ID查询其所有已评价的培训
+     *
+     * @param volunteerId 志愿者ID
+     * @return Map列表，每个Map包含 orgName, projectName, rating, reviewTime
+     */
+    @Select("SELECT " +
+            "    o.OrgName AS orgName, " +
+            "    t.TrainingName AS projectName, " +
+            "    p.OrgToVolunteerRating AS rating, " +
+            "    t.EndTime AS reviewTime " +
+            "FROM tbl_VolunteerTrainingParticipation p " +
+            "JOIN tbl_VolunteerTraining t ON p.TrainingID = t.TrainingID " +
+            "JOIN tbl_Organization o ON t.OrgID = o.OrgID " +
+            "WHERE p.VolunteerID = #{volunteerId} " +
+            "  AND t.TrainingStatus = N'已结束' " +
+            "  AND p.OrgToVolunteerRating IS NOT NULL " +
+            "ORDER BY t.EndTime DESC")
+    List<Map<String, Object>> findTrainingReviewsByVolunteerId(@Param("volunteerId") String volunteerId);
+
     int updateAccountStatus(@Param("volunteerId") String volunteerId, @Param("accountStatus") String accountStatus);
-/**
+
+    /**
      * 根据 VolunteerID 更新志愿者密码
      *
      * @param volunteerId 志愿者的ID
