@@ -3,6 +3,7 @@ package com.example.springboot.service;
 import com.example.springboot.entity.VolunteerTraining;
 import com.example.springboot.exception.CustomException;
 import com.example.springboot.mapper.VolunteerTrainingMapper;
+import com.example.springboot.mapper.VolunteerTrainingParticipationMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
@@ -11,12 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class VolunteerTrainingService {
 
     @Resource
     private VolunteerTrainingMapper volunteerTrainingMapper;
+    private VolunteerTrainingParticipationMapper participationMapper;
 
     // Valid training statuses from your table definition
     private static final List<String> VALID_TRAINING_STATUSES = Arrays.asList(
@@ -25,6 +28,7 @@ public class VolunteerTrainingService {
 
     /**
      * 添加新的志愿培训
+     *
      * @param volunteerTraining 志愿培训对象
      * @throws CustomException if validation fails
      */
@@ -51,7 +55,7 @@ public class VolunteerTrainingService {
         if (volunteerTraining.getTrainingStatus() == null || !VALID_TRAINING_STATUSES.contains(volunteerTraining.getTrainingStatus())) {
             volunteerTraining.setTrainingStatus("待审核"); // Defaulting
         }
-        if (volunteerTraining.getContactPersonPhone() == null || volunteerTraining.getContactPersonPhone().trim().isEmpty()){
+        if (volunteerTraining.getContactPersonPhone() == null || volunteerTraining.getContactPersonPhone().trim().isEmpty()) {
             throw new CustomException("负责人联系方式不能为空", "400");
         }
         // CreationTime defaults to GETDATE() in DB.
@@ -60,6 +64,7 @@ public class VolunteerTrainingService {
 
     /**
      * 根据培训ID更新志愿培训信息
+     *
      * @param volunteerTraining 志愿培训对象
      * @throws CustomException if validation fails or training not found
      */
@@ -74,7 +79,7 @@ public class VolunteerTrainingService {
         }
 
         if (volunteerTraining.getStartTime() != null && volunteerTraining.getEndTime() != null &&
-            volunteerTraining.getStartTime().after(volunteerTraining.getEndTime())) {
+                volunteerTraining.getStartTime().after(volunteerTraining.getEndTime())) {
             throw new CustomException("培训开始时间不能晚于结束时间", "400");
         }
         if (volunteerTraining.getRecruitmentCount() != null && volunteerTraining.getRecruitmentCount() <= 0) {
@@ -89,6 +94,7 @@ public class VolunteerTrainingService {
 
     /**
      * 根据培训ID删除志愿培训
+     *
      * @param trainingId 培训ID
      * @throws CustomException if validation fails or training not found
      */
@@ -106,6 +112,7 @@ public class VolunteerTrainingService {
 
     /**
      * 根据培训ID查询志愿培训信息
+     *
      * @param trainingId 培训ID
      * @return 志愿培训对象
      * @throws CustomException if validation fails
@@ -119,6 +126,7 @@ public class VolunteerTrainingService {
 
     /**
      * 查询所有志愿培训 (可带条件过滤)
+     *
      * @param volunteerTraining 包含过滤条件的志愿培训对象
      * @return 志愿培训列表
      */
@@ -128,9 +136,10 @@ public class VolunteerTrainingService {
 
     /**
      * 分页查询志愿培训信息
+     *
      * @param volunteerTraining 包含过滤条件的志愿培训对象
-     * @param pageNum 页码
-     * @param pageSize 每页大小
+     * @param pageNum           页码
+     * @param pageSize          每页大小
      * @return 分页后的志愿培训列表
      */
     public PageInfo<VolunteerTraining> getTrainingPage(VolunteerTraining volunteerTraining, Integer pageNum, Integer pageSize) {
@@ -141,6 +150,7 @@ public class VolunteerTrainingService {
 
     /**
      * 根据组织ID查询培训
+     *
      * @param orgId 组织ID
      * @return 志愿培训列表
      * @throws CustomException if validation fails
@@ -154,6 +164,7 @@ public class VolunteerTrainingService {
 
     /**
      * 根据培训状态查询培训
+     *
      * @param status 培训状态
      * @return 志愿培训列表
      * @throws CustomException if validation fails
@@ -167,6 +178,7 @@ public class VolunteerTrainingService {
 
     /**
      * 根据培训主题查询培训
+     *
      * @param theme 培训主题
      * @return 志愿培训列表
      * @throws CustomException if validation fails
@@ -180,8 +192,9 @@ public class VolunteerTrainingService {
 
     /**
      * 审核/更新培训状态
-     * @param trainingId 培训ID
-     * @param newStatus 新的状态
+     *
+     * @param trainingId      培训ID
+     * @param newStatus       新的状态
      * @param reviewerAdminId 审核员ID (可以为null)
      * @throws CustomException if validation fails or training not found
      */
@@ -199,4 +212,42 @@ public class VolunteerTrainingService {
         }
         volunteerTrainingMapper.updateTrainingStatus(trainingId, newStatus, reviewerAdminId);
     }
+
+    /**
+     * 获取指定志愿者参与的所有培训
+     *
+     * @param volunteerId 志愿者ID
+     * @return 培训列表
+     */
+    public List<Map<String, Object>> getParticipatedTrainings(String volunteerId) throws CustomException {
+        if (volunteerId == null || volunteerId.trim().isEmpty()) {
+            throw new CustomException("志愿者ID不能为空", "400");
+        }
+        return volunteerTrainingMapper.findParticipatedTrainingsByVolunteerId(volunteerId);
+    }
+
+    /**
+     * 志愿者为培训进行评分
+     *
+     * @param volunteerId 志愿者ID
+     * @param trainingId  培训ID
+     * @param rating      评分 (1-10)
+     */
+    @Transactional
+    public void rateTraining(String volunteerId, String trainingId, Integer rating) throws CustomException {
+        if (volunteerId == null || trainingId == null || rating == null) {
+            throw new CustomException("参数不能为空", "400");
+        }
+        if (rating < 1 || rating > 10) {
+            throw new CustomException("评分必须在1-10分之间", "400");
+        }
+
+        // 可以在此添加更多业务逻辑，例如检查培训是否已结束等
+
+        int updatedRows = participationMapper.updateVolunteerRating(volunteerId, trainingId, rating);
+        if (updatedRows == 0) {
+            throw new CustomException("评价失败，可能未参与该培训或记录不存在", "404");
+        }
+    }
+
 }

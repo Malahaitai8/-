@@ -18,6 +18,43 @@ public class VolunteerTrainingController {
     @Resource
     private VolunteerTrainingService volunteerTrainingService;
 
+
+    /**
+     * 获取指定志愿者参与的所有培训列表
+     * API: GET /volunteerTraining/my-participations/{volunteerId}
+     */
+    @GetMapping("/my-participations/{volunteerId}")
+    public Result getMyParticipatedTrainings(@PathVariable String volunteerId) {
+        try {
+            List<Map<String, Object>> trainings = volunteerTrainingService.getParticipatedTrainings(volunteerId);
+            return Result.success(trainings);
+        } catch (Exception e) {
+            return Result.error("500", "获取我的培训列表失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 志愿者对培训进行评价
+     * API: POST /volunteerTraining/rate
+     */
+    @PostMapping("/rate")
+    public Result rateTraining(@RequestBody Map<String, Object> payload) {
+        try {
+            String volunteerId = (String) payload.get("volunteerId");
+            String trainingId = (String) payload.get("trainingId");
+            // 注意：从JSON传来的数字可能是Integer或Double，稳妥起见先转为Number
+            Number ratingNum = (Number) payload.get("rating");
+            Integer rating = ratingNum != null ? ratingNum.intValue() : null;
+
+            volunteerTrainingService.rateTraining(volunteerId, trainingId, rating);
+            return Result.success("评价成功");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            return Result.error("500", "评价失败：" + e.getMessage());
+        }
+    }
+
     /**
      * 添加新的志愿培训
      * API: POST /volunteerTraining/add
