@@ -11,12 +11,37 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class VolunteerService {
     @Resource
     private VolunteerMapper volunteerMapper;
+
+    /**
+     * 获取指定志愿者的活动评价列表
+     * @param volunteerId 志愿者ID
+     * @return Map列表
+     */
+    public List<Map<String, Object>> getActivityReviews(String volunteerId) {
+        if (volunteerId == null || volunteerId.trim().isEmpty()) {
+            throw new IllegalArgumentException("志愿者ID不能为空");
+        }
+        return volunteerMapper.findActivityReviewsByVolunteerId(volunteerId);
+    }
+
+    /**
+     * 获取指定志愿者的培训评价列表
+     * @param volunteerId 志愿者ID
+     * @return Map列表
+     */
+    public List<Map<String, Object>> getTrainingReviews(String volunteerId) {
+        if (volunteerId == null || volunteerId.trim().isEmpty()) {
+            throw new IllegalArgumentException("志愿者ID不能为空");
+        }
+        return volunteerMapper.findTrainingReviewsByVolunteerId(volunteerId);
+    }
 
 
     public void updateVolunteerAccountStatus(String volunteerId, String newStatus, String rejectionReason /*, String adminId */) throws CustomException {

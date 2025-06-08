@@ -20,6 +20,40 @@ public class VolunteerController {
     @Resource
     private VolunteerService volunteerService;
 
+    /**
+     * 获取指定志愿者的所有活动评价
+     * API: GET /volunteer/{volunteerId}/reviews/activities
+     *
+     * @param volunteerId 志愿者ID
+     * @return 活动评价列表
+     */
+    @GetMapping("/{volunteerId}/reviews/activities")
+    public Result getActivityReviews(@PathVariable String volunteerId) {
+        try {
+            List<Map<String, Object>> reviews = volunteerService.getActivityReviews(volunteerId);
+            return Result.success(reviews);
+        } catch (Exception e) {
+            return Result.error("500", "获取活动评价失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取指定志愿者的所有培训评价
+     * API: GET /volunteer/{volunteerId}/reviews/trainings
+     *
+     * @param volunteerId 志愿者ID
+     * @return 培训评价列表
+     */
+    @GetMapping("/{volunteerId}/reviews/trainings")
+    public Result getTrainingReviews(@PathVariable String volunteerId) {
+        try {
+            List<Map<String, Object>> reviews = volunteerService.getTrainingReviews(volunteerId);
+            return Result.success(reviews);
+        } catch (Exception e) {
+            return Result.error("500", "获取培训评价失败: " + e.getMessage());
+        }
+    }
+
     @PutMapping("/updateStatus/{volunteerId}") // 或者 @PostMapping("/updateAccountStatus")
     public Result updateAccountStatus(@PathVariable String volunteerId, @RequestBody Map<String, Object> payload) {
         try {
@@ -117,8 +151,8 @@ public class VolunteerController {
     @PostMapping("/register")
     public Result volunteerRegister(@RequestBody Volunteer volunteer) throws CustomException {
         // --- 添加这行调试代码 ---
-    System.out.println("接收到的后端志愿者对象: " + volunteer);
-    // --- 调试代码结束 ---
+        System.out.println("接收到的后端志愿者对象: " + volunteer);
+        // --- 调试代码结束 ---
         volunteerService.register(volunteer);
         return Result.success("注册成功");
 
