@@ -10,9 +10,6 @@
         </template>
         <el-input v-model="activity.name"></el-input>
       </el-form-item>
-<!--      <el-form-item label="岗位名称">
-        <el-input v-model="activity.work"></el-input>
-      </el-form-item>-->
       <el-form-item label="志愿活动时段">
         <template #label>
           <span class="required">*</span> 志愿活动时段
@@ -52,7 +49,6 @@
     </el-form>
     <el-button type="primary" @click="home">返回主页</el-button>
     <el-button type="primary" @click="showCreateDialog = true">创建岗位</el-button>
-    <el-button type="primary" @click="apply">申请志愿活动</el-button>
     <el-dialog v-model="showCreateDialog" title="创建岗位">
       <el-form>
         <div v-for="(position, index) in positions" :key="index">
@@ -60,7 +56,7 @@
             <el-input v-model="position.name"></el-input>
           </el-form-item>
           <el-form-item label="岗位时间段">
-            <div v-for="(slot, slotIndex) in position.timeSlots" :key="slotIndex">
+            <div v-for="(slot, slotIndex) in position.timeSlots" :key="slotIndex" style="margin-bottom: 10px;">
               <el-date-picker
                   v-model="position.timeSlots[slotIndex]"
                   type="datetime"
@@ -76,7 +72,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="showCreateDialog = false">取消</el-button>
-          <el-button type="primary" @click="savePositions">保存</el-button>
+          <el-button type="primary" @click="applyAndCreatePositions">申请创建活动</el-button>
         </span>
       </template>
     </el-dialog>
@@ -108,12 +104,9 @@ export default {
   },
   methods: {
     home() {
-      this.$router.push("/");
+      this.$router.push("/organization");
     },
-    apply() {
-      // 这里添加提示信息
-      this.$router.push("/OrganazionCreatePosition");
-    },
+    // 原 apply 方法已删除
     addPosition() {
       this.positions.push({
         name: "",
@@ -126,13 +119,19 @@ export default {
     addTimeSlot(index) {
       this.positions[index].timeSlots.push("");
     },
-    savePositions() {
-      // 这里可以根据需求添加保存逻辑
+    // 将原 savePositions 和 apply 的逻辑合并到此方法
+    applyAndCreatePositions() {
+      // 1. 保存和处理岗位数据
       this.positions = this.positions.map((position) => ({
         ...position,
         timeSlots: position.timeSlots.filter((slot) => slot !== ""),
       }));
       this.showCreateDialog = false;
+
+      // 在这里可以添加将 activity 和 positions 数据发送到后端的逻辑
+
+      // 2. 执行申请（页面跳转）
+      this.$router.push("/apply-activity");
     },
   },
 };
