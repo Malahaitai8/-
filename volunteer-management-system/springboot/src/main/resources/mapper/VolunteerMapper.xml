@@ -18,7 +18,6 @@
 
     <insert id="insert" parameterType="com.example.springboot.entity.Volunteer">
         INSERT INTO tbl_Volunteer (
-        <if test="volunteerId != null">VolunteerID,</if>
         Username,
         Password,
         Name,
@@ -31,11 +30,9 @@
         HighestEducation,
         EmploymentStatus,
         ServiceCategory,
-        ServiceArea,
-        AccountStatus
+        ServiceArea
         )
         VALUES (
-        <if test="volunteerId != null">#{volunteerId},</if>
         #{username},
         #{password},
         #{name},
@@ -45,9 +42,8 @@
         #{ethnicity},
         #{politicalStatus},
         #{highestEducation}, #{employmentStatus}, #{serviceCategory},
-        #{serviceArea},
-        #{accountStatus}
-        )
+        #{serviceArea}
+                )
     </insert>
     <!--            Password = #{password},
     -->

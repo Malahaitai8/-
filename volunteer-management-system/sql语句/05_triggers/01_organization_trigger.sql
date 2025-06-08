@@ -1,6 +1,6 @@
---USE volunteer_web_02; -- 确保在正确的数据库上下文中执行
+--USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+USE volunteer_web_05;
 GO
---USE volunter_db_test
 PRINT N'开始创建或更新数据库触发器...';
 GO
 

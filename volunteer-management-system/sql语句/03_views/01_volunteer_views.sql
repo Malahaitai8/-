@@ -1,6 +1,6 @@
-USE volunteer_db_test
+--USE volunteer_db_test
+USE volunteer_web_05;
 GO
-
 IF OBJECT_ID('dbo.v_VolunteerAuxiliaryRating', 'V') IS NOT NULL
     DROP VIEW dbo.v_VolunteerAuxiliaryRating;
 GO
@@ -37,7 +37,6 @@ FROM
     tbl_Volunteer;                   -- 您的志愿者表名
 
 GO
-
 
 
 

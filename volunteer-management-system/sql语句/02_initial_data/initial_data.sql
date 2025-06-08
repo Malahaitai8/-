@@ -1,4 +1,5 @@
-USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+--USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+USE volunteer_web_05;
 GO
 
 SET NOCOUNT ON;
@@ -28,12 +29,14 @@ BEGIN TRY
     INSERT INTO dbo.tbl_Administrator (Name, Gender, IDCardNumber, PhoneNumber, Password, ServiceArea, CurrentPosition, PermissionLevel) VALUES
     (N'张伟', N'男', '11010119850510351X', '13910856214', 'adminPass1', N'全国', N'系统维护员', N'高'),
     (N'李静', N'女', '310101199008152424', '13818695302', 'adminPass2', N'华东区', N'审核监督员', N'中'),
+	(N'金陶然', N'女', '22062320050528004X', '13894037809', '23301153', N'华东区', N'审核监督员', N'中'),
     (N'刘洋', N'男', '440103198812017838', '13715982401', 'adminPass3', N'华南区', N'普通管理员', N'低');
 
     -- 获取刚刚生成的管理员ID，以便后续关联
     DECLARE @adm_001_id CHAR(15) = (SELECT AdminID FROM dbo.tbl_Administrator WHERE IDCardNumber = '11010119850510351X');
     DECLARE @adm_002_id CHAR(15) = (SELECT AdminID FROM dbo.tbl_Administrator WHERE IDCardNumber = '310101199008152424');
-    DECLARE @adm_003_id CHAR(15) = (SELECT AdminID FROM dbo.tbl_Administrator WHERE IDCardNumber = '440103198812017838');
+	DECLARE @adm_003_id CHAR(15) = (SELECT AdminID FROM dbo.tbl_Administrator WHERE IDCardNumber = '22062320050528004X');
+    DECLARE @adm_004_id CHAR(15) = (SELECT AdminID FROM dbo.tbl_Administrator WHERE IDCardNumber = '440103198812017838');
 
 
     -- 2. 插入组织机构数据
@@ -45,6 +48,7 @@ BEGIN TRY
     (N'启航助学基金', 'qihangzhuxue', 'orgPassQihang', '17702076591', N'广东', 0, N'待认证', 0, 0, 0, 1.0),
     (N'蓝天救援预备队', 'lskyrescue', 'orgPassLantian', '13612847590', N'四川', 0, N'冻结', 2500, 25, 10, 9.5),
     (N'夕阳红老年服务中心', 'xiyanghong', 'orgPassXiyang', '13501258493', N'北京', 0, N'认证未通过', 300, 5, 1, 1.0),
+	(N'小金刀刀集团志愿服务中心','jintaoran','23301153','13894037809',N'北京',0,N'已认证',300,5,1,1.0),
     (N'文津图书社', 'wenjinshe', 'orgPassWenjin', '18611593857', N'北京', 0, N'已认证', 450, 6, 2, 8.2);
 
     -- 获取刚刚生成的组织ID，以便后续关联
@@ -53,7 +57,8 @@ BEGIN TRY
     DECLARE @org_003_id CHAR(15) = (SELECT OrgID FROM dbo.tbl_Organization WHERE OrgName = N'启航助学基金');
     DECLARE @org_004_id CHAR(15) = (SELECT OrgID FROM dbo.tbl_Organization WHERE OrgName = N'蓝天救援预备队');
     DECLARE @org_005_id CHAR(15) = (SELECT OrgID FROM dbo.tbl_Organization WHERE OrgName = N'夕阳红老年服务中心');
-    DECLARE @org_006_id CHAR(15) = (SELECT OrgID FROM dbo.tbl_Organization WHERE OrgName = N'文津图书社');
+    DECLARE @org_006_id CHAR(15) = (SELECT OrgID FROM dbo.tbl_Organization WHERE OrgName = N'小金刀刀集团志愿服务中心');
+    DECLARE @org_007_id CHAR(15) = (SELECT OrgID FROM dbo.tbl_Organization WHERE OrgName = N'文津图书社');
 
 
     -- 3. 插入志愿者数据
@@ -74,7 +79,8 @@ BEGIN TRY
     (N'li_qiang_member', N'李强', '13764218903', '310107199210051211', 'volPassLiQ', N'男', N'上海', N'已实名认证', 310.0, 8.9),
     (N'zhou_fang_member', N'周芳', '13621859941', '31010519930614532X', 'volPassZhou', N'女', N'上海', N'已实名认证', 180.0, 8.2),
     (N'wu_lei_new_app', N'吴磊', '13916337582', '310110199508284618', 'volPassWuL', N'男', N'上海', N'已实名认证', 25.5, 7.0),
-    (N'zhao_qian_new', N'赵倩', '18601214358', '110105199803082221', 'volPassZhaoQ', N'女', N'北京', N'未实名认证', 0, 1.0);
+    (N'zhao_qian_new', N'赵倩', '18601214358', '110105199803082221', 'volPassZhaoQ', N'女', N'北京', N'未实名认证', 0, 1.0),
+	(N'jtr_02', N'金陶然', '13894037809', '22062320050528004X', '23301153', N'女', N'北京', N'已实名认证', 0, 1.0);
 
     -- 获取刚刚生成的志愿者ID，以便后续关联
     DECLARE @vol_001_id CHAR(15) = (SELECT VolunteerID FROM dbo.tbl_Volunteer WHERE Username = N'wang_wei_v');
@@ -89,6 +95,7 @@ BEGIN TRY
     DECLARE @vol_010_id CHAR(15) = (SELECT VolunteerID FROM dbo.tbl_Volunteer WHERE Username = N'zhou_fang_member');
     DECLARE @vol_011_id CHAR(15) = (SELECT VolunteerID FROM dbo.tbl_Volunteer WHERE Username = N'wu_lei_new_app');
     DECLARE @vol_012_id CHAR(15) = (SELECT VolunteerID FROM dbo.tbl_Volunteer WHERE Username = N'zhao_qian_new');
+	DECLARE @vol_013_id CHAR(15) = (SELECT VolunteerID FROM dbo.tbl_Volunteer WHERE Username = N'jtr_02');
 
 
     -- 4. 插入志愿者与组织关系数据 (丰富成员)

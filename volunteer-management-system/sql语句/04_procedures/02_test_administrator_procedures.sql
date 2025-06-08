@@ -1,4 +1,5 @@
-USE volunteer_db_test;
+--USE volunteer_db_test;
+USE volunteer_web_05;
 GO
 
 PRINT N'--- 开始测试管理员相关存储过程 ---';

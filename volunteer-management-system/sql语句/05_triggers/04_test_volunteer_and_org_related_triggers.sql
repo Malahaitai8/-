@@ -1,4 +1,5 @@
-USE volunteer_db_test;
+--USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+USE volunteer_web_05;
 GO
 
 PRINT N'--- 开始测试志愿者及组织规模相关触发器 ---';

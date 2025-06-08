@@ -132,7 +132,7 @@
               </el-select>
             </el-form-item>
             <!-- 最高学历选择 -->
-            <el-form-item label="最高学历" prop="educationLevel" label-width="80px">
+            <el-form-item label="最高学历" prop="highestEducation" label-width="80px">
               <el-select v-model="data.form.educationLevel" placeholder="请选择最高学历">
                 <el-option label="博士研究生" value="博士研究生"></el-option>
                 <el-option label="硕士研究生" value="硕士研究生"></el-option>
@@ -149,7 +149,7 @@
               </el-select>
             </el-form-item>
             <!-- 从业情况选择 -->
-            <el-form-item label="从业情况" prop="occupation" label-width="80px">
+            <el-form-item label="从业情况" prop="employmentStatus" label-width="80px">
               <el-select v-model="data.form.occupation" placeholder="请选择从业情况">
                 <el-option label="国家公务员" value="国家公务员"></el-option>
                 <el-option label="职员" value="职员"></el-option>
@@ -271,8 +271,8 @@ const data = reactive({
     country: "China",
     ethnicity: "汉族",
     politicalStatus: "群众",
-    educationLevel: "未说明情况",
-    occupation: "未说明情况",
+    highestEducation: "未说明情况", // <<< 修改这里
+    employmentStatus: "未说明情况", // <<< 修改这里
     serviceArea: "北京",
     serviceCategory: ""
   },
@@ -290,8 +290,8 @@ const data = reactive({
     country: [{ required: true, message: "请选择国籍", trigger: "blur" }],
     ethnicity: [{ required: true, message: "请选择民族", trigger: "blur" }],
     politicalStatus: [{ required: true, message: "请选择政治面貌", trigger: "blur" }],
-    educationLevel: [{ required: true, message: "请选择最高学历", trigger: "blur" }],
-    occupation: [{ required: true, message: "请选择从业情况", trigger: "blur" }],
+    highestEducation: [{ required: true, message: "请选择最高学历", trigger: "blur" }],
+    employmentStatus: [{ required: true, message: "请选择从业情况", trigger: "blur" }],
     serviceArea: [{ required: true, message: "请选择服务区域", trigger: "blur" }],
     serviceCategory: [{ required: true, message: "请选择服务类别", trigger: "blur" }]
   }

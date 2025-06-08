@@ -1,4 +1,6 @@
-USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+--USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+USE volunteer_web_05;
+GO
 IF OBJECT_ID('dbo.proc_CalculateAvgActivityScoreForVolunteer', 'P') IS NOT NULL
     DROP PROCEDURE dbo.proc_CalculateAvgActivityScoreForVolunteer;
 GO

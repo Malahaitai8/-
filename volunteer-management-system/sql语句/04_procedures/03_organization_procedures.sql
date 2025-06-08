@@ -1,4 +1,5 @@
-USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+--USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+USE volunteer_web_05;
 GO
 
 --------------------------------------------------------------------------------
@@ -1280,7 +1281,8 @@ BEGIN
 END
 GO
 
-USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+--USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+USE volunteer_web_05;
 GO
 
 PRINT N'--- 开始创建组织综合评分计算相关存储过程 ---';

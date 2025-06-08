@@ -1,4 +1,5 @@
-USE volunteer_db_test;
+--USE volunteer_db_test; -- 确保在正确的数据库上下文中执行
+USE volunteer_web_05;
 GO
 
 PRINT N'--- 开始测试组织机构相关触发器 ---';

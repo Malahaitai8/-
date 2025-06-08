@@ -1,8 +1,8 @@
 --USE volunteer_db_test
-USE volunteer_web_02
+USE volunteer_web_05;
 GO
-select * from tbl_Volunteer;
-select * from tbl_Organization;
+--select * from tbl_Volunteer;
+--select * from tbl_Organization;
 
 -- 顺序 1: 创建 管理员表 (tbl_Administrator)
 CREATE TABLE tbl_Administrator (
@@ -39,14 +39,7 @@ CREATE TABLE tbl_Organization (
     TrainingCount INT NOT NULL DEFAULT 0
 );
 GO
---例如，如果约束名是 'DF__tbl_Organ__OrgRa__3F466844' (这只是一个示例名称)
-ALTER TABLE dbo.tbl_Organization
-DROP CONSTRAINT CK__tbl_Organ__OrgRa__4222D4EF; -- 请替换为您的实际约束名
-GO
 
-ALTER TABLE dbo.tbl_Organization
-ADD CONSTRAINT CK_tbl_Organization_OrgRating_0_to_10 CHECK (OrgRating >= 0.0 AND OrgRating <= 10.0);
-GO
 
 -- 顺序 3: 创建 志愿者表 (tbl_Volunteer)
 CREATE TABLE tbl_Volunteer (
@@ -76,15 +69,15 @@ CREATE TABLE tbl_Volunteer (
         '中国国民党革命委员会会员','中国民主同盟盟员','中国民主建国会会员',
         '中国民主促进会会员','中国农工民主党党员','中国致公党党员',
         '九三学社社员','台湾民主自治同盟盟员','无党派民主人士','群众')), -- 政治身份
-    HighestEducation NVARCHAR(20)
+    HighestEducation NVARCHAR(20) DEFAULT N'未说明情况'
 	CHECK (HighestEducation IN ('博士研究生', '大学本科', '技工学校', '高中', '初中', '小学',
         '硕士研究生', '大学专科和专科学校', '幼儿园学龄前', '特殊教育',
         '文盲或半文盲', '未说明情况')), -- 教育背景
-    EmploymentStatus NVARCHAR(20)
+    EmploymentStatus NVARCHAR(20) DEFAULT N'未说明情况'
 	CHECK (EmploymentStatus IN ('国家公务员', '职员', '企业管理人员', '工人', '学生', '现役军人',
         '自由职业', '个体经营者', '无业人员', '退(离)休人员', '医生',
-        '司机', '律师', '教师', '农民','为说明情况')), -- 从业情况
-    ServiceCategory NVARCHAR(20)
+        '司机', '律师', '教师', '农民','未说明情况')), -- 从业情况
+    ServiceCategory NVARCHAR(20) DEFAULT N'社区志愿者'
 	CHECK (ServiceCategory IN ('助力复工复产志愿者', '扶贫济困志愿者', '社区志愿者',
         '青年志愿者', '文明志愿者', '文化志愿者', '医疗志愿者',
         '教育志愿者', '助残志愿者', '巾帼志愿者', '消防志愿者',
@@ -95,7 +88,7 @@ CREATE TABLE tbl_Volunteer (
 	CHECK (AccountStatus IN (N'未实名认证', N'已实名认证', N'已冻结',N'认证未通过'))
 );
 GO
-select * from tbl_VolunteerActivity;
+--select * from tbl_VolunteerActivity;
 
 -- 顺序 4: 创建 志愿活动表 (tbl_VolunteerActivity)
 CREATE TABLE tbl_VolunteerActivity (
@@ -108,7 +101,7 @@ CREATE TABLE tbl_VolunteerActivity (
     Location NVARCHAR(30) NOT NULL,                                    -- 活动地点
     RecruitmentCount INT NOT NULL CHECK (RecruitmentCount > 0),        -- 招募人数
     AcceptedCount INT NOT NULL DEFAULT 0 , -- 录取人数
-    ActivityStatus NVARCHAR(10) NOT NULL,DEFAULT N'待审核' ,
+    ActivityStatus NVARCHAR(10) NOT NULL DEFAULT N'待审核' ,
 	CHECK (ActivityStatus IN (N'待审核', N'审核通过', N'审核不通过', N'进行中', N'已结束', N'已停用')), -- 志愿活动状态
     CreationTime DATETIME2(0) NOT NULL DEFAULT GETDATE(),                  -- 创建时间
     ReviewerAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID), -- 审核管理员ID, 关联管理员表 (可空)
