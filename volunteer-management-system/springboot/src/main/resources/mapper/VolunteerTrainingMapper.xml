@@ -125,5 +125,48 @@
             </if>
         WHERE TrainingID = #{trainingId,jdbcType=CHAR}
     </update>
+    <!-- 新增：根据组织ID查询培训，并包含组织名称 -->
+    <select id="selectTrainingsWithOrgNameByOrgId" resultMap="BaseResultMap">
+        SELECT
+            vt.TrainingID as trainingId, vt.OrgID as orgId, vt.TrainingName as trainingName, vt.Theme as theme,
+            vt.StartTime as startTime, vt.EndTime as endTime, vt.Location as location,
+            vt.RecruitmentCount as recruitmentCount, vt.TrainingStatus as trainingStatus, vt.CreationTime as creationTime,
+            vt.ReviewerAdminID as reviewerAdminId, vt.ContactPersonPhone as contactPersonPhone,
+            vt.TrainingRating as trainingRating, vt.IsRatingAggregated as isRatingAggregated,
+            o.OrgName as orgName
+        FROM tbl_VolunteerTraining vt
+        LEFT JOIN tbl_Organization o ON vt.OrgID = o.OrgID
+        WHERE vt.OrgID = #{orgId,jdbcType=CHAR}
+        ORDER BY vt.StartTime DESC
+    </select>
 
+    <!-- 新增：根据培训状态查询培训，并包含组织名称 -->
+    <select id="selectTrainingsWithOrgNameByStatus" resultMap="BaseResultMap">
+        SELECT
+            vt.TrainingID as trainingId, vt.OrgID as orgId, vt.TrainingName as trainingName, vt.Theme as theme,
+            vt.StartTime as startTime, vt.EndTime as endTime, vt.Location as location,
+            vt.RecruitmentCount as recruitmentCount, vt.TrainingStatus as trainingStatus, vt.CreationTime as creationTime,
+            vt.ReviewerAdminID as reviewerAdminId, vt.ContactPersonPhone as contactPersonPhone,
+            vt.TrainingRating as trainingRating, vt.IsRatingAggregated as isRatingAggregated,
+            o.OrgName as orgName
+        FROM tbl_VolunteerTraining vt
+        LEFT JOIN tbl_Organization o ON vt.OrgID = o.OrgID
+        WHERE vt.TrainingStatus = #{trainingStatus,jdbcType=NVARCHAR}
+        ORDER BY vt.StartTime DESC
+    </select>
+
+    <!-- 新增：根据培训主题查询培训，并包含组织名称 -->
+    <select id="selectTrainingsWithOrgNameByTheme" resultMap="BaseResultMap">
+        SELECT
+            vt.TrainingID as trainingId, vt.OrgID as orgId, vt.TrainingName as trainingName, vt.Theme as theme,
+            vt.StartTime as startTime, vt.EndTime as endTime, vt.Location as location,
+            vt.RecruitmentCount as recruitmentCount, vt.TrainingStatus as trainingStatus, vt.CreationTime as creationTime,
+            vt.ReviewerAdminID as reviewerAdminId, vt.ContactPersonPhone as contactPersonPhone,
+            vt.TrainingRating as trainingRating, vt.IsRatingAggregated as isRatingAggregated,
+            o.OrgName as orgName
+        FROM tbl_VolunteerTraining vt
+        LEFT JOIN tbl_Organization o ON vt.OrgID = o.OrgID
+        WHERE vt.Theme LIKE CONCAT('%', #{theme,jdbcType=NVARCHAR}, '%')
+        ORDER BY vt.StartTime DESC
+    </select>
 </mapper>

@@ -117,7 +117,6 @@ import {useUserStore} from '@/stores/userStore'; // 导入您的 Pinia 用户 st
 const router = useRouter();
 const userStore = useUserStore(); // 使用 Pinia store
 const currentRoute = useRoute(); // 获取当前路由信息，用于菜单激活和条件渲染
-userStore.initializeStore();
 
 // --- 从 Pinia Store 获取响应式数据 ---
 const displayNameFromStore = computed(() => userStore.displayName);

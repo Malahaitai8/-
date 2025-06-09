@@ -1,0 +1,64 @@
+// src/main/java/com/example/springboot/service/VolunteerOrganizationJoinService.java
+package com.example.springboot.service;
+
+import com.example.springboot.exception.CustomException;
+import com.example.springboot.mapper.VolunteerOrganizationJoinMapper;
+import jakarta.annotation.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class VolunteerOrganizationJoinService {
+
+    @Resource
+    private VolunteerOrganizationJoinMapper volunteerOrganizationJoinMapper;
+
+    /**
+     * 获取指定志愿者加入的所有组织及其详细信息。
+     *
+     * @param volunteerId 志愿者的唯一ID。
+     * @return 包含组织参与信息和组织详细信息的Map列表。如果志愿者ID为空或无效，将抛出IllegalArgumentException。
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getMyJoinedOrganizations(String volunteerId) {
+        if (!StringUtils.hasText(volunteerId)) {
+            throw new IllegalArgumentException("志愿者ID不能为空或空白");
+        }
+        return volunteerOrganizationJoinMapper.findMyJoinedOrganizations(volunteerId);
+    }
+
+    /**
+     * 处理志愿者退出组织或更新成员状态的请求。
+     * 此方法主要用于将成员状态更新为 '已退出'。
+     *
+     * @param volunteerId 志愿者的唯一ID。
+     * @param orgId 组织的唯一ID。
+     * @param newStatus 新的成员状态（目前预期为 '已退出'）。
+     * @throws CustomException 如果参数无效，或者未能找到对应的成员记录，或者状态更新失败。
+     */
+    @Transactional
+    public void leaveTeam(String volunteerId, String orgId, String newStatus) throws CustomException {
+        // 参数非空校验
+        if (!StringUtils.hasText(volunteerId) || !StringUtils.hasText(orgId) || !StringUtils.hasText(newStatus)) {
+            throw new CustomException("400", "志愿者ID、组织ID和新状态不能为空");
+        }
+
+        // 业务逻辑校验：确保新状态是 '已退出'
+        if (!"已退出".equals(newStatus)) {
+            throw new CustomException("400", "无效的成员状态更新。目前只支持更新为 '已退出'");
+        }
+
+        // 调用Mapper更新数据库
+        int affectedRows = volunteerOrganizationJoinMapper.updateMemberStatus(volunteerId, orgId, newStatus);
+
+        // 检查更新结果
+        if (affectedRows == 0) {
+            // 如果影响行数为0，表示没有找到对应的记录或者记录已经处于 '已退出' 状态
+            throw new CustomException("404", "未能找到ID为 '" + volunteerId + "' 和组织ID为 '" + orgId + "' 的成员记录，或该成员已处于 '已退出' 状态");
+        }
+    }
+}

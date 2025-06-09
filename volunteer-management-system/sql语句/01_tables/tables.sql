@@ -3,6 +3,7 @@ USE volunteer_web_05;
 GO
 --select * from tbl_Volunteer;
 --select * from tbl_Organization;
+select * from tbl_VolunteerTrainingParticipation
 
 -- ˳�� 1: ���� ����Ա�� (tbl_Administrator)
 CREATE TABLE tbl_Administrator (

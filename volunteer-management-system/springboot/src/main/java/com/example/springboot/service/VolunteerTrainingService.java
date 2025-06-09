@@ -19,6 +19,7 @@ public class VolunteerTrainingService {
 
     @Resource
     private VolunteerTrainingMapper volunteerTrainingMapper;
+    @Resource
     private VolunteerTrainingParticipationMapper participationMapper;
 
     // Valid training statuses from your table definition
@@ -220,6 +221,7 @@ public class VolunteerTrainingService {
      * @param volunteerId 志愿者ID
      * @return 培训列表
      */
+    @Transactional(readOnly = true) // <--- 在这里添加注解
     public List<Map<String, Object>> getParticipatedTrainings(String volunteerId) throws CustomException {
         if (volunteerId == null || volunteerId.trim().isEmpty()) {
             throw new CustomException("志愿者ID不能为空", "400");
@@ -227,12 +229,14 @@ public class VolunteerTrainingService {
         return volunteerTrainingMapper.findParticipatedTrainingsByVolunteerId(volunteerId);
     }
 
+     // 【主要修改点】修改了此方法的返回类型和逻辑
     /**
-     * 志愿者为培训进行评分
+     * 志愿者为培训进行评分，并返回更新后的记录
      *
      * @param volunteerId 志愿者ID
      * @param trainingId  培训ID
      * @param rating      评分 (1-10)
+     * @return 更新后的培训记录 (Map)
      */
     @Transactional
     public void rateTraining(String volunteerId, String trainingId, Integer rating) throws CustomException {
@@ -243,12 +247,51 @@ public class VolunteerTrainingService {
             throw new CustomException("评分必须在1-10分之间", "400");
         }
 
-        // 可以在此添加更多业务逻辑，例如检查培训是否已结束等
-
         int updatedRows = participationMapper.updateVolunteerRating(volunteerId, trainingId, rating);
+
         if (updatedRows == 0) {
             throw new CustomException("评价失败，可能未参与该培训或记录不存在", "404");
         }
+
+        // 直接在同一个事务里，查询并返回最新的数据
+        //return volunteerTrainingMapper.findSingleParticipatedTraining(volunteerId, trainingId);
+    }
+    /**
+     * 根据组织ID查询培训，并联表获取组织名称
+     * @param orgId 组织ID
+     * @return 包含组织名称的培训列表
+     * @throws CustomException if validation fails
+     */
+    public List<VolunteerTraining> getTrainingsWithOrgNameByOrgId(String orgId) throws CustomException{
+        if (orgId == null || orgId.trim().isEmpty()) {
+            throw new CustomException("组织ID不能为空", "400");
+        }
+        return volunteerTrainingMapper.selectTrainingsWithOrgNameByOrgId(orgId);
     }
 
+    /**
+     * 根据培训状态查询培训，并联表获取组织名称
+     * @param status 培训状态
+     * @return 包含组织名称的培训列表
+     * @throws CustomException if validation fails
+     */
+    public List<VolunteerTraining> getTrainingsWithOrgNameByStatus(String status) throws CustomException {
+        if (status == null || status.trim().isEmpty() || !VALID_TRAINING_STATUSES.contains(status)) {
+            throw new CustomException("无效或空的培训状态", "400");
+        }
+        return volunteerTrainingMapper.selectTrainingsWithOrgNameByStatus(status);
+    }
+
+    /**
+     * 根据培训主题查询培训，并联表获取组织名称
+     * @param theme 培训主题
+     * @return 包含组织名称的培训列表
+     * @throws CustomException if validation fails
+     */
+    public List<VolunteerTraining> getTrainingsWithOrgNameByTheme(String theme) throws CustomException{
+        if (theme == null || theme.trim().isEmpty()) {
+            throw new CustomException("培训主题不能为空", "400");
+        }
+        return volunteerTrainingMapper.selectTrainingsWithOrgNameByTheme(theme);
+    }
 }
