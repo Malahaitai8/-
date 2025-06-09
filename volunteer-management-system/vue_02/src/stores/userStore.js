@@ -276,7 +276,7 @@ export const useUserStore = defineStore('user', {
                     this.loggedInUser = JSON.parse(storedUser);
                     if (this.loggedInUser && this.loggedInUser.username) { // 确保 loggedInUser 和 username 都存在
                         this.fetchDetailedVolunteerInfo(); // 获取详细信息
-                        this.fetchVolunteerStarLevel();    // **新增/确认调用：获取星级信息**
+                        //this.fetchVolunteerStarLevel();    // **新增/确认调用：获取星级信息**
                     } else {
                         // 如果 localStorage 中的数据不包含 username，视为无效用户会话
                         this.logout(); // 清理无效状态
