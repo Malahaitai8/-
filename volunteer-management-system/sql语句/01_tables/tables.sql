@@ -3,6 +3,7 @@ USE volunteer_web_05;
 GO
 --select * from tbl_Volunteer;
 --select * from tbl_Organization;
+select * from tbl_VolunteerTrainingParticipation
 
 -- 顺序 1: 创建 管理员表 (tbl_Administrator)
 CREATE TABLE tbl_Administrator (

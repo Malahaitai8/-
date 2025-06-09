@@ -95,7 +95,7 @@ public interface VolunteerTrainingMapper {
 
 
     /**
-     * 根据志愿者ID查询其所有参与的培训信息（包含组织名称和评分）
+     * 根据志愿者ID查询其所有参与的培训信息（包含组织名称和双向评分）
      *
      * @param volunteerId 志愿者ID
      * @return 包含培训详情的Map列表
@@ -106,14 +106,30 @@ public interface VolunteerTrainingMapper {
             "    t.StartTime as startTime, " +
             "    t.EndTime as endTime, " +
             "    t.TrainingStatus as trainingStatus, " +
-            "    p.IsCheckedIn as isCheckedIn, " +
+            "    p.IsCheckedIn as isCheckedIn, " + // 'p' alias for participation table
             "    p.VolunteerToOrgRating as volunteerToOrgRating, " +
+            "    p.OrgToVolunteerRating as orgToVolunteerRating, " +
             "    o.OrgID as orgId, " +
             "    o.OrgName as orgName " +
-            "FROM tbl_VolunteerTrainingParticipation p " +
+            "FROM tbl_VolunteerTrainingParticipation p " + // Added alias 'p'
             "JOIN tbl_VolunteerTraining t ON p.TrainingID = t.TrainingID " +
             "JOIN tbl_Organization o ON t.OrgID = o.OrgID " +
             "WHERE p.VolunteerID = #{volunteerId} " +
             "ORDER BY t.StartTime DESC")
     List<Map<String, Object>> findParticipatedTrainingsByVolunteerId(@Param("volunteerId") String volunteerId);
+
+    // 【主要修改点】新增方法，用于查询单条更新后的记录
+    /**
+     * 根据志愿者ID和培训ID查询单条最新的参与记录
+     */
+    @Select("SELECT " +
+            "    t.TrainingID as trainingId, t.TrainingName as trainingName, t.StartTime as startTime, " +
+            "    t.EndTime as endTime, t.TrainingStatus as trainingStatus, p.IsCheckedIn as isCheckedIn, " +
+            "    p.VolunteerToOrgRating as volunteerToOrgRating, p.OrgToVolunteerRating as orgToVolunteerRating, " +
+            "    o.OrgID as orgId, o.OrgName as orgName " +
+            "FROM tbl_VolunteerTrainingParticipation p " +
+            "JOIN tbl_VolunteerTraining t ON p.TrainingID = t.TrainingID " +
+            "JOIN tbl_Organization o ON t.OrgID = o.OrgID " +
+            "WHERE p.VolunteerID = #{volunteerId} AND p.TrainingID = #{trainingId}")
+    Map<String, Object> findSingleParticipatedTraining(@Param("volunteerId") String volunteerId, @Param("trainingId") String trainingId);
 }

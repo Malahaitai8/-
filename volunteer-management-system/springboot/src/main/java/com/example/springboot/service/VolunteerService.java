@@ -8,8 +8,10 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.beans.Transient;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -131,6 +133,7 @@ public class VolunteerService {
      * @return 志愿者的星级 (整数)。如果ID无效或未找到星级，则返回 0星 作为默认值。
      * @throws IllegalArgumentException 如果 volunteerId 为 null 或空字符串。
      */
+    @Transactional(readOnly = true)
     public int getVolunteerStarLevel(String volunteerId) {
         if (volunteerId == null || volunteerId.trim().isEmpty()) {
             throw new IllegalArgumentException("志愿者ID不能为空或空白"); // 抛出非法参数异常
