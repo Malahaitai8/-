@@ -44,7 +44,7 @@
               size="small"
               type="primary"
               @click="openEvaluateDialog(scope.row)"
-              :disabled="scope.row.trainingStatus !== '已结束' || !!scope.row.volunteerToOrgRating"
+              :disabled="scope.row.trainingStatus !== '已结束' || !!scope.row.volunteerToOrgRating || isAfterEvaluationWindow(scope.row.endTime)"
           >
             {{ scope.row.volunteerToOrgRating ? '已评价' : '评价' }}
           </el-button>
@@ -137,6 +137,20 @@ const evaluateDialog = reactive({
   trainingId: null,
   isEdit: false // 用于判断是新增评价还是修改
 });
+
+// Method to check if the current date is more than 7 days past the end time
+const isAfterEvaluationWindow = (endTimeString) => {
+  if (!endTimeString) return false;
+  // Create a Date object from the end time string
+  const endDate = new Date(endTimeString);
+  // Add 7 days to the end date
+  const sevenDaysAfterEnd = new Date(endDate);
+  sevenDaysAfterEnd.setDate(endDate.getDate() + 7);
+  // Get the current date
+  const now = new Date();
+  // Return true if the current date is after the 7-day evaluation window
+  return now > sevenDaysAfterEnd;
+};
 
 const openEvaluateDialog = (row) => {
   evaluateDialog.trainingId = row.trainingId;
