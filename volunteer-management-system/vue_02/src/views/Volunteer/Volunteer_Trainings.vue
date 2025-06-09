@@ -1,7 +1,16 @@
 <template>
   <div class="training-page">
-    <!-- 红色标题栏 -->
-    <!-- 培训表格 -->
+    <div class="training-title">我的培训</div>
+    <div class="filter-buttons">
+      <button @click="applyFilter('all')" :class="{ active: currentFilter === 'all' }">全部</button>
+      <!-- 移除待审核和审核不通过按钮 -->
+      <button @click="applyFilter(TRAINING_STATUS.ONGOING)" :class="{ active: currentFilter === TRAINING_STATUS.ONGOING }">进行中</button>
+      <button @click="applyFilter(TRAINING_STATUS.ENDED)" :class="{ active: currentFilter === TRAINING_STATUS.ENDED }">已结束</button>
+      <button @click="applyFilter(TRAINING_STATUS.APPROVED)" :class="{ active: currentFilter === TRAINING_STATUS.APPROVED }">审核通过</button>
+      <button @click="applyFilter(TRAINING_STATUS.DISABLED)" :class="{ active: currentFilter === TRAINING_STATUS.DISABLED }">已停用</button>
+      <button @click="applyFilter('TO_BE_EVALUATED')" :class="{ active: currentFilter === 'TO_BE_EVALUATED' }">待评价</button>
+    </div>
+
     <el-table
         v-if="pageData.length"
         :data="pageData"
@@ -15,16 +24,13 @@
       <el-table-column prop="trainingStatus" label="培训状态" align="center"></el-table-column>
       <el-table-column prop="isCheckedIn" label="是否签到" align="center"></el-table-column>
 
-      <!-- 新增：我的评分 列 -->
       <el-table-column label="我的评分" align="center">
         <template #default="scope">
-          <!-- 修改点：使用更有弹性的 "truthy" 判断 -->
           <span v-if="scope.row.volunteerToOrgRating">{{ scope.row.volunteerToOrgRating }} 分</span>
           <el-tag v-else type="info">未评分</el-tag>
         </template>
       </el-table-column>
 
-      <!-- 新增：组织方评分 列 -->
       <el-table-column label="组织方评分" align="center">
         <template #default="scope">
           <span v-if="scope.row.orgToVolunteerRating">{{ scope.row.orgToVolunteerRating }} 分</span>
@@ -34,12 +40,6 @@
 
       <el-table-column label="操作" align="center" width="240" fixed="right">
         <template #default="scope">
-          <!--
-            【核心修改点】
-            按钮逻辑现在使用更健壮的 "truthiness" 检查。
-            在JavaScript中，null、0、undefined 都会被视为 false。
-            这样，无论后端返回 null 还是 0，都能正确判断为“未评分”。
-          -->
           <el-button
               size="small"
               type="primary"
@@ -54,13 +54,11 @@
       </el-table-column>
     </el-table>
 
-    <!-- 空数据提示 -->
     <div v-else class="empty-box">
       <img src="https://img.alicdn.com/imgextra/i4/O1CN01v7Qw1B1QwQwQwQw_!!6000000002007-2-tps-200-200.png" alt="empty"></img>
       <div>暂无相关培训信息</div>
     </div>
 
-    <!-- 分页器 -->
     <el-pagination
         v-if="trainings.length > pageSize"
         style="margin-top: 24px; text-align: right;"
@@ -71,7 +69,6 @@
         v-model:current-page="currentPage"
     ></el-pagination>
 
-    <!-- 评价弹窗 -->
     <el-dialog :title="evaluateDialog.isEdit ? '修改我的评分' : '为本次培训评分'" v-model="evaluateDialog.visible" width="400px" @close="resetEvaluateDialog">
       <div style="text-align: center;">
         <el-rate
@@ -88,7 +85,6 @@
       </template>
     </el-dialog>
 
-    <!-- 投诉弹窗 (代码保持不变) -->
     <el-dialog title="我要投诉" v-model="complaintDialog.visible" width="500px" @close="resetComplaintDialog">
       <el-form :model="complaintDialog.form" ref="complaintFormRef" label-width="80px">
         <el-form-item label="投诉对象">
@@ -122,13 +118,14 @@ import request from '@/utils/request';
 import { ElMessage } from 'element-plus';
 
 const userStore = useUserStore();
-const trainings = ref([]);
+const trainings = ref([]); // Holds all fetched trainings
 
 const pageSize = 5;
 const currentPage = ref(1);
+// Computed property to display filtered and paginated data
 const pageData = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
-  return trainings.value.slice(start, start + pageSize);
+  return filteredTrainings.value.slice(start, start + pageSize); // Use filteredTrainings here
 });
 
 const evaluateDialog = reactive({
@@ -137,6 +134,9 @@ const evaluateDialog = reactive({
   trainingId: null,
   isEdit: false // 用于判断是新增评价还是修改
 });
+
+const currentFilter = ref('all'); // Tracks the active filter
+const filteredTrainings = ref([]); // Holds trainings after filtering
 
 // Method to check if the current date is more than 7 days past the end time
 const isAfterEvaluationWindow = (endTimeString) => {
@@ -150,6 +150,15 @@ const isAfterEvaluationWindow = (endTimeString) => {
   const now = new Date();
   // Return true if the current date is after the 7-day evaluation window
   return now > sevenDaysAfterEnd;
+};
+
+// Define training statuses and the new 'TO_BE_EVALUATED' type
+const TRAINING_STATUS = {
+  // 移除 PENDING 和 REJECTED
+  APPROVED: '审核通过',
+  ONGOING: '进行中',
+  ENDED: '已结束',
+  DISABLED: '已停用',
 };
 
 const openEvaluateDialog = (row) => {
@@ -244,21 +253,49 @@ const fetchMyTrainings = async (volunteerId) => {
     const res = await request.get(`/volunteerTraining/my-participations/${volunteerId}`);
     if (res.code === '200' && Array.isArray(res.data)) {
       trainings.value = res.data;
+      filterTrainings(); // Apply filter after fetching
     } else {
       trainings.value = [];
+      filterTrainings(); // Clear filtered list on error
       ElMessage.error(res.msg || '获取培训列表失败');
     }
   } catch (error) {
     trainings.value = [];
+    filterTrainings(); // Clear filtered list on error
     ElMessage.error('网络错误，无法获取培训列表');
   }
 };
+
+// New function to filter trainings based on currentFilter
+const filterTrainings = () => {
+  currentPage.value = 1; // Reset page to 1 when filter changes
+  if (currentFilter.value === 'all') {
+    filteredTrainings.value = [...trainings.value];
+  } else if (currentFilter.value === 'TO_BE_EVALUATED') {
+    filteredTrainings.value = trainings.value.filter(training =>
+        training.trainingStatus === TRAINING_STATUS.ENDED && // Must be ended
+        !training.volunteerToOrgRating && // Must not have been rated by volunteer
+        !isAfterEvaluationWindow(training.endTime) // Must be within the evaluation window
+    );
+  } else {
+    filteredTrainings.value = trainings.value.filter(training =>
+        training.trainingStatus === currentFilter.value
+    );
+  }
+};
+
+const applyFilter = (filterType) => {
+  currentFilter.value = filterType;
+  filterTrainings(); // Apply new filter
+};
+
 
 watch(() => userStore.detailedVolunteerInfo?.volunteerId, (newId) => {
   if (newId) {
     fetchMyTrainings(newId);
   } else {
     trainings.value = [];
+    filteredTrainings.value = [];
   }
 }, {immediate: true});
 
@@ -283,6 +320,34 @@ watch(() => userStore.detailedVolunteerInfo?.volunteerId, (newId) => {
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   border-bottom: 2px solid #fde2e2;
+}
+
+.filter-buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-buttons button {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-buttons button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.filter-buttons button:hover:not(.active) {
+  background-color: #e9e9e9;
+  border-color: #c0c0c0;
 }
 
 .table-header {
