@@ -8,6 +8,8 @@ import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -235,6 +237,58 @@ public class VolunteerTrainingController {
             return Result.error(e.getCode(), e.getMsg());
         } catch (Exception e) {
             return Result.error("500", "更新培训状态失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 申请志愿培训
+     * API: POST /volunteerTraining/apply
+     */
+    @PostMapping("/apply")
+    public Result applyTraining(@RequestBody Map<String, Object> payload) {
+        try {
+            // 创建VolunteerTraining对象
+            VolunteerTraining training = new VolunteerTraining();
+            
+            // 映射前端字段到实体字段
+            training.setTrainingName((String) payload.get("trainingName"));
+            training.setTheme((String) payload.get("trainingType")); // 前端传trainingType，实体用theme
+            training.setLocation((String) payload.get("location"));
+            training.setOrgId((String) payload.get("orgId"));
+            training.setContactPersonPhone((String) payload.get("contactPersonPhone"));
+            training.setTrainingStatus((String) payload.get("trainingStatus"));
+            
+            // 处理参与人数字段映射
+            Object participantCount = payload.get("participantCount");
+            if (participantCount instanceof Number) {
+                training.setRecruitmentCount(((Number) participantCount).intValue());
+            }
+            
+            // 处理时间字段转换
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String startTimeStr = (String) payload.get("startTime");
+            String endTimeStr = (String) payload.get("endTime");
+            
+            if (startTimeStr != null) {
+                training.setStartTime(sdf.parse(startTimeStr));
+            }
+            if (endTimeStr != null) {
+                training.setEndTime(sdf.parse(endTimeStr));
+            }
+            
+            // 设置创建时间
+            training.setCreationTime(new Date());
+            
+            System.out.println("申请培训数据: " + payload);
+            System.out.println("转换后的培训实体: " + training.getTrainingName() + ", " + training.getTheme());
+            
+            volunteerTrainingService.addTraining(training);
+            return Result.success("志愿培训申请提交成功");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("500", "申请志愿培训失败: " + e.getMessage());
         }
     }
 }

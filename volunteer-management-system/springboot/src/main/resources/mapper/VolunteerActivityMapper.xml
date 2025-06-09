@@ -27,22 +27,21 @@
 
     <insert id="insert" parameterType="com.example.springboot.entity.VolunteerActivity">
         INSERT INTO tbl_VolunteerActivity (
-            ActivityID, OrgID, ActivityName, StartTime, EndTime, Location,
-            RecruitmentCount, ActivityStatus, ContactPersonPhone
+            OrgID, ActivityName, StartTime, EndTime, Location,
+            RecruitmentCount, ActivityStatus, ContactPersonPhone, AcceptedCount,
+            ActivityDurationHours, IsRatingAggregated, CreationTime
             <if test="reviewerAdminId != null">, ReviewerAdminID</if>
-            <if test="activityDurationHours != null">, ActivityDurationHours</if>
             <if test="activityRating != null">, ActivityRating</if>
-            <if test="isRatingAggregated != null">, IsRatingAggregated</if>
         )
         VALUES (
-            #{activityId,jdbcType=CHAR}, #{orgId,jdbcType=CHAR}, #{activityName,jdbcType=NVARCHAR},
+            #{orgId,jdbcType=CHAR}, #{activityName,jdbcType=NVARCHAR},
             #{startTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{location,jdbcType=NVARCHAR},
             #{recruitmentCount,jdbcType=INTEGER}, #{activityStatus,jdbcType=NVARCHAR},
-            #{contactPersonPhone,jdbcType=NVARCHAR}
+            #{contactPersonPhone,jdbcType=NVARCHAR}, COALESCE(#{acceptedCount,jdbcType=INTEGER}, 0),
+            COALESCE(#{activityDurationHours,jdbcType=INTEGER}, 0), 
+            COALESCE(#{isRatingAggregated,jdbcType=CHAR}, 'NO'), GETDATE()
             <if test="reviewerAdminId != null">, #{reviewerAdminId,jdbcType=CHAR}</if>
-            <if test="activityDurationHours != null">, #{activityDurationHours,jdbcType=INTEGER}</if>
             <if test="activityRating != null">, #{activityRating,jdbcType=INTEGER}</if>
-            <if test="isRatingAggregated != null">, #{isRatingAggregated,jdbcType=CHAR}</if>
         )
     </insert>
 
