@@ -291,4 +291,60 @@ public class VolunteerTrainingController {
             return Result.error("500", "申请志愿培训失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 根据组织ID查询培训，并包含组织名称
+     * API: GET /volunteerTraining/detailedByOrg/{orgId}
+     * @param orgId 组织ID
+     * @return 包含组织名称的培训列表
+     */
+    @GetMapping("/detailedByOrg/{orgId}")
+    public Result getDetailedTrainingsByOrganization(@PathVariable String orgId) {
+        try {
+            List<VolunteerTraining> trainings = volunteerTrainingService.getTrainingsWithOrgNameByOrgId(orgId);
+            return Result.success(trainings);
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            return Result.error("500", "按组织查询详细培训失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据培训状态查询培训，并包含组织名称
+     * API: GET /volunteerTraining/detailedByStatus
+     * Query Param: status
+     * @param status 培训状态
+     * @return 包含组织名称的培训列表
+     */
+    @GetMapping("/detailedByStatus")
+    public Result getDetailedTrainingsByTrainingStatus(@RequestParam String status) {
+        try {
+            List<VolunteerTraining> trainings = volunteerTrainingService.getTrainingsWithOrgNameByStatus(status);
+            return Result.success(trainings);
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            return Result.error("500", "按状态查询详细培训失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据培训主题查询培训，并包含组织名称
+     * API: GET /volunteerTraining/detailedByTheme
+     * Query Param: theme
+     * @param theme 培训主题
+     * @return 包含组织名称的培训列表
+     */
+    @GetMapping("/detailedByTheme")
+    public Result getDetailedTrainingsByTrainingTheme(@RequestParam String theme) {
+        try {
+            List<VolunteerTraining> trainings = volunteerTrainingService.getTrainingsWithOrgNameByTheme(theme);
+            return Result.success(trainings);
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            return Result.error("500", "按主题查询详细培训失败: " + e.getMessage());
+        }
+    }
 }

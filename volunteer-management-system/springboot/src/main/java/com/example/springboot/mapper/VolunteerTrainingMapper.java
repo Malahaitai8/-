@@ -132,4 +132,26 @@ public interface VolunteerTrainingMapper {
             "JOIN tbl_Organization o ON t.OrgID = o.OrgID " +
             "WHERE p.VolunteerID = #{volunteerId} AND p.TrainingID = #{trainingId}")
     Map<String, Object> findSingleParticipatedTraining(@Param("volunteerId") String volunteerId, @Param("trainingId") String trainingId);
+
+ /**
+     * 根据组织ID查询培训，并联表获取组织名称
+     * @param orgId 组织ID
+     * @return 包含组织名称的培训列表
+     */
+    List<VolunteerTraining> selectTrainingsWithOrgNameByOrgId(@Param("orgId") String orgId);
+
+    /**
+     * 根据培训状态查询培训，并联表获取组织名称
+     * @param trainingStatus 培训状态
+     * @return 包含组织名称的培训列表
+     */
+    List<VolunteerTraining> selectTrainingsWithOrgNameByStatus(@Param("trainingStatus") String trainingStatus);
+
+    /**
+     * 根据培训主题查询培训，并联表获取组织名称
+     * @param theme 培训主题
+     * @return 包含组织名称的培训列表
+     */
+    List<VolunteerTraining> selectTrainingsWithOrgNameByTheme(@Param("theme") String theme);
+
 }
