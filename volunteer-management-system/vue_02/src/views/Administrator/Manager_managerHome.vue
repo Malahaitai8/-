@@ -46,7 +46,7 @@ const buttons = [
   { label: '组织机构管理', routeName: 'manageGroup' },
   { label: '志愿活动管理', routeName: 'manageActivity' },
   { label: '投诉处理', routeName: 'complaint' },
-  { label: '服务留言', routeName: 'message' }
+  { label: '志愿培训管理', routeName: 'manageTraining' }
 ];
 onMounted(() => {
   // Pinia store 应该在其自己的 `initializeStore` action (通常在应用根组件 App.vue 或 main.js 调用一次)
