@@ -71,9 +71,12 @@ public class VolunteerActivityService {
         }
 
         // 2. 校验组织状态：只有“已认证”的组织才能发布活动
+        System.out.println("正在验证组织ID: " + volunteerActivity.getOrgId());
         Organization organization = organizationMapper.selectByOrgId(volunteerActivity.getOrgId());
+        System.out.println("查询到的组织信息: " + (organization != null ? organization.getOrgName() + " (状态: " + organization.getOrgAccountStatus() + ")" : "null"));
+        
         if (organization == null) {
-            throw new CustomException("404", "发布活动的组织不存在");
+            throw new CustomException("404", "发布活动的组织不存在，组织ID: " + volunteerActivity.getOrgId());
         }
         if (!"已认证".equals(organization.getOrgAccountStatus())) {
             throw new CustomException("403", "组织账号未认证，无法发布活动");

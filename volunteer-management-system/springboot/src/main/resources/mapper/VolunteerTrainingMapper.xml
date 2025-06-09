@@ -28,14 +28,14 @@
 
     <insert id="insert" parameterType="com.example.springboot.entity.VolunteerTraining">
         INSERT INTO tbl_VolunteerTraining (
-            TrainingID, OrgID, TrainingName, Theme, StartTime, EndTime, Location,
-            RecruitmentCount, TrainingStatus, <!-- CreationTime has default GETDATE() --> ContactPersonPhone
+            OrgID, TrainingName, Theme, StartTime, EndTime, Location,
+            RecruitmentCount, TrainingStatus, ContactPersonPhone
             <if test="reviewerAdminId != null">, ReviewerAdminID</if>
             <if test="trainingRating != null">, TrainingRating</if>
             <if test="isRatingAggregated != null">, IsRatingAggregated</if>
         )
         VALUES (
-            #{trainingId,jdbcType=CHAR}, #{orgId,jdbcType=CHAR}, #{trainingName,jdbcType=NVARCHAR},
+            #{orgId,jdbcType=CHAR}, #{trainingName,jdbcType=NVARCHAR},
             #{theme,jdbcType=NVARCHAR}, #{startTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP},
             #{location,jdbcType=NVARCHAR}, #{recruitmentCount,jdbcType=INTEGER},
             #{trainingStatus,jdbcType=NVARCHAR}, #{contactPersonPhone,jdbcType=NVARCHAR}

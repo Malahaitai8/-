@@ -4,225 +4,225 @@ GO
 --select * from tbl_Volunteer;
 --select * from tbl_Organization;
 
--- Ë³Ðò 1: ´´½¨ ¹ÜÀíÔ±±í (tbl_Administrator)
+-- Ë³ï¿½ï¿½ 1: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ô±ï¿½ï¿½ (tbl_Administrator)
 CREATE TABLE tbl_Administrator (
-    AdminID CHAR(15) PRIMARY KEY,                                  -- ¹ÜÀíÔ±Î¨Ò»±êÊ¶
-    Name NVARCHAR(20) NOT NULL,                                   -- ÕæÊµÐÕÃû
-    Gender NCHAR(1) NOT NULL CHECK (Gender IN (N'ÄÐ', N'Å®')),     -- ÐÔ±ð
-    IDCardNumber VARCHAR(18) NOT NULL UNIQUE,                      -- Éí·ÝÖ¤ºÅ, ±ê×¼´¦Àí
-    PhoneNumber VARCHAR(11) NOT NULL UNIQUE,                       -- ±ê×¼ÊÖ»úºÅ
-    Password NVARCHAR(50) NOT NULL,                                -- µÇÂ¼ÃÜÂë (ÒÑÐÞ¸ÄÎªÃ÷ÎÄ´æ´¢)
-    ServiceArea NVARCHAR(100) NOT NULL,                            -- ¹ÜÀíÔ±¸ºÔð¹ÜÏ½µÄµØÇø
-    CurrentPosition NVARCHAR(20) NOT NULL DEFAULT N'ÆÕÍ¨¹ÜÀíÔ±'
-	CHECK (CurrentPosition IN (N'ÏµÍ³Î¬»¤Ô±', N'ÉóºË¼à¶½Ô±', N'È¨ÏÞ¹ÜÀíÔ±', N'Êý¾ÝÎ¬»¤Ô±', N'Ó¦¼±¹ÜÀíÔ±', N'ÓÃ»§·þÎñÔ±',N'ÆÕÍ¨¹ÜÀíÔ±')), -- µ±Ç°Ö°Îñ
-    PermissionLevel NVARCHAR(8) NOT NULL CHECK (PermissionLevel IN (N'¸ß', N'ÖÐ', N'µÍ')) -- È¨ÏÞµÈ¼¶
+    AdminID CHAR(15) PRIMARY KEY,                                  -- ï¿½ï¿½ï¿½ï¿½Ô±Î¨Ò»ï¿½ï¿½Ê¶
+    Name NVARCHAR(20) NOT NULL,                                   -- ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½
+    Gender NCHAR(1) NOT NULL CHECK (Gender IN (N'ï¿½ï¿½', N'Å®')),     -- ï¿½Ô±ï¿½
+    IDCardNumber VARCHAR(18) NOT NULL UNIQUE,                      -- ï¿½ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½, ï¿½ï¿½×¼ï¿½ï¿½ï¿½ï¿½
+    PhoneNumber VARCHAR(11) NOT NULL UNIQUE,                       -- ï¿½ï¿½×¼ï¿½Ö»ï¿½ï¿½ï¿½
+    Password NVARCHAR(50) NOT NULL,                                -- ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½Þ¸ï¿½Îªï¿½ï¿½ï¿½Ä´æ´¢)
+    ServiceArea NVARCHAR(100) NOT NULL,                            -- ï¿½ï¿½ï¿½ï¿½Ô±ï¿½ï¿½ï¿½ï¿½ï¿½Ï½ï¿½Äµï¿½ï¿½ï¿½
+    CurrentPosition NVARCHAR(20) NOT NULL DEFAULT N'ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½Ô±'
+	CHECK (CurrentPosition IN (N'ÏµÍ³Î¬ï¿½ï¿½Ô±', N'ï¿½ï¿½Ë¼à¶½Ô±', N'È¨ï¿½Þ¹ï¿½ï¿½ï¿½Ô±', N'ï¿½ï¿½ï¿½ï¿½Î¬ï¿½ï¿½Ô±', N'Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±', N'ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½Ô±',N'ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½Ô±')), -- ï¿½ï¿½Ç°Ö°ï¿½ï¿½
+    PermissionLevel NVARCHAR(8) NOT NULL CHECK (PermissionLevel IN (N'ï¿½ï¿½', N'ï¿½ï¿½', N'ï¿½ï¿½')) -- È¨ï¿½ÞµÈ¼ï¿½
 );
 GO
 select * from tbl_Administrator;
--- Ë³Ðò 2: ´´½¨ ×éÖ¯»ú¹¹±í (tbl_Organization)
+-- Ë³ï¿½ï¿½ 2: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ö¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (tbl_Organization)
 CREATE TABLE tbl_Organization (
-    OrgID CHAR(15) PRIMARY KEY,                                    -- Î¨Ò»±êÊ¶×éÖ¯µÄ±àºÅ
-    OrgName NVARCHAR(20) NOT NULL,                                 -- ×éÖ¯Ãû³Æ
-    OrgLoginUserName NVARCHAR(20) NOT NULL UNIQUE,                 -- ×éÖ¯µÇÂ¼Æ¾Ö¤£¨×éÖ¯µÇÂ¼ÓÃ»§Ãû£©
-    OrgLoginPassword NVARCHAR(50) NOT NULL,                        -- µÇÂ½ÃÜÂë (ÒÑÐÞ¸ÄÎªÃ÷ÎÄ´æ´¢)
-    ContactPersonPhone NVARCHAR(11) NOT NULL,                      -- ±ê×¼ÊÖ»úºÅ
+    OrgID CHAR(15) PRIMARY KEY,                                    -- Î¨Ò»ï¿½ï¿½Ê¶ï¿½ï¿½Ö¯ï¿½Ä±ï¿½ï¿½
+    OrgName NVARCHAR(20) NOT NULL,                                 -- ï¿½ï¿½Ö¯ï¿½ï¿½ï¿½ï¿½
+    OrgLoginUserName NVARCHAR(20) NOT NULL UNIQUE,                 -- ï¿½ï¿½Ö¯ï¿½ï¿½Â¼Æ¾Ö¤ï¿½ï¿½ï¿½ï¿½Ö¯ï¿½ï¿½Â¼ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½
+    OrgLoginPassword NVARCHAR(50) NOT NULL,                        -- ï¿½ï¿½Â½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½Þ¸ï¿½Îªï¿½ï¿½ï¿½Ä´æ´¢)
+    ContactPersonPhone NVARCHAR(11) NOT NULL,                      -- ï¿½ï¿½×¼ï¿½Ö»ï¿½ï¿½ï¿½
     ServiceRegion NVARCHAR(50) NOT NULL
-	CHECK(ServiceRegion IN('±±¾©', 'Ìì½ò', 'ÉÏº£', 'ÖØÇì', 'ºÓ±±', 'É½Î÷', 'ÁÉÄþ', '¼ªÁÖ', 'ºÚÁú½­','½­ËÕ', 'Õã½­', '°²»Õ', '¸£½¨', '½­Î÷',
-	'É½¶«', 'ºÓÄÏ', 'ºþ±±', 'ºþÄÏ','¹ã¶«', '¹ãÎ÷', 'º£ÄÏ', 'ËÄ´¨', '¹óÖÝ', 'ÔÆÄÏ', 'Î÷²Ø', 'ÉÂÎ÷', '¸ÊËà','Çàº£', 'Ì¨Íå', 'Ïã¸Û', '°ÄÃÅ')),
-	-- ·þÎñÇøÓò
-    OrgScale INT NOT NULL,                                         -- ×éÖ¯ÈËÊý
-    OrgRating DECIMAL(3,1) NOT NULL DEFAULT 0.0 CHECK (OrgRating >= 0.0 AND OrgRating <= 10.0), -- ×éÖ¯ÆÀ·Ö
-    OrgAccountStatus NVARCHAR(10) NOT NULL DEFAULT N'´ýÈÏÖ¤'
-	CHECK (OrgAccountStatus IN (N'ÒÑÈÏÖ¤', N'´ýÈÏÖ¤', N'¶³½á',N'ÈÏÖ¤Î´Í¨¹ý')), -- ×éÖ¯×¢²áÉêÇëµÄµ±Ç°ÉóÅú×´Ì¬
-    TotalServiceHours INT NOT NULL DEFAULT 0,                      -- ·´Ó³×éÖ¯»îÔ¾¶ÈÓë¹±Ï×¶È£¬¿ÉÎª×éÖ¯ÆÀ¼Û±ê×¼Ö®Ò»
+	CHECK(ServiceRegion IN('ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½', 'ï¿½Ïºï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½Ó±ï¿½', 'É½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½','ï¿½ï¿½ï¿½ï¿½', 'ï¿½ã½­', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½',
+	'É½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½','ï¿½ã¶«', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½Ä´ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½','ï¿½àº£', 'Ì¨ï¿½ï¿½', 'ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½')),
+	-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    OrgScale INT NOT NULL,                                         -- ï¿½ï¿½Ö¯ï¿½ï¿½ï¿½ï¿½
+    OrgRating DECIMAL(3,1) NOT NULL DEFAULT 0.0 CHECK (OrgRating >= 0.0 AND OrgRating <= 10.0), -- ï¿½ï¿½Ö¯ï¿½ï¿½ï¿½ï¿½
+    OrgAccountStatus NVARCHAR(10) NOT NULL DEFAULT N'ï¿½ï¿½ï¿½ï¿½Ö¤'
+	CHECK (OrgAccountStatus IN (N'ï¿½ï¿½ï¿½ï¿½Ö¤', N'ï¿½ï¿½ï¿½ï¿½Ö¤', N'ï¿½ï¿½ï¿½ï¿½',N'ï¿½ï¿½Ö¤Î´Í¨ï¿½ï¿½')), -- ï¿½ï¿½Ö¯×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äµï¿½Ç°ï¿½ï¿½ï¿½ï¿½×´Ì¬
+    TotalServiceHours INT NOT NULL DEFAULT 0,                      -- ï¿½ï¿½Ó³ï¿½ï¿½Ö¯ï¿½ï¿½Ô¾ï¿½ï¿½ï¿½ë¹±ï¿½×¶È£ï¿½ï¿½ï¿½Îªï¿½ï¿½Ö¯ï¿½ï¿½ï¿½Û±ï¿½×¼Ö®Ò»
     ActivityCount INT NOT NULL DEFAULT 0,
     TrainingCount INT NOT NULL DEFAULT 0
 );
 GO
 
 
--- Ë³Ðò 3: ´´½¨ Ö¾Ô¸Õß±í (tbl_Volunteer)
+-- Ë³ï¿½ï¿½ 3: ï¿½ï¿½ï¿½ï¿½ Ö¾Ô¸ï¿½ß±ï¿½ (tbl_Volunteer)
 CREATE TABLE tbl_Volunteer (
-    VolunteerID CHAR(15) PRIMARY KEY,                                -- Î¨Ò»±êÊ¶Ö¾Ô¸Õß
-    Username NVARCHAR(20) NOT NULL UNIQUE,                           -- ÓÃ»§×¢²áµÇÂ¼Ê¹ÓÃ
-    Name NVARCHAR(20) NOT NULL,                                      -- ÕæÊµÐÕÃû
-    PhoneNumber VARCHAR(11)  NOT NULL UNIQUE,                         -- ±ê×¼ÊÖ»úºÅ
-    IDCardNumber VARCHAR(18) NOT NULL UNIQUE,                        -- Î¨Ò»ÈÏÖ¤Ö¤¼þ
-    Password NVARCHAR(50) NOT NULL,                                  -- µÇÂ¼ÃÜÂë (ÒÑÐÞ¸ÄÎªÃ÷ÎÄ´æ´¢)
-    Country NVARCHAR(10) DEFAULT N'ÖÐ¹ú',                             -- ¹ú¼®ÐÅÏ¢
-    Gender NCHAR(1) NOT NULL CHECK (Gender IN (N'ÄÐ', N'Å®')),       -- ÕæÊµÐÔ±ðÉ¸Ñ¡
+    VolunteerID CHAR(15) PRIMARY KEY,                                -- Î¨Ò»ï¿½ï¿½Ê¶Ö¾Ô¸ï¿½ï¿½
+    Username NVARCHAR(20) NOT NULL UNIQUE,                           -- ï¿½Ã»ï¿½×¢ï¿½ï¿½ï¿½Â¼Ê¹ï¿½ï¿½
+    Name NVARCHAR(20) NOT NULL,                                      -- ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½
+    PhoneNumber VARCHAR(11)  NOT NULL UNIQUE,                         -- ï¿½ï¿½×¼ï¿½Ö»ï¿½ï¿½ï¿½
+    IDCardNumber VARCHAR(18) NOT NULL UNIQUE,                        -- Î¨Ò»ï¿½ï¿½Ö¤Ö¤ï¿½ï¿½
+    Password NVARCHAR(50) NOT NULL,                                  -- ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½Þ¸ï¿½Îªï¿½ï¿½ï¿½Ä´æ´¢)
+    Country NVARCHAR(10) DEFAULT N'ï¿½Ð¹ï¿½',                             -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
+    Gender NCHAR(1) NOT NULL CHECK (Gender IN (N'ï¿½ï¿½', N'Å®')),       -- ï¿½ï¿½Êµï¿½Ô±ï¿½É¸Ñ¡
     ServiceArea NVARCHAR(50) NOT NULL
-	CHECK(ServiceArea IN('±±¾©', 'Ìì½ò', 'ÉÏº£', 'ÖØÇì', 'ºÓ±±', 'É½Î÷', 'ÁÉÄþ', '¼ªÁÖ', 'ºÚÁú½­','½­ËÕ', 'Õã½­', '°²»Õ', '¸£½¨', '½­Î÷',
-	'É½¶«', 'ºÓÄÏ', 'ºþ±±', 'ºþÄÏ','¹ã¶«', '¹ãÎ÷', 'º£ÄÏ', 'ËÄ´¨', '¹óÖÝ', 'ÔÆÄÏ', 'Î÷²Ø', 'ÉÂÎ÷', '¸ÊËà','Çàº£', 'Ì¨Íå', 'Ïã¸Û', '°ÄÃÅ')),
- -- ·þÎñÇøÓò
-    Ethnicity NVARCHAR(10) DEFAULT N'ºº×å' CHECK (Ethnicity IN ('ºº×å', 'ÃÉ¹Å×å', '»Ø×å', '²Ø×å', 'Î¬Îá¶û×å', 'Ãç×å', 'ÒÍ×å', '×³×å',
-        '²¼ÒÀ×å', '³¯ÏÊ×å', 'Âú×å', '¶±×å', 'Ñþ×å', '°××å', 'ÍÁ¼Ò×å',
-        '¹þÄá×å', '¹þÈø¿Ë×å', '´ö×å', 'Àè×å', 'ÀüËÛ×å', 'Øô×å', 'î´×å',
-        '¸ßÉ½×å', 'À­ìï×å', 'Ë®×å', '¶«Ïç×å', 'ÄÉÎ÷×å', '¾°ÆÄ×å',
-        '¿Â¶û¿Ë×Î×å', 'ÍÁ×å', '´ïÎÓ¶û×å', 'ØïÀÐ×å', 'Ç¼×å', '²¼ÀÊ×å',
-        'ÈöÀ­×å', 'Ã«ÄÏ×å', 'ØîÀÐ×å', 'Îý²®×å', '°¢²ý×å', 'ÆÕÃ××å',
-        'Ëþ¼ª¿Ë×å', 'Å­×å', 'ÎÚ×Î±ð¿Ë×å', '¶íÂÞË¹×å', '¶õÎÂ¿Ë×å',
-        'µÂ°º×å', '±£°²×å', 'Ô£¹Ì×å', '¾©×å', 'ËþËþ¶û×å', '¶ÀÁú×å',
-        '¶õÂ×´º×å', 'ºÕÕÜ×å', 'ÃÅ°Í×å', 'çó°Í×å')), -- Ãñ×åÉí·Ý
-    PoliticalStatus NVARCHAR(20) DEFAULT N'ÈºÖÚ'
-	CHECK (PoliticalStatus IN ('ÖÐ¹ú¹²²úµ³µ³Ô±','ÖÐ¹ú¹²²úµ³Ô¤±¸µ³Ô±','ÖÐ¹ú¹²²úÖ÷ÒåÇàÄêÍÅÍÅÔ±',
-        'ÖÐ¹ú¹úÃñµ³¸ïÃüÎ¯Ô±»á»áÔ±','ÖÐ¹úÃñÖ÷Í¬ÃËÃËÔ±','ÖÐ¹úÃñÖ÷½¨¹ú»á»áÔ±',
-        'ÖÐ¹úÃñÖ÷´Ù½ø»á»áÔ±','ÖÐ¹úÅ©¹¤ÃñÖ÷µ³µ³Ô±','ÖÐ¹úÖÂ¹«µ³µ³Ô±',
-        '¾ÅÈýÑ§ÉçÉçÔ±','Ì¨ÍåÃñÖ÷×ÔÖÎÍ¬ÃËÃËÔ±','ÎÞµ³ÅÉÃñÖ÷ÈËÊ¿','ÈºÖÚ')), -- ÕþÖÎÉí·Ý
-    HighestEducation NVARCHAR(20) DEFAULT N'Î´ËµÃ÷Çé¿ö'
-	CHECK (HighestEducation IN ('²©Ê¿ÑÐ¾¿Éú', '´óÑ§±¾¿Æ', '¼¼¹¤Ñ§Ð£', '¸ßÖÐ', '³õÖÐ', 'Ð¡Ñ§',
-        'Ë¶Ê¿ÑÐ¾¿Éú', '´óÑ§×¨¿ÆºÍ×¨¿ÆÑ§Ð£', 'Ó×¶ùÔ°Ñ§ÁäÇ°', 'ÌØÊâ½ÌÓý',
-        'ÎÄÃ¤»ò°ëÎÄÃ¤', 'Î´ËµÃ÷Çé¿ö')), -- ½ÌÓý±³¾°
-    EmploymentStatus NVARCHAR(20) DEFAULT N'Î´ËµÃ÷Çé¿ö'
-	CHECK (EmploymentStatus IN ('¹ú¼Ò¹«ÎñÔ±', 'Ö°Ô±', 'ÆóÒµ¹ÜÀíÈËÔ±', '¹¤ÈË', 'Ñ§Éú', 'ÏÖÒÛ¾üÈË',
-        '×ÔÓÉÖ°Òµ', '¸öÌå¾­ÓªÕß', 'ÎÞÒµÈËÔ±', 'ÍË(Àë)ÐÝÈËÔ±', 'Ò½Éú',
-        'Ë¾»ú', 'ÂÉÊ¦', '½ÌÊ¦', 'Å©Ãñ','Î´ËµÃ÷Çé¿ö')), -- ´ÓÒµÇé¿ö
-    ServiceCategory NVARCHAR(20) DEFAULT N'ÉçÇøÖ¾Ô¸Õß'
-	CHECK (ServiceCategory IN ('ÖúÁ¦¸´¹¤¸´²úÖ¾Ô¸Õß', '·öÆ¶¼ÃÀ§Ö¾Ô¸Õß', 'ÉçÇøÖ¾Ô¸Õß',
-        'ÇàÄêÖ¾Ô¸Õß', 'ÎÄÃ÷Ö¾Ô¸Õß', 'ÎÄ»¯Ö¾Ô¸Õß', 'Ò½ÁÆÖ¾Ô¸Õß',
-        '½ÌÓýÖ¾Ô¸Õß', 'Öú²ÐÖ¾Ô¸Õß', '½íàþÖ¾Ô¸Õß', 'Ïû·ÀÖ¾Ô¸Õß',
-        'ºìÊ®×ÖÖ¾Ô¸Õß', 'Ë°ÊÕÖ¾Ô¸Õß', 'ÒßÇé·À¿ØÖ¾Ô¸Õß')), -- Ö¾Ô¸Àà±ð
-    TotalVolunteerHours DECIMAL(10,2) DEFAULT 0.00,                  -- ×ÜÖ¾Ô¸Ê±³¤
-    VolunteerRating DECIMAL(10,2) DEFAULT 0.00,                      -- Ö¾Ô¸Õß×ÛºÏÆÀ·Ö
-    AccountStatus NVARCHAR(10) NOT NULL DEFAULT N'Î´ÊµÃûÈÏÖ¤'
-	CHECK (AccountStatus IN (N'Î´ÊµÃûÈÏÖ¤', N'ÒÑÊµÃûÈÏÖ¤', N'ÒÑ¶³½á',N'ÈÏÖ¤Î´Í¨¹ý'))
+	CHECK(ServiceArea IN('ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½', 'ï¿½Ïºï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½Ó±ï¿½', 'É½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½','ï¿½ï¿½ï¿½ï¿½', 'ï¿½ã½­', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½',
+	'É½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½','ï¿½ã¶«', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½Ä´ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½','ï¿½àº£', 'Ì¨ï¿½ï¿½', 'ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½')),
+ -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    Ethnicity NVARCHAR(10) DEFAULT N'ï¿½ï¿½ï¿½ï¿½' CHECK (Ethnicity IN ('ï¿½ï¿½ï¿½ï¿½', 'ï¿½É¹ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'Î¬ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', '×³ï¿½ï¿½',
+        'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½',
+        'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½',
+        'ï¿½ï¿½É½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'Ë®ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½',
+        'ï¿½Â¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½Ó¶ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'Ç¼ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½',
+        'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'Ã«ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½',
+        'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'Å­ï¿½ï¿½', 'ï¿½ï¿½ï¿½Î±ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½Ë¹ï¿½ï¿½', 'ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½',
+        'ï¿½Â°ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'Ô£ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½',
+        'ï¿½ï¿½ï¿½×´ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½Å°ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½')), -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    PoliticalStatus NVARCHAR(20) DEFAULT N'Èºï¿½ï¿½'
+	CHECK (PoliticalStatus IN ('ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±','ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½Ô±','ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±',
+        'ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½ñµ³¸ï¿½ï¿½ï¿½Î¯Ô±ï¿½ï¿½ï¿½Ô±','ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½Ô±','ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±',
+        'ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù½ï¿½ï¿½ï¿½ï¿½Ô±','ï¿½Ð¹ï¿½Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±','ï¿½Ð¹ï¿½ï¿½Â¹ï¿½ï¿½ï¿½ï¿½ï¿½Ô±',
+        'ï¿½ï¿½ï¿½ï¿½Ñ§ï¿½ï¿½ï¿½ï¿½Ô±','Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½Ô±','ï¿½Þµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¿','Èºï¿½ï¿½')), -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    HighestEducation NVARCHAR(20) DEFAULT N'Î´Ëµï¿½ï¿½ï¿½ï¿½ï¿½'
+	CHECK (HighestEducation IN ('ï¿½ï¿½Ê¿ï¿½Ð¾ï¿½ï¿½ï¿½', 'ï¿½ï¿½Ñ§ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½Ñ§Ð£', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'Ð¡Ñ§',
+        'Ë¶Ê¿ï¿½Ð¾ï¿½ï¿½ï¿½', 'ï¿½ï¿½Ñ§×¨ï¿½Æºï¿½×¨ï¿½ï¿½Ñ§Ð£', 'ï¿½×¶ï¿½Ô°Ñ§ï¿½ï¿½Ç°', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½',
+        'ï¿½ï¿½Ã¤ï¿½ï¿½ï¿½ï¿½ï¿½Ã¤', 'Î´Ëµï¿½ï¿½ï¿½ï¿½ï¿½')), -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    EmploymentStatus NVARCHAR(20) DEFAULT N'Î´Ëµï¿½ï¿½ï¿½ï¿½ï¿½'
+	CHECK (EmploymentStatus IN ('ï¿½ï¿½ï¿½Ò¹ï¿½ï¿½ï¿½Ô±', 'Ö°Ô±', 'ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±', 'ï¿½ï¿½ï¿½ï¿½', 'Ñ§ï¿½ï¿½', 'ï¿½ï¿½ï¿½Û¾ï¿½ï¿½ï¿½',
+        'ï¿½ï¿½ï¿½ï¿½Ö°Òµ', 'ï¿½ï¿½ï¿½å¾­Óªï¿½ï¿½', 'ï¿½ï¿½Òµï¿½ï¿½Ô±', 'ï¿½ï¿½(ï¿½ï¿½)ï¿½ï¿½ï¿½ï¿½Ô±', 'Ò½ï¿½ï¿½',
+        'Ë¾ï¿½ï¿½', 'ï¿½ï¿½Ê¦', 'ï¿½ï¿½Ê¦', 'Å©ï¿½ï¿½','Î´Ëµï¿½ï¿½ï¿½ï¿½ï¿½')), -- ï¿½ï¿½Òµï¿½ï¿½ï¿½
+    ServiceCategory NVARCHAR(20) DEFAULT N'ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½'
+	CHECK (ServiceCategory IN ('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½', 'ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½',
+        'ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½', 'ï¿½Ä»ï¿½Ö¾Ô¸ï¿½ï¿½', 'Ò½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½',
+        'ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½',
+        'ï¿½ï¿½Ê®ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½', 'Ë°ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½')), -- Ö¾Ô¸ï¿½ï¿½ï¿½
+    TotalVolunteerHours DECIMAL(10,2) DEFAULT 0.00,                  -- ï¿½ï¿½Ö¾Ô¸Ê±ï¿½ï¿½
+    VolunteerRating DECIMAL(10,2) DEFAULT 0.00,                      -- Ö¾Ô¸ï¿½ï¿½ï¿½Ûºï¿½ï¿½ï¿½ï¿½ï¿½
+    AccountStatus NVARCHAR(10) NOT NULL DEFAULT N'Î´Êµï¿½ï¿½ï¿½ï¿½Ö¤'
+	CHECK (AccountStatus IN (N'Î´Êµï¿½ï¿½ï¿½ï¿½Ö¤', N'ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½Ö¤', N'ï¿½Ñ¶ï¿½ï¿½ï¿½',N'ï¿½ï¿½Ö¤Î´Í¨ï¿½ï¿½'))
 );
 GO
 --select * from tbl_VolunteerActivity;
 
--- Ë³Ðò 4: ´´½¨ Ö¾Ô¸»î¶¯±í (tbl_VolunteerActivity)
+-- Ë³ï¿½ï¿½ 4: ï¿½ï¿½ï¿½ï¿½ Ö¾Ô¸ï¿½î¶¯ï¿½ï¿½ (tbl_VolunteerActivity)
 CREATE TABLE tbl_VolunteerActivity (
-    ActivityID CHAR(15) PRIMARY KEY,                                  -- Î¨Ò»±êÊ¶»î¶¯
+    ActivityID CHAR(15) PRIMARY KEY,                                  -- Î¨Ò»ï¿½ï¿½Ê¶ï¿½î¶¯
     OrgID CHAR(15) NOT NULL
-	FOREIGN KEY REFERENCES tbl_Organization(OrgID),					  -- ¹ØÁªÖ¾Ô¸×éÖ¯»ú¹¹±í
-    ActivityName NVARCHAR(20) NOT NULL,                               -- Ö¾Ô¸»î¶¯Ãû³Æ
-    StartTime SMALLDATETIME NOT NULL,                                       -- Ö¾Ô¸»î¶¯¿ªÊ¼Ê±¼ä
-    EndTime SMALLDATETIME NOT NULL,                                         -- Ö¾Ô¸»î¶¯½áÊøÊ±¼ä
-    Location NVARCHAR(30) NOT NULL,                                    -- »î¶¯µØµã
-    RecruitmentCount INT NOT NULL CHECK (RecruitmentCount > 0),        -- ÕÐÄ¼ÈËÊý
-    AcceptedCount INT NOT NULL DEFAULT 0 , -- Â¼È¡ÈËÊý
-    ActivityStatus NVARCHAR(10) NOT NULL DEFAULT N'´ýÉóºË' ,
-	CHECK (ActivityStatus IN (N'´ýÉóºË', N'ÉóºËÍ¨¹ý', N'ÉóºË²»Í¨¹ý', N'½øÐÐÖÐ', N'ÒÑ½áÊø', N'ÒÑÍ£ÓÃ')), -- Ö¾Ô¸»î¶¯×´Ì¬
-    CreationTime DATETIME2(0) NOT NULL DEFAULT GETDATE(),                  -- ´´½¨Ê±¼ä
-    ReviewerAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID), -- ÉóºË¹ÜÀíÔ±ID, ¹ØÁª¹ÜÀíÔ±±í (¿É¿Õ)
-    ContactPersonPhone NVARCHAR(11) NOT NULL,                         -- ¸ºÔðÈËÁªÏµ·½Ê½£¬±ê×¼ÊÖ»úºÅ
-    ActivityDurationHours INT CHECK (ActivityDurationHours >= 0),      -- Ö¾Ô¸»î¶¯×ÜÊ±³¤ (Ð¡Ê±)
-    ActivityRating INT CHECK (ActivityRating > 0 AND ActivityRating <= 10), -- Ö¾Ô¸»î¶¯ÆÀ·Ö (¼ÙÉè1-10·Ö)
-    IsRatingAggregated CHAR(3) NOT NULL DEFAULT 'NO' CHECK (IsRatingAggregated IN ('YES', 'NO')), -- ±ê¼ÇÒ»¸ö»î¶¯»òÅàÑµµÄÆÀ·ÖÊÇ·ñÒÑ¾­±»´¦Àí¹ý
-	CONSTRAINT CHK_AcceptedCount_Activity CHECK (AcceptedCount >= 0 AND AcceptedCount <= RecruitmentCount) -- Ìí¼Ó±í¼¶ CHECK Ô¼Êø
+	FOREIGN KEY REFERENCES tbl_Organization(OrgID),					  -- ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½Ö¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    ActivityName NVARCHAR(20) NOT NULL,                               -- Ö¾Ô¸ï¿½î¶¯ï¿½ï¿½ï¿½ï¿½
+    StartTime SMALLDATETIME NOT NULL,                                       -- Ö¾Ô¸ï¿½î¶¯ï¿½ï¿½Ê¼Ê±ï¿½ï¿½
+    EndTime SMALLDATETIME NOT NULL,                                         -- Ö¾Ô¸ï¿½î¶¯ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+    Location NVARCHAR(30) NOT NULL,                                    -- ï¿½î¶¯ï¿½Øµï¿½
+    RecruitmentCount INT NOT NULL CHECK (RecruitmentCount > 0),        -- ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½
+    AcceptedCount INT NOT NULL DEFAULT 0 , -- Â¼È¡ï¿½ï¿½ï¿½ï¿½
+    ActivityStatus NVARCHAR(10) NOT NULL DEFAULT N'ï¿½ï¿½ï¿½ï¿½ï¿½' ,
+	CHECK (ActivityStatus IN (N'ï¿½ï¿½ï¿½ï¿½ï¿½', N'ï¿½ï¿½ï¿½Í¨ï¿½ï¿½', N'ï¿½ï¿½Ë²ï¿½Í¨ï¿½ï¿½', N'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', N'ï¿½Ñ½ï¿½ï¿½ï¿½', N'ï¿½ï¿½Í£ï¿½ï¿½')), -- Ö¾Ô¸ï¿½î¶¯×´Ì¬
+    CreationTime DATETIME2(0) NOT NULL DEFAULT GETDATE(),                  -- ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+    ReviewerAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID), -- ï¿½ï¿½Ë¹ï¿½ï¿½ï¿½Ô±ID, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±ï¿½ï¿½ (ï¿½É¿ï¿½)
+    ContactPersonPhone NVARCHAR(11) NOT NULL,                         -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½×¼ï¿½Ö»ï¿½ï¿½ï¿½
+    ActivityDurationHours INT CHECK (ActivityDurationHours >= 0),      -- Ö¾Ô¸ï¿½î¶¯ï¿½ï¿½Ê±ï¿½ï¿½ (Ð¡Ê±)
+    ActivityRating INT CHECK (ActivityRating > 0 AND ActivityRating <= 10), -- Ö¾Ô¸ï¿½î¶¯ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½1-10ï¿½ï¿½)
+    IsRatingAggregated CHAR(3) NOT NULL DEFAULT 'NO' CHECK (IsRatingAggregated IN ('YES', 'NO')), -- ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½î¶¯ï¿½ï¿½ï¿½ï¿½Ñµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	CONSTRAINT CHK_AcceptedCount_Activity CHECK (AcceptedCount >= 0 AND AcceptedCount <= RecruitmentCount) -- ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ CHECK Ô¼ï¿½ï¿½
 );
 GO
 
--- Ë³Ðò 5: ´´½¨ Ö¾Ô¸ÅàÑµ±í (tbl_VolunteerTraining)
+-- Ë³ï¿½ï¿½ 5: ï¿½ï¿½ï¿½ï¿½ Ö¾Ô¸ï¿½ï¿½Ñµï¿½ï¿½ (tbl_VolunteerTraining)
 CREATE TABLE tbl_VolunteerTraining (
-    TrainingID CHAR(15) PRIMARY KEY,                                  -- Î¨Ò»±êÊ¶ÅàÑµ
-    OrgID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Organization(OrgID), -- ¹ØÁª×éÖ¯±í
-    TrainingName NVARCHAR(20) NOT NULL,                               -- ÅàÑµÃû³Æ
-    Theme NVARCHAR(15) NOT NULL ,                                     -- Ö÷Ìâ£¨×éÖ¯ÄÚ²¿ÅàÑµ£¬»î¶¯ÅàÑµ£¬ÌØ¶¨¸ÚÎ»ÅàÑµ£©
-    StartTime SMALLDATETIME NOT NULL,                                  -- ÅàÑµ¿ªÊ¼Ê±¼ä
-    EndTime SMALLDATETIME NOT NULL,                                    -- ÅàÑµ½áÊøÊ±¼ä
-    Location NVARCHAR(30) NOT NULL,                                    -- ÅàÑµµØµã
-    RecruitmentCount INT NOT NULL CHECK (RecruitmentCount > 0),        -- ÕÐÄ¼ÈËÊý
+    TrainingID CHAR(15) PRIMARY KEY,                                  -- Î¨Ò»ï¿½ï¿½Ê¶ï¿½ï¿½Ñµ
+    OrgID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Organization(OrgID), -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¯ï¿½ï¿½
+    TrainingName NVARCHAR(20) NOT NULL,                               -- ï¿½ï¿½Ñµï¿½ï¿½ï¿½ï¿½
+    Theme NVARCHAR(15) NOT NULL ,                                     -- ï¿½ï¿½ï¿½â£¨ï¿½ï¿½Ö¯ï¿½Ú²ï¿½ï¿½ï¿½Ñµï¿½ï¿½ï¿½î¶¯ï¿½ï¿½Ñµï¿½ï¿½ï¿½Ø¶ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ñµï¿½ï¿½
+    StartTime SMALLDATETIME NOT NULL,                                  -- ï¿½ï¿½Ñµï¿½ï¿½Ê¼Ê±ï¿½ï¿½
+    EndTime SMALLDATETIME NOT NULL,                                    -- ï¿½ï¿½Ñµï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+    Location NVARCHAR(30) NOT NULL,                                    -- ï¿½ï¿½Ñµï¿½Øµï¿½
+    RecruitmentCount INT NOT NULL CHECK (RecruitmentCount > 0),        -- ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½
     TrainingStatus NVARCHAR(10) NOT NULL 
-	CHECK (TrainingStatus IN (N'´ýÉóºË', N'ÉóºËÍ¨¹ý', N'ÉóºË²»Í¨¹ý', N'½øÐÐÖÐ', N'ÒÑ½áÊø', N'ÒÑÍ£ÓÃ')), -- << ÐÞ¸Äµã£ºÌí¼Ó N'ÉóºË²»Í¨¹ý'
-    CreationTime SMALLDATETIME NOT NULL DEFAULT GETDATE(),             -- ´´½¨Ê±¼ä
-    ReviewerAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID), -- ÉóºË¹ÜÀíÔ±ID, ¹ØÁª¹ÜÀíÔ±±í (¿É¿Õ)
-    ContactPersonPhone NVARCHAR(11) NOT NULL,                         -- ¸ºÔðÈËÁªÏµ·½Ê½£¬±ê×¼ÊÖ»úºÅ
-    TrainingRating INT CHECK (TrainingRating > 0 AND TrainingRating <= 10), -- ÅàÑµÆÀ·Ö (¼ÙÉè1-10·Ö)
-    IsRatingAggregated CHAR(3) NOT NULL DEFAULT 'NO' CHECK (IsRatingAggregated IN ('YES', 'NO')) -- ±ê¼ÇÒ»¸ö»î¶¯»òÅàÑµµÄÆÀ·ÖÊÇ·ñÒÑ¾­±»´¦Àí¹ý
+	CHECK (TrainingStatus IN (N'ï¿½ï¿½ï¿½ï¿½ï¿½', N'ï¿½ï¿½ï¿½Í¨ï¿½ï¿½', N'ï¿½ï¿½Ë²ï¿½Í¨ï¿½ï¿½', N'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', N'ï¿½Ñ½ï¿½ï¿½ï¿½', N'ï¿½ï¿½Í£ï¿½ï¿½')), -- << ï¿½Þ¸Äµã£ºï¿½ï¿½ï¿½ï¿½ N'ï¿½ï¿½Ë²ï¿½Í¨ï¿½ï¿½'
+    CreationTime SMALLDATETIME NOT NULL DEFAULT GETDATE(),             -- ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+    ReviewerAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID), -- ï¿½ï¿½Ë¹ï¿½ï¿½ï¿½Ô±ID, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±ï¿½ï¿½ (ï¿½É¿ï¿½)
+    ContactPersonPhone NVARCHAR(11) NOT NULL,                         -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½×¼ï¿½Ö»ï¿½ï¿½ï¿½
+    TrainingRating INT CHECK (TrainingRating > 0 AND TrainingRating <= 10), -- ï¿½ï¿½Ñµï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½1-10ï¿½ï¿½)
+    IsRatingAggregated CHAR(3) NOT NULL DEFAULT 'NO' CHECK (IsRatingAggregated IN ('YES', 'NO')) -- ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½î¶¯ï¿½ï¿½ï¿½ï¿½Ñµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 );
 GO
 
--- Ë³Ðò 6: ´´½¨ Ö¾Ô¸Õß×éÖ¯»ú¹¹²ÎÓë±í (tbl_VolunteerOrganizationJoin)
+-- Ë³ï¿½ï¿½ 6: ï¿½ï¿½ï¿½ï¿½ Ö¾Ô¸ï¿½ï¿½ï¿½ï¿½Ö¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (tbl_VolunteerOrganizationJoin)
 CREATE TABLE tbl_VolunteerOrganizationJoin (
-    VolunteerID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Volunteer(VolunteerID), -- ¹ØÁªÖ¾Ô¸Õß±í
-    OrgID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Organization(OrgID),       -- ¹ØÁª×éÖ¯»ú¹¹±í
-    JoinTime DATETIME NOT NULL DEFAULT GETDATE(),                                 -- Ö¾Ô¸Õß¼ÓÈë×éÖ¯µÄÊ±¼ä
-    MemberStatus NVARCHAR(3) NOT NULL CHECK (MemberStatus IN (N'ÉêÇëÖÐ', N'ÒÑ¼ÓÈë', N'ÒÑÍË³ö')), -- ³ÉÔ±×´Ì¬
-    PRIMARY KEY (VolunteerID, OrgID)                                              -- ÁªºÏÖ÷¼ü
+    VolunteerID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Volunteer(VolunteerID), -- ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ß±ï¿½
+    OrgID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Organization(OrgID),       -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    JoinTime DATETIME NOT NULL DEFAULT GETDATE(),                                 -- Ö¾Ô¸ï¿½ß¼ï¿½ï¿½ï¿½ï¿½ï¿½Ö¯ï¿½ï¿½Ê±ï¿½ï¿½
+    MemberStatus NVARCHAR(3) NOT NULL CHECK (MemberStatus IN (N'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', N'ï¿½Ñ¼ï¿½ï¿½ï¿½', N'ï¿½ï¿½ï¿½Ë³ï¿½')), -- ï¿½ï¿½Ô±×´Ì¬
+    PRIMARY KEY (VolunteerID, OrgID)                                              -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 );
 GO
 
--- Ë³Ðò 7: ´´½¨ ¸ÚÎ»±í (tbl_Position)
+-- Ë³ï¿½ï¿½ 7: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Î»ï¿½ï¿½ (tbl_Position)
 CREATE TABLE tbl_Position (
-    PositionID CHAR(15) PRIMARY KEY,                                 -- ¸ÚÎ»ID, Ö÷¼ü (CHARÀàÐÍµÄÎ¨Ò»ÐÔÐèÓ¦ÓÃ²ãÃæÈ·±£)
-    PositionName NVARCHAR(50) NOT NULL,                              -- ¸ÚÎ»Ãû³Æ
-    ActivityID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_VolunteerActivity(ActivityID), -- »î¶¯ID, Íâ¼ü, ¹ØÁªÖ¾Ô¸»î¶¯±í
-    PositionServiceHours INT NOT NULL CHECK (PositionServiceHours > 0), -- ¸ÚÎ»·þÎñÊ±³¤ (Ö¸ÔÚ¸Ã»î¶¯ÖÐÈÎÖ°¸ÚÎ»¿É»ñµÃµÄ·þÎñÊ±³¤)
-    RequiredVolunteers INT NOT NULL,                                  -- ÐèÇóÈËÊý
-    RecruitedVolunteers INT NOT NULL DEFAULT 0, -- ÒÑÕÐÄ¼ÈËÊý (Ð¡ÓÚµÈÓÚÐèÇóÈËÊý, ÇÒ´óÓÚµÈÓÚ0)
-	CONSTRAINT CHK_RecruitedVolunteers_Position CHECK (RecruitedVolunteers <= RequiredVolunteers AND RecruitedVolunteers >= 0) -- Ìí¼Ó±í¼¶ CHECK Ô¼Êø
+    PositionID CHAR(15) PRIMARY KEY,                                 -- ï¿½ï¿½Î»ID, ï¿½ï¿½ï¿½ï¿½ (CHARï¿½ï¿½ï¿½Íµï¿½Î¨Ò»ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Ã²ï¿½ï¿½ï¿½È·ï¿½ï¿½)
+    PositionName NVARCHAR(50) NOT NULL,                              -- ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½
+    ActivityID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_VolunteerActivity(ActivityID), -- ï¿½î¶¯ID, ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½î¶¯ï¿½ï¿½
+    PositionServiceHours INT NOT NULL CHECK (PositionServiceHours > 0), -- ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ (Ö¸ï¿½Ú¸Ã»î¶¯ï¿½ï¿½ï¿½ï¿½Ö°ï¿½ï¿½Î»ï¿½É»ï¿½ÃµÄ·ï¿½ï¿½ï¿½Ê±ï¿½ï¿½)
+    RequiredVolunteers INT NOT NULL,                                  -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    RecruitedVolunteers INT NOT NULL DEFAULT 0, -- ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ (Ð¡ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ò´ï¿½ï¿½Úµï¿½ï¿½ï¿½0)
+	CONSTRAINT CHK_RecruitedVolunteers_Position CHECK (RecruitedVolunteers <= RequiredVolunteers AND RecruitedVolunteers >= 0) -- ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ CHECK Ô¼ï¿½ï¿½
 );
 GO
 
--- Ë³Ðò 8: ´´½¨ »î¶¯Ê±¶Î±í (tbl_ActivityTimeslot)
+-- Ë³ï¿½ï¿½ 8: ï¿½ï¿½ï¿½ï¿½ ï¿½î¶¯Ê±ï¿½Î±ï¿½ (tbl_ActivityTimeslot)
 CREATE TABLE tbl_ActivityTimeslot (
-    TimeslotID CHAR(15) PRIMARY KEY,                                  -- Ê±¶ÎID, Ö÷¼ü
-    EventID CHAR(15) NOT NULL,                                       -- ÊÂ¼þID (ÀýÈç: 'activity_xxxx' »ò 'training_xxxx')
-    StartTime SMALLDATETIME NOT NULL,                                     -- Ê±¶Î¿ªÊ¼Ê±¼ä
-    EndTime SMALLDATETIME NOT NULL,                                       -- Ê±¶Î½áÊøÊ±¼ä
-    CONSTRAINT CHK_ActivityTimeslot_EndTimeAfterStart CHECK (EndTime > StartTime) -- È·±£½áÊøÊ±¼äÔÚ¿ªÊ¼Ê±¼äÖ®ºó
+    TimeslotID CHAR(15) PRIMARY KEY,                                  -- Ê±ï¿½ï¿½ID, ï¿½ï¿½ï¿½ï¿½
+    EventID CHAR(15) NOT NULL,                                       -- ï¿½Â¼ï¿½ID (ï¿½ï¿½ï¿½ï¿½: 'activity_xxxx' ï¿½ï¿½ 'training_xxxx')
+    StartTime SMALLDATETIME NOT NULL,                                     -- Ê±ï¿½Î¿ï¿½Ê¼Ê±ï¿½ï¿½
+    EndTime SMALLDATETIME NOT NULL,                                       -- Ê±ï¿½Î½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+    CONSTRAINT CHK_ActivityTimeslot_EndTimeAfterStart CHECK (EndTime > StartTime) -- È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ú¿ï¿½Ê¼Ê±ï¿½ï¿½Ö®ï¿½ï¿½
 );
 GO
 
--- Ë³Ðò 9: ´´½¨ Ö¾Ô¸Õß»î¶¯±¨Ãû±í (tbl_VolunteerActivityApplication)
+-- Ë³ï¿½ï¿½ 9: ï¿½ï¿½ï¿½ï¿½ Ö¾Ô¸ï¿½ß»î¶¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (tbl_VolunteerActivityApplication)
 CREATE TABLE tbl_VolunteerActivityApplication (
-    ApplicationID CHAR(15) PRIMARY KEY,                                -- ±¨ÃûÉêÇëµÄÎ¨Ò»±êÊ¶ (CHARÀàÐÍµÄÎ¨Ò»ÐÔÐèÓ¦ÓÃ²ãÃæÈ·±£)
-    VolunteerID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Volunteer(VolunteerID), -- ¹ØÁªÉêÇëµÄÖ¾Ô¸Õß
-    ActivityID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_VolunteerActivity(ActivityID), -- Ö¾Ô¸»î¶¯ID
-    IntendedPositionID CHAR(15) NULL FOREIGN KEY REFERENCES tbl_Position(PositionID), -- Íâ¼üµ½¸ÚÎ»±í
-    ApplicationTime DATETIME NOT NULL DEFAULT GETDATE(),               -- Ö¾Ô¸ÕßÌá½»ÉêÇëµÄ¾ßÌåÊ±¼ä
-    ApplicationStatus NVARCHAR(10) NOT NULL DEFAULT N'´ýÉóºË'
-	CHECK (ApplicationStatus IN (N'´ýÉóºË', N'ÒÑÍ¨¹ý', N'ÒÑ¾Ü¾ø',N'È¡Ïû±¨Ãû')) -- ÉêÇëµÄµ±Ç°×´Ì¬
+    ApplicationID CHAR(15) PRIMARY KEY,                                -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¨Ò»ï¿½ï¿½Ê¶ (CHARï¿½ï¿½ï¿½Íµï¿½Î¨Ò»ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Ã²ï¿½ï¿½ï¿½È·ï¿½ï¿½)
+    VolunteerID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Volunteer(VolunteerID), -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½
+    ActivityID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_VolunteerActivity(ActivityID), -- Ö¾Ô¸ï¿½î¶¯ID
+    IntendedPositionID CHAR(15) NULL FOREIGN KEY REFERENCES tbl_Position(PositionID), -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
+    ApplicationTime DATETIME NOT NULL DEFAULT GETDATE(),               -- Ö¾Ô¸ï¿½ï¿½ï¿½á½»ï¿½ï¿½ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+    ApplicationStatus NVARCHAR(10) NOT NULL DEFAULT N'ï¿½ï¿½ï¿½ï¿½ï¿½'
+	CHECK (ApplicationStatus IN (N'ï¿½ï¿½ï¿½ï¿½ï¿½', N'ï¿½ï¿½Í¨ï¿½ï¿½', N'ï¿½Ñ¾Ü¾ï¿½',N'È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½')) -- ï¿½ï¿½ï¿½ï¿½Äµï¿½Ç°×´Ì¬
 );
 GO
 
--- Ë³Ðò 10: ´´½¨ Ö¾Ô¸Õß»î¶¯²ÎÓë±í (tbl_VolunteerActivityParticipation)
+-- Ë³ï¿½ï¿½ 10: ï¿½ï¿½ï¿½ï¿½ Ö¾Ô¸ï¿½ß»î¶¯ï¿½ï¿½ï¿½ï¿½ï¿½ (tbl_VolunteerActivityParticipation)
 CREATE TABLE tbl_VolunteerActivityParticipation (
-    VolunteerID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Volunteer(VolunteerID),       -- ¹ØÁªÖ¾Ô¸Õß±í
-    ActivityID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_VolunteerActivity(ActivityID), -- ¹ØÁªÖ¾Ô¸»î¶¯±í
-    ActualPositionID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Position(PositionID), -- Íâ¼üµ½¸ÚÎ»±í
-    IsCheckedIn NCHAR(1) NOT NULL DEFAULT N'·ñ' CHECK (IsCheckedIn IN (N'ÊÇ', N'·ñ')),     -- Ö¾Ô¸ÕßÊÇ·ñ½øÐÐÇ©µ½
-    VolunteerToOrgRating INT CHECK (VolunteerToOrgRating >= 1 AND VolunteerToOrgRating <= 10), -- Ö¾Ô¸Õß¸ø×éÖ¯ÆÀ·Ö
-    OrgToVolunteerRating INT CHECK (OrgToVolunteerRating >= 1 AND OrgToVolunteerRating <= 10), -- ×éÖ¯¸øÖ¾Ô¸ÕßÆÀ·Ö
-    PRIMARY KEY (VolunteerID, ActualPositionID) -- Ö÷¼ü£º»î¶¯ID+Êµ¼Ê¸ÚÎ»ID
+    VolunteerID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Volunteer(VolunteerID),       -- ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ß±ï¿½
+    ActivityID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_VolunteerActivity(ActivityID), -- ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½î¶¯ï¿½ï¿½
+    ActualPositionID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Position(PositionID), -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
+    IsCheckedIn NCHAR(1) NOT NULL DEFAULT N'ï¿½ï¿½' CHECK (IsCheckedIn IN (N'ï¿½ï¿½', N'ï¿½ï¿½')),     -- Ö¾Ô¸ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Ç©ï¿½ï¿½
+    VolunteerToOrgRating INT CHECK (VolunteerToOrgRating >= 1 AND VolunteerToOrgRating <= 10), -- Ö¾Ô¸ï¿½ß¸ï¿½ï¿½ï¿½Ö¯ï¿½ï¿½ï¿½ï¿½
+    OrgToVolunteerRating INT CHECK (OrgToVolunteerRating >= 1 AND OrgToVolunteerRating <= 10), -- ï¿½ï¿½Ö¯ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    PRIMARY KEY (VolunteerID, ActualPositionID) -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½î¶¯ID+Êµï¿½Ê¸ï¿½Î»ID
 );
 GO
 
--- Ë³Ðò 11: ´´½¨ Ö¾Ô¸ÕßÅàÑµ²ÎÓë±í (tbl_VolunteerTrainingParticipation)
+-- Ë³ï¿½ï¿½ 11: ï¿½ï¿½ï¿½ï¿½ Ö¾Ô¸ï¿½ï¿½ï¿½ï¿½Ñµï¿½ï¿½ï¿½ï¿½ï¿½ (tbl_VolunteerTrainingParticipation)
 CREATE TABLE tbl_VolunteerTrainingParticipation (
-    VolunteerID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Volunteer(VolunteerID),       -- ¹ØÁªÖ¾Ô¸Õß±íµÄÎ¨Ò»±êÖ¾
-    TrainingID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_VolunteerTraining(TrainingID),   -- ¹ØÁªÖ¾Ô¸ÅàÑµ±íµÄÎ¨Ò»±êÖ¾
-    IsCheckedIn NCHAR(1) NOT NULL DEFAULT N'·ñ' CHECK (IsCheckedIn IN (N'ÊÇ', N'·ñ')),     -- Ö¾Ô¸ÕßÊÇ·ñ½øÐÐÇ©µ½
-    OrgToVolunteerRating INT CHECK (OrgToVolunteerRating >= 1 AND OrgToVolunteerRating <= 10), -- ×éÖ¯¸øÖ¾Ô¸ÕßÆÀ·Ö
-    VolunteerToOrgRating INT CHECK (VolunteerToOrgRating >= 1 AND VolunteerToOrgRating <= 10), -- Ö¾Ô¸Õß¸ø×éÖ¯ÆÀ·Ö
-    PRIMARY KEY (VolunteerID, TrainingID)                                                  -- ÁªºÏÖ÷¼ü
+    VolunteerID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Volunteer(VolunteerID),       -- ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ß±ï¿½ï¿½ï¿½Î¨Ò»ï¿½ï¿½Ö¾
+    TrainingID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_VolunteerTraining(TrainingID),   -- ï¿½ï¿½ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½Ñµï¿½ï¿½ï¿½ï¿½Î¨Ò»ï¿½ï¿½Ö¾
+    IsCheckedIn NCHAR(1) NOT NULL DEFAULT N'ï¿½ï¿½' CHECK (IsCheckedIn IN (N'ï¿½ï¿½', N'ï¿½ï¿½')),     -- Ö¾Ô¸ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Ç©ï¿½ï¿½
+    OrgToVolunteerRating INT CHECK (OrgToVolunteerRating >= 1 AND OrgToVolunteerRating <= 10), -- ï¿½ï¿½Ö¯ï¿½ï¿½Ö¾Ô¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    VolunteerToOrgRating INT CHECK (VolunteerToOrgRating >= 1 AND VolunteerToOrgRating <= 10), -- Ö¾Ô¸ï¿½ß¸ï¿½ï¿½ï¿½Ö¯ï¿½ï¿½ï¿½ï¿½
+    PRIMARY KEY (VolunteerID, TrainingID)                                                  -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 );
 GO
 
--- Ë³Ðò 12: ´´½¨ Í¶Ëß±í (tbl_Complaint)
+-- Ë³ï¿½ï¿½ 12: ï¿½ï¿½ï¿½ï¿½ Í¶ï¿½ß±ï¿½ (tbl_Complaint)
 CREATE TABLE tbl_Complaint (
-    ComplaintID CHAR(15) PRIMARY KEY,                                 -- Í¶ËßID, Ö÷¼ü (CHARÀàÐÍµÄÎ¨Ò»ÐÔÐèÓ¦ÓÃ²ãÃæÈ·±£)
-    ComplaintTime DATETIME NOT NULL DEFAULT GETDATE(),                -- Í¶ËßÊ±¼ä
-    ComplainantID CHAR(15) NOT NULL,                                  -- ·¢ÆðÈË¶ÔÏóID (ID´øÇ°×º£¬Ó¦ÓÃ²ãÃæ´¦ÀíÒýÓÃÍêÕûÐÔ)
-    ComplaintTargetID CHAR(15) NOT NULL,                              -- Í¶Ëß¶ÔÏóID (ID´øÇ°×º£¬Ó¦ÓÃ²ãÃæ´¦ÀíÒýÓÃÍêÕûÐÔ)
-    ComplaintType NVARCHAR(10) NOT NULL DEFAULT N'ÆäËû'
+    ComplaintID CHAR(15) PRIMARY KEY,                                 -- Í¶ï¿½ï¿½ID, ï¿½ï¿½ï¿½ï¿½ (CHARï¿½ï¿½ï¿½Íµï¿½Î¨Ò»ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Ã²ï¿½ï¿½ï¿½È·ï¿½ï¿½)
+    ComplaintTime DATETIME NOT NULL DEFAULT GETDATE(),                -- Í¶ï¿½ï¿½Ê±ï¿½ï¿½
+    ComplainantID CHAR(15) NOT NULL,                                  -- ï¿½ï¿½ï¿½ï¿½ï¿½Ë¶ï¿½ï¿½ï¿½ID (IDï¿½ï¿½Ç°×ºï¿½ï¿½Ó¦ï¿½Ã²ï¿½ï¿½æ´¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
+    ComplaintTargetID CHAR(15) NOT NULL,                              -- Í¶ï¿½ß¶ï¿½ï¿½ï¿½ID (IDï¿½ï¿½Ç°×ºï¿½ï¿½Ó¦ï¿½Ã²ï¿½ï¿½æ´¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
+    ComplaintType NVARCHAR(10) NOT NULL DEFAULT N'ï¿½ï¿½ï¿½ï¿½'
         CHECK (ComplaintType IN (
-            N'·þÎñÖÊÁ¿', N'ÐÐÎª²»µ±', N'ÐÅÏ¢Ðé¼Ù', N'»î¶¯Î¥¹æ', N'ÆäËû'
+            N'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', N'ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½', N'ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½', N'ï¿½î¶¯Î¥ï¿½ï¿½', N'ï¿½ï¿½ï¿½ï¿½'
         )),
-    ComplaintContent NVARCHAR(MAX) NOT NULL,                          -- Í¶ËßÄÚÈÝ
-    EvidenceLink NVARCHAR(255),                                       -- Ö¤¾ÝÁ´½Ó
-    ProcessingStatus NVARCHAR(10) NOT NULL DEFAULT N'Î´´¦Àí'
+    ComplaintContent NVARCHAR(MAX) NOT NULL,                          -- Í¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    EvidenceLink NVARCHAR(255),                                       -- Ö¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    ProcessingStatus NVARCHAR(10) NOT NULL DEFAULT N'Î´ï¿½ï¿½ï¿½ï¿½'
         CHECK (ProcessingStatus IN (
-            N'Î´´¦Àí', N'×ªÓ¦Ëß', N'´¦ÀíÖÐ', N'ÒÑÓ¦Ëß', N'ÖÙ²ÃÖÐ', N'ÒÑÖÙ²Ã', N'ÒÑÍË»Ø'
+            N'Î´ï¿½ï¿½ï¿½ï¿½', N'×ªÓ¦ï¿½ï¿½', N'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', N'ï¿½ï¿½Ó¦ï¿½ï¿½', N'ï¿½Ù²ï¿½ï¿½ï¿½', N'ï¿½ï¿½ï¿½Ù²ï¿½', N'ï¿½ï¿½ï¿½Ë»ï¿½'
         )),
-    ProcessingResult NVARCHAR(MAX),                                   -- ´¦Àí½á¹û
-    LatestProcessingTime DATETIME,                                    -- ×îÐÂ´¦ÀíÊ±¼ä
-    HandlerAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID), -- ´¦ÀíÈËID (¿É¿Õ)
-    VisitTime DATETIME,                                               -- »Ø·ÃÊ±¼ä
-    VisitResult NVARCHAR(20) NOT NULL DEFAULT N'ÂúÒâ'
-        CHECK (VisitResult IN (N'ÂúÒâ', N'²»ÂúÒâ')),
-    ArbitrationRound INT CHECK (ArbitrationRound BETWEEN 1 AND 2),    -- ÖÙ²ÃÂÖ´Î
-    ReviewAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID) -- ¸´Éó¹ÜÀíÔ±ID (¿É¿Õ)
+    ProcessingResult NVARCHAR(MAX),                                   -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    LatestProcessingTime DATETIME,                                    -- ï¿½ï¿½ï¿½Â´ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+    HandlerAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID), -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID (ï¿½É¿ï¿½)
+    VisitTime DATETIME,                                               -- ï¿½Ø·ï¿½Ê±ï¿½ï¿½
+    VisitResult NVARCHAR(20) NOT NULL DEFAULT N'ï¿½ï¿½ï¿½ï¿½'
+        CHECK (VisitResult IN (N'ï¿½ï¿½ï¿½ï¿½', N'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½')),
+    ArbitrationRound INT CHECK (ArbitrationRound BETWEEN 1 AND 2),    -- ï¿½Ù²ï¿½ï¿½Ö´ï¿½
+    ReviewAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID) -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±ID (ï¿½É¿ï¿½)
 );
 GO
