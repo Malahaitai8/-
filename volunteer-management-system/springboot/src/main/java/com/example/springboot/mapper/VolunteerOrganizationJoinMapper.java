@@ -4,8 +4,34 @@ import com.example.springboot.entity.VolunteerOrganizationJoin;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface VolunteerOrganizationJoinMapper {
+        /**
+     * 根据志愿者ID查询其加入的所有组织列表，并关联查询组织的详细信息。
+     * 返回的Map结构包含tbl_VolunteerOrganizationJoin和tbl_Organization的合并字段。
+     *
+     * @param volunteerId 志愿者的唯一ID
+     * @return 包含组织参与信息和组织详细信息的Map列表。
+     */
+    @Select("SELECT " +
+            "voj.volunteerId, " +
+            "voj.orgId, " +
+            "voj.joinTime, " +
+            "voj.memberStatus, " +
+            "o.orgName, " +
+            "o.contactPersonPhone, " +
+            "o.serviceRegion, " +
+            "o.orgScale, " +
+            "o.orgRating, " +
+            "o.orgAccountStatus, " +
+            "o.totalServiceHours, " +
+            "o.activityCount, " +
+            "o.trainingCount " +
+            "FROM tbl_VolunteerOrganizationJoin voj " +
+            "JOIN tbl_Organization o ON voj.orgId = o.orgId " +
+            "WHERE voj.volunteerId = #{volunteerId}")
+    List<Map<String, Object>> findMyJoinedOrganizations(@Param("volunteerId") String volunteerId);
 
     /**
      * 志愿者申请加入组织或记录加入信息
