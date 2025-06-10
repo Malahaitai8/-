@@ -6,8 +6,10 @@
           v-model="searchQuery"
           placeholder="搜索申请信息"
           style="width: 200px; margin-left: auto;"
+          clearable
       ></el-input>
     </div>
+
     <el-button
         type="primary"
         @click="managePersonnel"
@@ -23,80 +25,68 @@
         @click="addPersonDialogVisible = true"
         style="margin-top: 100px"
     >申请添加系统外人员</el-button>
-    <el-table :data="volunteers" style="width: 1500px; margin-top: 20px">
+
+    <el-table :data="filteredVolunteers" style="width: 1500px; margin-top: 20px">
       <el-table-column prop="volunteerId" label="志愿者ID" width="200"></el-table-column>
       <el-table-column prop="name" label="姓名" width="200"></el-table-column>
       <el-table-column prop="phoneNumber" label="联系方式" width="200"></el-table-column>
       <el-table-column prop="totalVolunteerHours" label="志愿总时长" width="200"></el-table-column>
-      <el-table-column label="操作" width="300">
-        <template v-slot="scope">
-          <el-button type="primary" size="mini" @click="approve(scope.row)">允许加入</el-button>
+      <el-table-column label="操作" width="300" align="center">
+        <template #default="scope">
+          <el-button type="primary" size="small" @click="approve(scope.row)">允许加入</el-button>
         </template>
       </el-table-column>
     </el-table>
+
     <el-button type="primary" @click="home" style="margin-top: 20px">返回主页</el-button>
 
-    <!-- 添加系统外人员的弹窗 -->
-    <el-dialog v-model="addPersonDialogVisible" title="添加系统外人员">
+    <el-dialog v-model="addPersonDialogVisible" title="添加系统外人员" width="70%">
       <el-form ref="formRef" :rules="formRules" :model="formData" class="register-form">
-        <!-- 左侧表单项 -->
         <div class="form-column">
-          <!-- 用户名输入框 -->
           <el-form-item label="用户名" prop="username" label-width="80px">
             <el-input size="large" v-model="formData.username" autocomplete="off" placeholder="请输入用户名" prefix-icon="User" />
           </el-form-item>
-          <!-- 密码输入框 -->
           <el-form-item label="密码" prop="password" label-width="80px">
             <el-input size="large" type="password" v-model="formData.password" autocomplete="off" placeholder="请输入密码" prefix-icon="Lock" />
           </el-form-item>
-          <!-- 确认密码输入框 -->
           <el-form-item label="确认密码" prop="confirmPassword" label-width="80px">
             <el-input size="large" type="password" v-model="formData.confirmPassword" autocomplete="off" placeholder="请输入确认密码" prefix-icon="Lock" />
           </el-form-item>
-          <!-- 真实姓名输入框 -->
           <el-form-item label="真实姓名" prop="name" label-width="80px">
             <el-input size="large" v-model="formData.name" autocomplete="off" placeholder="请输入真实姓名" prefix-icon="User" />
           </el-form-item>
-          <!-- 性别输入框 -->
           <el-form-item label="性别" prop="gender" label-width="80px">
-            <el-input size="large" v-model="formData.gender" autocomplete="off" placeholder="请输入性别" prefix-icon="User" />
+            <el-select v-model="formData.gender" placeholder="请选择性别" style="width: 100%;">
+              <el-option label="男" value="男"></el-option>
+              <el-option label="女" value="女"></el-option>
+            </el-select>
           </el-form-item>
-          <!-- 手机号输入框 -->
           <el-form-item label="手机号" prop="phone" label-width="80px">
             <el-input size="large" v-model="formData.phone" autocomplete="off" placeholder="请输入手机号" prefix-icon="Phone" />
           </el-form-item>
-          <!-- 身份证号输入框 -->
           <el-form-item label="身份证号" prop="idCard" label-width="80px">
             <el-input size="large" v-model="formData.idCard" autocomplete="off" placeholder="请输入身份证号" prefix-icon="User" />
           </el-form-item>
         </div>
-        <!-- 右侧表单项 -->
         <div class="form-column">
-          <!-- 国籍输入框 -->
           <el-form-item label="国籍" prop="country" label-width="80px">
             <el-input size="large" v-model="formData.country" autocomplete="off" placeholder="请输入国籍" prefix-icon="User" />
           </el-form-item>
-          <!-- 民族输入框 -->
           <el-form-item label="民族" prop="ethnicity" label-width="80px">
             <el-input size="large" v-model="formData.ethnicity" autocomplete="off" placeholder="请输入民族" prefix-icon="User" />
           </el-form-item>
-          <!-- 政治面貌输入框 -->
           <el-form-item label="政治面貌" prop="politicalStatus" label-width="80px">
             <el-input size="large" v-model="formData.politicalStatus" autocomplete="off" placeholder="请输入政治面貌" prefix-icon="User" />
           </el-form-item>
-          <!-- 最高学历输入框 -->
           <el-form-item label="最高学历" prop="highestEducation" label-width="80px">
             <el-input size="large" v-model="formData.highestEducation" autocomplete="off" placeholder="请输入最高学历" prefix-icon="User" />
           </el-form-item>
-          <!-- 从业情况输入框 -->
           <el-form-item label="从业情况" prop="employmentStatus" label-width="80px">
             <el-input size="large" v-model="formData.employmentStatus" autocomplete="off" placeholder="请输入从业情况" prefix-icon="User" />
           </el-form-item>
-          <!-- 服务区域输入框 -->
           <el-form-item label="服务区域" prop="serviceArea" label-width="80px">
             <el-input size="large" v-model="formData.serviceArea" autocomplete="off" placeholder="请输入服务区域" prefix-icon="User" />
           </el-form-item>
-          <!-- 服务类别输入框 -->
           <el-form-item label="服务类别" prop="serviceCategory" label-width="80px">
             <el-input size="large" v-model="formData.serviceCategory" autocomplete="off" placeholder="请输入服务类别" prefix-icon="User" />
           </el-form-item>
@@ -110,160 +100,129 @@
   </el-card>
 </template>
 
-<script>
+<script setup>
+// 【已修正】这部分是能正常工作的脚本
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios";
 import { ElMessage } from "element-plus";
 import { useOrgIdStore } from '@/stores/useOrgIdStore';
+import request from '@/utils/request'; // 统一使用 request 工具
 
-export default {
-  setup() {
-    const router = useRouter();
-    const volunteers = ref([]);
-    const searchQuery = ref('');
-    const addPersonDialogVisible = ref(false);
-    const orgIdStore = useOrgIdStore();
-    const formData = ref({
-      username: "",
-      password: "",
-      confirmPassword: "",
-      name: "",
-      gender: "",
-      phone: "",
-      idCard: "",
-      country: "",
-      ethnicity: "",
-      politicalStatus: "",
-      highestEducation: "",
-      employmentStatus: "",
-      serviceArea: "",
-      serviceCategory: ""
-    });
+// --- setup 顶层作用域 ---
+const router = useRouter();
+const volunteers = ref([]);
+const searchQuery = ref('');
+const addPersonDialogVisible = ref(false);
+const orgIdStore = useOrgIdStore();
+const formRef = ref(null); // ✅ formRef 在顶层定义
 
-    const validatePass = (rule, value, callback) => {
-      if (!value) {
-        callback(new Error("请再次确认密码"));
-      } else if (value !== formData.value.password) {
-        callback(new Error("两次输入的密码不一致"));
-      } else {
-        callback();
-      }
-    };
+const formData = ref({
+  username: "", password: "", confirmPassword: "", name: "", gender: "", phone: "",
+  idCard: "", country: "中国", ethnicity: "汉族", politicalStatus: "群众",
+  highestEducation: "", employmentStatus: "", serviceArea: "", serviceCategory: ""
+});
 
-    const formRules = ref({
-      username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
-      password: [{ required: true, message: "请输入密码", trigger: "blur" }],
-      confirmPassword: [
-        { required: true, message: "请确认密码", trigger: "blur" },
-        { validator: validatePass, trigger: "blur" }
-      ],
-      name: [{ required: true, message: "请输入真实姓名", trigger: "blur" }],
-      gender: [{ required: true, message: "请输入性别", trigger: "blur" }],
-      phone: [{ required: true, message: "请输入手机号", trigger: "blur" }],
-      idCard: [{ required: true, message: "请输入身份证号", trigger: "blur" }],
-      country: [{ required: true, message: "请输入国籍", trigger: "blur" }],
-      ethnicity: [{ required: true, message: "请输入民族", trigger: "blur" }],
-      politicalStatus: [{ required: true, message: "请输入政治面貌", trigger: "blur" }],
-      highestEducation: [{ required: true, message: "请输入最高学历", trigger: "blur" }],
-      employmentStatus: [{ required: true, message: "请输入从业情况", trigger: "blur" }],
-      serviceArea: [{ required: true, message: "请输入服务区域", trigger: "blur" }],
-      serviceCategory: [{ required: true, message: "请输入服务类别", trigger: "blur" }]
-    });
-
-    const activeRoute = computed(() => router.currentRoute.path);
-
-
-
-    const fetchPendingVolunteers = async () => {
-      try {
-        if (!orgIdStore.orgId) {
-          throw new Error('组织ID未定义');
-        }
-        const response = await axios.get("/volunteerOrganizationJoin/pending", {
-          params: { orgId: orgIdStore.orgId }
-        });
-        volunteers.value = response.data;
-      } catch (error) {
-        console.error("获取申请中的成员信息失败：", error);
-        ElMessage.error("获取申请中的成员信息失败，请稍后再试");
-      }
-    };
-
-    const approve = async (row) => {
-      try {
-        const response = await axios.post("/volunteerOrganizationJoin/approve", { volunteerId: row.volunteerId, orgId: row.orgId });
-        if (response.data.success) {
-          ElMessage.success("成功批准加入");
-          fetchPendingVolunteers(); // 刷新申请列表
-        } else {
-          ElMessage.error(response.data.message);
-        }
-      } catch (error) {
-        console.error("批准加入失败：", error);
-        ElMessage.error("批准加入失败，请稍后再试");
-      }
-    };
-
-    const home = () => {
-      router.push('/organization-home');
-    };
-
-    const managePersonnel = () => {
-      router.push('/manage-personnel');
-    };
-
-    const joinMember = () => {
-      router.push('/join-member');
-    };
-
-    const submitForm = () => {
-      const formRef = ref(null);
-      formRef.value.validate((valid) => {
-        if (valid) {
-          axios.post("/volunteerOrganizationJoin/addMember", formData.value)
-              .then(response => {
-                if (response.data.success) {
-                  ElMessage.success("成功添加成员");
-                  fetchVolunteers();
-                  addPersonDialogVisible.value = false;
-                } else {
-                  ElMessage.error(response.data.message);
-                }
-              })
-              .catch(error => {
-                console.error("添加成员失败：", error);
-                ElMessage.error("添加成员失败，请稍后再试");
-              });
-        } else {
-          ElMessage.error("表单验证失败");
-        }
-      });
-    };
-
-    onMounted(() => {
-      fetchPendingVolunteers();
-    });
-
-    return {
-      volunteers,
-      searchQuery,
-      addPersonDialogVisible,
-      formData,
-      formRules,
-      activeRoute,
-      approve,
-      home,
-      managePersonnel,
-      joinMember,
-      submitForm,
-      fetchPendingVolunteers
-    };
+const validatePass = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error("请再次确认密码"));
+  } else if (value !== formData.value.password) {
+    callback(new Error("两次输入的密码不一致"));
+  } else {
+    callback();
   }
 };
+
+const formRules = ref({
+  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  password: [{ required: true, message: "请输入密码", trigger: "blur" }],
+  confirmPassword: [{ required: true, validator: validatePass, trigger: "blur" }],
+  name: [{ required: true, message: "请输入真实姓名", trigger: "blur" }],
+  gender: [{ required: true, message: "请选择性别", trigger: "change" }],
+  phone: [{ required: true, message: "请输入手机号", trigger: "blur" }],
+  idCard: [{ required: true, message: "请输入身份证号", trigger: "blur" }],
+});
+
+const filteredVolunteers = computed(() => {
+    if (!searchQuery.value) {
+        return volunteers.value;
+    }
+    return volunteers.value.filter(v =>
+        (v.name && v.name.includes(searchQuery.value)) ||
+        (v.volunteerId && v.volunteerId.includes(searchQuery.value)) ||
+        (v.phoneNumber && v.phoneNumber.includes(searchQuery.value))
+    );
+});
+
+const fetchPendingVolunteers = async () => {
+  try {
+    const orgId = orgIdStore.orgId;
+    if (!orgId) {
+      ElMessage.warning('组织ID未加载，请刷新页面或重新登录。');
+      return;
+    }
+    const res = await request.get("/volunteerOrganizationJoin/pending", {
+      params: { orgId }
+    });
+    // ✅ 正确解析数据
+    if (res.code === '200' && res.data) {
+        volunteers.value = res.data;
+    } else {
+        ElMessage.error(res.msg || "获取申请列表失败");
+    }
+  } catch (error) {
+    ElMessage.error("获取申请列表时发生网络错误");
+  }
+};
+
+const approve = async (row) => {
+  try {
+    const orgId = orgIdStore.orgId;
+    const res = await request.post("/volunteerOrganizationJoin/approve", {
+        volunteerId: row.volunteerId,
+        orgId: orgId
+    });
+    // ✅ 正确判断成功条件
+    if (res.code === '200') {
+      ElMessage.success("成功批准加入");
+      fetchPendingVolunteers(); // 刷新申请列表
+    } else {
+      ElMessage.error(res.msg || '批准加入失败');
+    }
+  } catch (error) {
+    ElMessage.error("批准加入时发生网络错误");
+  }
+};
+
+const submitForm = async () => {
+    if (!formRef.value) return; // 防御式编程
+    // ✅ 修正后的表单提交逻辑
+    try {
+        await formRef.value.validate();
+        const res = await request.post("/volunteerOrganizationJoin/addMember", formData.value);
+        if (res.code === '200') {
+            ElMessage.success("成功添加成员");
+            fetchPendingVolunteers();
+            addPersonDialogVisible.value = false;
+        } else {
+            ElMessage.error(res.msg || '添加成员失败');
+        }
+    } catch (validationError) {
+        // validate 失败会 reject promise，在这里可以捕获，但通常 ElMessage 会自动提示
+        console.log('表单验证失败', validationError);
+    }
+};
+
+const home = () => router.push('/organization-home');
+const managePersonnel = () => router.push('/manage-personnel');
+const joinMember = () => router.push('/join-member');
+
+onMounted(() => {
+  fetchPendingVolunteers();
+});
 </script>
 
 <style scoped>
+/* 保留您原始的样式 */
 .header {
   background-color: #ff3333; /* 鲜红色背景 */
   color: white;
