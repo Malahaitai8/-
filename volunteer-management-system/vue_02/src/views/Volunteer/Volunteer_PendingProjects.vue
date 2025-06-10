@@ -2,7 +2,7 @@
   <div class="project-apply-page">
     <!-- 红色标题栏 -->
     <div class="project-apply-title">
-      <span>报名中的项目</span>
+      <span>已报名列表</span>
     </div>
     <!-- 筛选按钮 -->
     <div class="filter-buttons">
