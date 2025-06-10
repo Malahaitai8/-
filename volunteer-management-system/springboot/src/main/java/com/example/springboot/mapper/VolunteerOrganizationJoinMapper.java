@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface VolunteerOrganizationJoinMapper {
-        /**
+    /**
      * 根据志愿者ID查询其加入的所有组织列表，并关联查询组织的详细信息。
      * 返回的Map结构包含tbl_VolunteerOrganizationJoin和tbl_Organization的合并字段。
      *
@@ -137,5 +137,13 @@ public interface VolunteerOrganizationJoinMapper {
     VolunteerOrganizationJoin selectByVolunteerIdAndOrgId(
             @Param("volunteerId") String volunteerId,
             @Param("orgId") String orgId);
+
+    //获得所有MemberStatus为“申请中”的成员信息
+    @Select("SELECT voj.volunteerId, voj.orgId, voj.joinTime, voj.memberStatus, " +
+            "v.name, v.phoneNumber, v.idCardNumber, v.totalVolunteerHours, v.volunteerRating " +
+            "FROM tbl_VolunteerOrganizationJoin voj " +
+            "JOIN tbl_Volunteer v ON voj.volunteerId = v.volunteerId " +
+            "WHERE voj.orgId = #{orgId} AND voj.memberStatus = #{memberStatus}")
+    List<Map<String, Object>> selectPendingMembers(@Param("orgId") String orgId, @Param("memberStatus") String memberStatus);
 
 }

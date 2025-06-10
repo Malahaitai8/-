@@ -72,7 +72,7 @@ public class VolunteerOrganizationJoinController {
     }
 
 
-     /**
+    /**
      * API: 志愿者申请加入组织。
      * 端点: POST /volunteerOrganizationJoin/applyToJoin
      * 请求体示例: { "volunteerId": "V001", "orgId": "ORG001" }
@@ -96,6 +96,21 @@ public class VolunteerOrganizationJoinController {
             System.err.println("申请加入队伍失败: " + e.getMessage());
             e.printStackTrace();
             return Result.error("500", "申请加入队伍失败，系统内部错误");
+        }
+    }
+
+    //获取所有申请中的成员信息。
+    @GetMapping("/pending")
+    public Result getPendingJoinRequests(@RequestParam String orgId) {
+        try {
+            List<Map<String, Object>> pendingRequests = volunteerOrganizationJoinService.getPendingJoinRequests(orgId);
+            return Result.success(pendingRequests);
+        } catch (IllegalArgumentException e) {
+            return Result.error("400", e.getMessage());
+        } catch (Exception e) {
+            System.err.println("获取申请中的成员信息失败: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("500", "获取申请中的成员信息失败，请稍后再试");
         }
     }
 }

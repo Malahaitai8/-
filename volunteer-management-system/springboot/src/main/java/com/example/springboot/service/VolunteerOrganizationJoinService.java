@@ -33,6 +33,48 @@ public class VolunteerOrganizationJoinService {
         return volunteerOrganizationJoinMapper.findMyJoinedOrganizations(volunteerId);
     }
 
+//    @Transactional(readOnly = true)
+//    public List<Map<String, Object>> getPendingJoinRequests(String orgId) {
+//        if (!StringUtils.hasText(orgId)) {
+//            throw new IllegalArgumentException("组织ID不能为空或空白");
+//        }
+//        return volunteerOrganizationJoinMapper.findPendingJoinRequests(orgId);
+//    }
+//
+//    @Transactional(readOnly = true)
+//    public List<Map<String, Object>> getActiveMembers(String orgId) {
+//        if (!StringUtils.hasText(orgId)) {
+//            throw new IllegalArgumentException("组织ID不能为空或空白");
+//        }
+//        return volunteerOrganizationJoinMapper.findActiveMembers(orgId);
+//    }
+
+    @Transactional
+    public void approveJoinRequest(String volunteerId, String orgId) {
+        if (!StringUtils.hasText(volunteerId) || !StringUtils.hasText(orgId)) {
+            throw new CustomException("400", "志愿者ID和组织ID不能为空");
+        }
+
+        int affectedRows = volunteerOrganizationJoinMapper.updateMemberStatus(volunteerId, orgId, "已加入");
+
+        if (affectedRows == 0) {
+            throw new CustomException("404", "未能找到ID为 '" + volunteerId + "' 和组织ID为 '" + orgId + "' 的成员记录，或该成员已处于 '已加入' 状态");
+        }
+    }
+
+    @Transactional
+    public void addMember(VolunteerOrganizationJoin joinInfo) {
+        if (joinInfo == null || !StringUtils.hasText(joinInfo.getVolunteerId()) || !StringUtils.hasText(joinInfo.getOrgId())) {
+            throw new CustomException("400", "志愿者ID和组织ID不能为空");
+        }
+
+        int affectedRows = volunteerOrganizationJoinMapper.insert(joinInfo);
+
+        if (affectedRows == 0) {
+            throw new CustomException("500", "添加成员失败");
+        }
+    }
+
     /**
      * 处理志愿者退出组织或更新成员状态的请求。
      * 此方法主要用于将成员状态更新为 '已退出'。
@@ -108,5 +150,14 @@ public class VolunteerOrganizationJoinService {
         if (insertedRows == 0) {
             throw new CustomException("500", "提交加入申请失败，请稍后再试。");
         }
+    }
+
+    //获取所有申请中的成员信息。
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getPendingJoinRequests(String orgId) {
+        if (!StringUtils.hasText(orgId)) {
+            throw new IllegalArgumentException("组织ID不能为空或空白");
+        }
+        return volunteerOrganizationJoinMapper.selectPendingMembers(orgId, "申请中");
     }
 }

@@ -1,7 +1,7 @@
 <template>
   <el-card>
     <div class="header">
-      <h1>人员管理</h1>
+      <h1>正式成员</h1>
       <el-input
           v-model="searchQuery"
           placeholder="搜索人员"
@@ -10,13 +10,11 @@
     </div>
     <el-button
         type="primary"
-        :class="{ 'is-active': activeRoute === '/manage-personnel' }"
         @click="member"
         style="margin-top: 100px"
     >正式成员</el-button>
     <el-button
         type="primary"
-        :class="{ 'is-active': activeRoute === '/join-member' }"
         @click="join"
         style="margin-top: 100px"
     >申请加入</el-button>
@@ -26,14 +24,10 @@
         style="margin-top: 100px"
     >申请添加系统外人员</el-button>
     <el-table :data="volunteers" style="width: 1500px; margin-top: 20px">
-      <el-table-column prop="id" label="ID" width="200">
-      </el-table-column>
-      <el-table-column prop="name" label="姓名" width="200">
-      </el-table-column>
-      <el-table-column prop="telephone" label="联系方式" width="200">
-      </el-table-column>
-      <el-table-column prop="totalServiceHours" label="志愿总时长" width="200">
-      </el-table-column>
+      <el-table-column prop="id" label="ID" width="200"></el-table-column>
+      <el-table-column prop="name" label="姓名" width="200"></el-table-column>
+      <el-table-column prop="telephone" label="联系方式" width="200"></el-table-column>
+      <el-table-column prop="totalServiceHours" label="志愿总时长" width="200"></el-table-column>
       <el-table-column label="操作" width="300">
         <template v-slot="scope">
           <el-button type="primary" size="mini" @click="viewDetails(scope.row)">详细信息</el-button>
@@ -117,94 +111,143 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import axios from "axios";
 import { ElMessage } from "element-plus";
 
 export default {
-  data() {
-    return {
-      volunteers: [
-        { id: '4', name: '王一', telephone: "13738393933", totalServiceHours: '200小时' },
-        { id: '5', name: '王二', telephone: "13738393933", totalServiceHours: '150小时' },
-        { id: '6', name: '王三', telephone: "13738393933", totalServiceHours: '100小时' }
-      ],
-      searchQuery: '',
-      addPersonDialogVisible: false,
-      formData: {
-        username: "",
-        password: "",
-        confirmPassword: "",
-        name: "",
-        gender: "",
-        phone: "",
-        idCard: "",
-        country: "",
-        ethnicity: "",
-        politicalStatus: "",
-        highestEducation: "",
-        employmentStatus: "",
-        serviceArea: "",
-        serviceCategory: ""
-      },
-      formRules: {
-        username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
-        password: [{ required: true, message: "请输入密码", trigger: "blur" }],
-        confirmPassword: [
-          { required: true, message: "请确认密码", trigger: "blur" },
-          { validator: this.validatePass, trigger: "blur" }
-        ],
-        name: [{ required: true, message: "请输入真实姓名", trigger: "blur" }],
-        gender: [{ required: true, message: "请输入性别", trigger: "blur" }],
-        phone: [{ required: true, message: "请输入手机号", trigger: "blur" }],
-        idCard: [{ required: true, message: "请输入身份证号", trigger: "blur" }],
-        country: [{ required: true, message: "请输入国籍", trigger: "blur" }],
-        ethnicity: [{ required: true, message: "请输入民族", trigger: "blur" }],
-        politicalStatus: [{ required: true, message: "请输入政治面貌", trigger: "blur" }],
-        highestEducation: [{ required: true, message: "请输入最高学历", trigger: "blur" }],
-        employmentStatus: [{ required: true, message: "请输入从业情况", trigger: "blur" }],
-        serviceArea: [{ required: true, message: "请输入服务区域", trigger: "blur" }],
-        serviceCategory: [{ required: true, message: "请输入服务类别", trigger: "blur" }]
-      }
-    };
-  },
-  computed: {
-    activeRoute() {
-      return this.$route.path;
-    }
-  },
-  methods: {
-    home() {
-      this.$router.push('/organization-home');
-    },
-    member() {
-      this.$router.push('/manage-personnel');
-    },
-    join() {
-      this.$router.push('/join-member');
-    },
-    viewDetails(row) {
-      console.log('查看详细信息：', row);
-      this.$router.push('/detailed-volunteer-info-for-add');
-    },
-    validatePass(rule, value, callback) {
+  setup() {
+    const router = useRouter();
+    const route = useRoute();
+    const volunteers = ref([]);
+    const searchQuery = ref('');
+    const addPersonDialogVisible = ref(false);
+    const activeButton = ref('member'); // 默认激活"正式成员"按钮
+
+    const formData = ref({
+      username: "",
+      password: "",
+      confirmPassword: "",
+      name: "",
+      gender: "",
+      phone: "",
+      idCard: "",
+      country: "",
+      ethnicity: "",
+      politicalStatus: "",
+      highestEducation: "",
+      employmentStatus: "",
+      serviceArea: "",
+      serviceCategory: ""
+    });
+
+    const validatePass = (rule, value, callback) => {
       if (!value) {
         callback(new Error("请再次确认密码"));
-      } else if (value !== this.formData.password) {
+      } else if (value !== formData.value.password) {
         callback(new Error("两次输入的密码不一致"));
       } else {
         callback();
       }
-    },
-    submitForm() {
-      this.$refs.formRef.validate((valid) => {
+    };
+
+    const formRules = ref({
+      username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+      password: [{ required: true, message: "请输入密码", trigger: "blur" }],
+      confirmPassword: [
+        { required: true, message: "请确认密码", trigger: "blur" },
+        { validator: validatePass, trigger: "blur" }
+      ],
+      name: [{ required: true, message: "请输入真实姓名", trigger: "blur" }],
+      gender: [{ required: true, message: "请输入性别", trigger: "blur" }],
+      phone: [{ required: true, message: "请输入手机号", trigger: "blur" }],
+      idCard: [{ required: true, message: "请输入身份证号", trigger: "blur" }],
+      country: [{ required: true, message: "请输入国籍", trigger: "blur" }],
+      ethnicity: [{ required: true, message: "请输入民族", trigger: "blur" }],
+      politicalStatus: [{ required: true, message: "请输入政治面貌", trigger: "blur" }],
+      highestEducation: [{ required: true, message: "请输入最高学历", trigger: "blur" }],
+      employmentStatus:[{ required: true, message: "请输入从业情况", trigger: "blur" }],
+      serviceArea: [{ required: true, message: "请输入服务区域", trigger: "blur" }],
+      serviceCategory: [{ required: true, message: "请输入服务类别", trigger: "blur" }]
+    });
+
+    const fetchVolunteers = async () => {
+      try {
+        const response = await axios.get("/volunteerOrganizationJoin/active", { params: { orgId: '当前组织ID' } });
+        volunteers.value = response.data;
+      } catch (error) {
+        console.error("获取正式成员数据失败：", error);
+        ElMessage.error("获取正式成员数据失败，请稍后再试");
+      }
+    };
+
+    const submitForm = () => {
+      const formRef = ref(null);
+      formRef.value.validate((valid) => {
         if (valid) {
-          ElMessage.success("表单提交成功");
-          this.addPersonDialogVisible = false;
+          axios.post("/volunteerOrganizationJoin/addMember", formData.value)
+              .then(response => {
+                if (response.data.success) {
+                  ElMessage.success("成功添加成员");
+                  fetchVolunteers();
+                  addPersonDialogVisible.value = false;
+                } else {
+                  ElMessage.error(response.data.message);
+                }
+              })
+              .catch(error => {
+                console.error("添加成员失败：", error);
+                ElMessage.error("添加成员失败，请稍后再试");
+              });
         } else {
           ElMessage.error("表单验证失败");
         }
       });
-    }
+    };
+
+    const home = () => {
+      router.push('/organization-home');
+    };
+
+    const member = () => {
+      activeButton.value = 'member';
+      router.push('/manage-personnel');
+    };
+
+    const join = () => {
+      activeButton.value = 'join';
+      router.push('/join-member');
+    };
+
+    const viewDetails = (row) => {
+      console.log('查看详细信息：', row);
+      router.push('/detailed-volunteer-info-for-add');
+    };
+
+    onMounted(() => {
+      if (route.path === '/join-member') {
+        activeButton.value = 'join';
+      } else {
+        activeButton.value = 'member';
+      }
+    });
+
+    fetchVolunteers();
+
+    return {
+      volunteers,
+      searchQuery,
+      addPersonDialogVisible,
+      formData,
+      formRules,
+      home,
+      viewDetails,
+      submitForm,
+      join,
+      member,
+      activeButton
+    };
   }
 };
 </script>
