@@ -37,8 +37,8 @@
 
       <div v-if="activeMenu === 'projects'" class="sub-menu">
         <el-menu mode="horizontal" :default-active="activeProjectSubMenu" @select="handleSubSelectProjects" class="project-sub-menu">
-          <el-menu-item index="list">已完成项目</el-menu-item>
-          <el-menu-item index="apply">报名中的项目</el-menu-item>
+          <el-menu-item index="list">我的志愿活动列表</el-menu-item>
+          <el-menu-item index="apply">我的报名项目</el-menu-item>
         </el-menu>
        <el-button
             type="danger"
