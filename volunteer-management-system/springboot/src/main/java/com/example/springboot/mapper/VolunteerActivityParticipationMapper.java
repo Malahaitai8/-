@@ -4,6 +4,7 @@ import com.example.springboot.entity.VolunteerActivityParticipation;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface VolunteerActivityParticipationMapper {
 
@@ -113,4 +114,27 @@ public interface VolunteerActivityParticipationMapper {
     int updateOrgToVolunteerRating(@Param("volunteerId") String volunteerId,
                                    @Param("actualPositionId") String actualPositionId,
                                    @Param("orgToVolunteerRating") Integer orgToVolunteerRating);
+
+    /**
+     * 获取活动的参与志愿者详细信息
+     * @param activityId 活动ID
+     * @return 包含志愿者信息的Map列表
+     */
+    @Select("SELECT " +
+            "    p.VolunteerID as volunteerId, " +
+            "    p.ActivityID as activityId, " +
+            "    p.ActualPositionID as actualPositionId, " +
+            "    p.IsCheckedIn as isCheckedIn, " +
+            "    p.VolunteerToOrgRating as volunteerToOrgRating, " +
+            "    p.OrgToVolunteerRating as orgToVolunteerRating, " +
+            "    v.VolunteerName as volunteerName, " +
+            "    v.Phone as volunteerPhone, " +
+            "    v.Email as volunteerEmail, " +
+            "    pos.PositionName as positionName " +
+            "FROM tbl_VolunteerActivityParticipation p " +
+            "INNER JOIN tbl_Volunteer v ON p.VolunteerID = v.VolunteerID " +
+            "INNER JOIN tbl_Position pos ON p.ActualPositionID = pos.PositionID " +
+            "WHERE p.ActivityID = #{activityId,jdbcType=CHAR} " +
+            "ORDER BY v.VolunteerName")
+    List<Map<String, Object>> selectParticipantsWithDetailsByActivityId(@Param("activityId") String activityId);
 }

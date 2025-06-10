@@ -1,63 +1,111 @@
 <template>
   <div class="activity-records-container">
-    <h2>我的志愿活动记录</h2>
-
-    <div class="search-filter-area">
-      <el-input v-model="searchForm.activityName" placeholder="活动名称" clearable @clear="loadActivities"></el-input>
-      <el-select v-model="searchForm.activityStatus" placeholder="活动状态" clearable @clear="loadActivities">
-        <el-option label="全部" value=""></el-option>
-        <el-option label="待审核" value="待审核"></el-option>
-        <el-option label="审核通过" value="审核通过"></el-option>
-        <el-option label="进行中" value="进行中"></el-option>
-        <el-option label="已结束" value="已结束"></el-option>
-        <el-option label="审核不通过" value="审核不通过"></el-option>
-        <el-option label="已停用" value="已停用"></el-option>
-      </el-select>
-      <el-button type="primary" @click="loadActivities">搜索</el-button>
+    <div class="header">
+      <h1>我的志愿活动记录</h1>
     </div>
+    
+    <div class="content-wrapper">
+      <el-card class="main-card">
+        <div class="search-filter-area">
+          <el-input 
+            v-model="searchForm.activityName" 
+            placeholder="搜索活动名称" 
+            clearable 
+            @clear="loadActivities"
+            class="search-input"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+          <el-select 
+            v-model="searchForm.activityStatus" 
+            placeholder="选择活动状态" 
+            clearable 
+            @clear="loadActivities"
+            class="search-select"
+          >
+            <el-option label="全部状态" value=""></el-option>
+            <el-option label="待审核" value="待审核"></el-option>
+            <el-option label="审核通过" value="审核通过"></el-option>
+            <el-option label="进行中" value="进行中"></el-option>
+            <el-option label="已结束" value="已结束"></el-option>
+            <el-option label="审核不通过" value="审核不通过"></el-option>
+            <el-option label="已停用" value="已停用"></el-option>
+          </el-select>
+          <el-button type="primary" @click="loadActivities" class="search-btn">
+            <el-icon><Search /></el-icon>
+            搜索
+          </el-button>
+        </div>
 
-    <el-table :data="activities" v-loading="isLoading" style="width: 100%; margin-top: 20px;">
-      <el-table-column prop="activityId" label="活动ID" width="150"></el-table-column>
-      <el-table-column prop="activityName" label="活动名称" width="180"></el-table-column>
-      <el-table-column prop="location" label="地点" width="120"></el-table-column>
-      <el-table-column prop="startTime" label="开始时间" width="180"></el-table-column>
-      <el-table-column prop="endTime" label="结束时间" width="180"></el-table-column>
-      <el-table-column prop="recruitmentCount" label="招募" width="80"></el-table-column>
-      <el-table-column prop="acceptedCount" label="录取" width="80"></el-table-column>
-      <el-table-column prop="activityStatus" label="状态" width="100">
-        <template #default="{ row }">
-          <el-tag :type="getStatusTagType(row.activityStatus)">{{ row.activityStatus }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="creationTime" label="创建时间" width="180"></el-table-column>
-      <el-table-column label="操作" width="150">
-        <template #default="{ row }">
-          <el-button size="small" @click="viewDetails(row)">详情</el-button>
-          <el-button size="small" type="danger" @click="cancelActivity(row)">取消</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+        <div class="table-container">
+          <el-table 
+            :data="activities" 
+            v-loading="isLoading" 
+            class="activity-table"
+            empty-text="暂无活动记录"
+            table-layout="auto"
+          >
+            <el-table-column prop="activityId" label="活动ID" width="120" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="activityName" label="活动名称" min-width="160" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="recruitmentCount" label="招募人数" width="100" align="center"></el-table-column>
+            <el-table-column prop="acceptedCount" label="录取人数" width="100" align="center"></el-table-column>
+            <el-table-column prop="activityStatus" label="活动状态" width="120" align="center">
+              <template #default="{ row }">
+                <el-tag :type="getStatusTagType(row.activityStatus)" class="status-tag">
+                  {{ row.activityStatus }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="creationTime" label="创建时间" min-width="160" show-overflow-tooltip></el-table-column>
+            <el-table-column label="操作" width="260" align="center" fixed="right">
+              <template #default="{ row }">
+                <div class="action-buttons">
+                  <el-button size="small" type="info" @click="viewDetails(row)" class="action-btn">
+                    查看详情
+                  </el-button>
+                  <el-button size="small" type="warning" @click="cancelActivity(row)" class="action-btn">
+                    取消活动
+                  </el-button>
+                  <el-button size="small" type="danger" @click="deleteActivity(row)" class="action-btn">
+                    删除记录
+                  </el-button>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
 
+        <div class="button-group">
+          <el-button type="default" @click="goBack" size="large" class="back-btn">
+            <el-icon><ArrowLeft /></el-icon>
+            返回
+          </el-button>
+        </div>
+      </el-card>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
-import { useOrganizationStore } from '@/stores/organizationStore.js'; //
-import request from '@/utils/request.js'; //
+import { useOrganizationStore } from '@/stores/organizationStore.js';
+import request from '@/utils/request.js';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { Search, ArrowLeft } from '@element-plus/icons-vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const organizationStore = useOrganizationStore();
-const activities = ref([]); // 存储活动列表
-const isLoading = ref(false); // 加载状态
+const activities = ref([]);
+const isLoading = ref(false);
 
 const searchForm = reactive({
   activityName: '',
   activityStatus: '',
 });
 
-// 这里我们假设后端 `/byOrg/{orgId}` 接口暂时不支持分页，只返回全部列表。
-// 如果后端支持分页，需要修改 loadActivities 方法并启用 el-pagination。
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -73,19 +121,11 @@ const loadActivities = async () => {
 
   isLoading.value = true;
   try {
-    // 构建查询参数
-    const params = {
-      // 如果后端 /byOrg/{orgId} 接口支持 activityName 和 activityStatus 过滤，可以在这里添加
-      // activityName: searchForm.activityName,
-      // activityStatus: searchForm.activityStatus,
-      // 由于目前 byOrg/{orgId} 只按ID查询，我们可能需要在前端进行筛选，或者后端扩展接口
-    };
+    const params = {};
 
-    // 直接调用后端接口，传入组织ID
     const res = await request.get(`/volunteerActivity/byOrg/${organizationStore.currentOrganizationId}`, { params });
 
     if (res.code === '200' && res.data) {
-      // 如果后端返回的是完整列表，前端进行筛选
       let filteredActivities = res.data;
       if (searchForm.activityName) {
         filteredActivities = filteredActivities.filter(activity =>
@@ -98,7 +138,7 @@ const loadActivities = async () => {
         );
       }
       activities.value = filteredActivities;
-      pagination.total = filteredActivities.length; // 假设是前端分页的总数
+      pagination.total = filteredActivities.length;
     } else {
       ElMessage.error(res.msg || '获取活动列表失败');
     }
@@ -110,42 +150,77 @@ const loadActivities = async () => {
   }
 };
 
-// 查看活动详情 (这里只是一个占位符，您可能需要跳转到详情页面)
+// 返回上一页
+const goBack = () => {
+  router.go(-1);
+};
+
+// 查看活动详情
 const viewDetails = (row) => {
-  ElMessage.info(`查看活动详情: ${row.activityName} (ID: ${row.activityId})`);
-  // 实际应用中，这里会使用 router.push 跳转到活动详情页，并传入活动ID
-  // router.push({ name: 'OrganizationDetailedActivityInfo', query: { activityId: row.activityId } });
+  router.push({ 
+    name: 'activity-detail', 
+    params: { id: row.activityId } 
+  });
+};
+
+// 删除活动
+const deleteActivity = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除活动 "${row.activityName}" 吗？删除后将无法恢复！`, 
+      '确认删除', 
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'error',
+      }
+    );
+
+    const res = await request.delete(`/volunteerActivity/delete/${row.activityId}`);
+
+    if (res.code === '200') {
+      ElMessage.success('活动已成功删除！');
+      loadActivities();
+    } else {
+      ElMessage.error(res.msg || '删除活动失败。');
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除活动请求失败:', error);
+      ElMessage.error('网络错误或系统异常，删除活动失败。');
+    }
+  }
 };
 
 // 取消活动
 const cancelActivity = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要取消活动 "${row.activityName}" 吗？取消后活动状态将变为“已停用”，且已通过/待审核的报名都将取消。`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    });
+    await ElMessageBox.confirm(
+      `确定要取消活动 "${row.activityName}" 吗？取消后活动状态将变为"已停用"，且已通过/待审核的报名都将取消。`, 
+      '确认取消', 
+      {
+        confirmButtonText: '确定取消',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
 
-    // 调用后端取消活动的接口
-    // 假设有一个接口 PUT /volunteerActivity/cancel，或者调用 sp_OrgCancelEvent 对应的接口
-    // 这里我们使用 Controller 中 sp_OrgCancelEvent 对应的接口：POST /organization/cancelEvent
-    // 注意：sp_OrgCancelEvent 期望 EventType 和 EventID，以及 OperatingOrgID
     const payload = {
-      operatingOrgId: organizationStore.currentOrganizationId, // 传递当前组织ID
-      eventType: 'Activity', // 固定为 Activity
-      eventID: row.activityId, // 活动ID
+      operatingOrgId: organizationStore.currentOrganizationId,
+      eventType: 'Activity',
+      eventID: row.activityId,
     };
 
-    const res = await request.post('/organization/cancelEvent', payload); // 假设后端接口是 POST /organization/cancelEvent
+    const res = await request.post('/organization/cancelEvent', payload);
 
     if (res.code === '200') {
       ElMessage.success('活动已成功取消！');
-      loadActivities(); // 刷新列表
+      loadActivities();
     } else {
       ElMessage.error(res.msg || '取消活动失败。');
     }
   } catch (error) {
-    if (error !== 'cancel') { // 阻止用户取消弹窗时报错
+    if (error !== 'cancel') {
       console.error('取消活动请求失败:', error);
       ElMessage.error('网络错误或系统异常，取消活动失败。');
     }
@@ -157,7 +232,7 @@ const getStatusTagType = (status) => {
   switch (status) {
     case '待审核': return 'info';
     case '审核通过': return 'success';
-    case '进行中': return ''; // 默认颜色
+    case '进行中': return '';
     case '已结束': return 'info';
     case '审核不通过': return 'warning';
     case '已停用': return 'danger';
@@ -165,35 +240,289 @@ const getStatusTagType = (status) => {
   }
 };
 
-// 组件挂载时加载活动列表
 onMounted(() => {
   loadActivities();
 });
-
-// 如果后端分页功能在 /byOrg/{orgId} 接口上，需要启用以下方法和 el-pagination
-// const handleSizeChange = (newSize) => {
-//   pagination.pageSize = newSize;
-//   loadActivities();
-// };
-// const handleCurrentChange = (newPage) => {
-//   pagination.pageNum = newPage;
-//   loadActivities();
-// };
 </script>
 
 <style scoped>
 .activity-records-container {
+  min-height: 100vh;
+  background-image: url('@/../public/bg.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  padding: 0;
+  position: relative;
+}
+
+.activity-records-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 51, 51, 0.1);
+  z-index: 1;
+}
+
+.header {
+  background-color: #ff3333;
+  color: white;
   padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(255, 51, 51, 0.3);
+  margin-bottom: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.content-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 30px 20px;
+  min-height: calc(100vh - 80px);
+  position: relative;
+  z-index: 2;
+}
+
+.main-card {
+  width: 100%;
+  max-width: 1600px;
+  min-height: 700px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(255, 51, 51, 0.2);
+  border: 1px solid rgba(255, 51, 51, 0.1);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.main-card :deep(.el-card__body) {
+  padding: 40px;
+  min-height: 600px;
 }
 
 .search-filter-area {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
-.el-input, .el-select {
-  flex: 1; /* 让输入框和选择框在 flex 布局中自动伸缩 */
-  max-width: 200px; /* 控制最大宽度 */
+.search-input {
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.search-select {
+  flex: 1;
+  min-width: 180px;
+  max-width: 250px;
+}
+
+.search-input :deep(.el-input__wrapper),
+.search-select :deep(.el-input__wrapper) {
+  border-radius: 8px;
+  border: 1px solid #dcdfe6;
+  transition: all 0.3s ease;
+  height: 42px;
+}
+
+.search-input :deep(.el-input__wrapper:hover),
+.search-select :deep(.el-input__wrapper:hover) {
+  border-color: #ff6666;
+}
+
+.search-input :deep(.el-input.is-focus .el-input__wrapper),
+.search-select :deep(.el-select.is-focus .el-input__wrapper) {
+  border-color: #ff3333;
+  box-shadow: 0 0 0 2px rgba(255, 51, 51, 0.2);
+}
+
+.search-btn {
+  background: #ff3333;
+  border: 2px solid #ff3333;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.search-btn:hover {
+  background: #ff0000;
+  border-color: #ff0000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255, 51, 51, 0.3);
+}
+
+.table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.activity-table {
+  width: 100%;
+}
+
+.activity-table :deep(.el-table__header) {
+  background: linear-gradient(135deg, #ff3333, #ff6666);
+}
+
+.activity-table :deep(.el-table__header th) {
+  background: transparent !important;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 15px 8px;
+  border: none;
+}
+
+.activity-table :deep(.el-table__body tr) {
+  transition: all 0.3s ease;
+}
+
+.activity-table :deep(.el-table__body tr:hover) {
+  background: rgba(255, 51, 51, 0.05);
+}
+
+.activity-table :deep(.el-table__body td) {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+
+.status-tag {
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.action-btn {
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  min-width: 72px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.back-btn {
+  background: #f8f9fa;
+  border: 2px solid #dee2e6;
+  color: #6c757d;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 500;
+  min-width: 120px;
+  height: 45px;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+  transform: translateY(-2px);
+}
+
+/* 加载状态样式 */
+.activity-table :deep(.el-loading-mask) {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 20px 15px;
+  }
+  
+  .main-card {
+    max-width: 95%;
+    min-height: auto;
+  }
+  
+  .main-card :deep(.el-card__body) {
+    padding: 20px;
+    min-height: auto;
+  }
+  
+  .search-filter-area {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .search-input,
+  .search-select {
+    max-width: none;
+    width: 100%;
+  }
+  
+  .header h1 {
+    font-size: 24px;
+  }
+  
+  .activity-table :deep(.el-table__body td),
+  .activity-table :deep(.el-table__header th) {
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+  
+  .action-buttons {
+    gap: 4px;
+  }
+  
+  .action-btn {
+    min-width: 60px;
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+}
+
+/* 空状态样式 */
+.activity-table :deep(.el-table__empty-block) {
+  background: rgba(255, 51, 51, 0.05);
+  color: #999;
+  padding: 40px;
+  border-radius: 8px;
+  margin: 20px;
 }
 </style>
