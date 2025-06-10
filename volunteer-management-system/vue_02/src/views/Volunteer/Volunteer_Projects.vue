@@ -2,7 +2,7 @@
   <div class="projects-page">
     <!-- 红色标题栏 -->
     <div class="projects-title">
-      <span>我的项目</span>
+      <span>我的志愿活动</span>
     </div>
     <!-- 我的项目表格 -->
     <el-table
