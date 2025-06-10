@@ -1,189 +1,218 @@
 <template>
-  <div class="project-apply-page">
-    <!-- 红色标题栏 -->
-    <div class="project-apply-title">
-      <span>报名中的项目</span>
+  <div class="registered-activities-page">
+    <div class="page-title">
+      <span>已报名活动</span>
+      <el-button @click="fetchMyActivities" :loading="isLoading" icon="el-icon-refresh" circle title="刷新"></el-button>
     </div>
-    <!-- 筛选按钮 -->
+
     <div class="filter-buttons">
-      <button @click="applyFilter('all')" :class="{ active: currentFilter === 'all' }">全部</button>
-      <button @click="applyFilter(PROJECT_STATUS.PENDING)" :class="{ active: currentFilter === PROJECT_STATUS.PENDING }">申请中</button>
-      <button @click="applyFilter(PROJECT_STATUS.APPROVED)" :class="{ active: currentFilter === PROJECT_STATUS.APPROVED }">审核通过</button>
-      <button @click="applyFilter(PROJECT_STATUS.REJECTED)" :class="{ active: currentFilter === PROJECT_STATUS.REJECTED }">审核不通过</button>
+      <el-radio-group v-model="currentStatusFilter" size="small" @change="filterActivities">
+        <el-radio-button value="全部">全部</el-radio-button>
+        <el-radio-button value="待审核">待审核</el-radio-button>
+        <el-radio-button value="已通过">已通过</el-radio-button>
+        <el-radio-button value="已拒绝">已拒绝</el-radio-button>
+        <el-radio-button value="取消报名">取消报名</el-radio-button>
+      </el-radio-group>
     </div>
-    <!-- 项目表格 -->
-    <el-table
-        v-if="pageData.length"
-        :data="pageData"
-        border
-        style="width: 100%; margin-top: 20px;"
-        header-cell-class-name="table-header"
-    >
-      <el-table-column prop="name" label="项目名称" align="center" />
-      <el-table-column prop="position" label="意向岗位" align="center" />
-      <el-table-column prop="joinDate" label="申请时间" align="center" />
-      <el-table-column prop="status" label="申请状态" align="center" />
-      <el-table-column label="操作" align="center" width="200">
+
+    <el-table :data="filteredActivities" v-loading="isLoading" style="width: 100%" class="activity-table" empty-text="暂无相关活动">
+      <el-table-column prop="activityName" label="活动名称" width="220"></el-table-column>
+      <el-table-column prop="applicationTime" label="报名时间" width="180">
         <template #default="scope">
+          {{ formatDateTime(scope.row.applicationTime) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="intendedPositionName" label="意向岗位" width="180"></el-table-column>
+      <el-table-column prop="applicationStatus" label="报名状态" width="120" align="center">
+        <template #default="scope">
+          <el-tag :type="getStatusTagType(scope.row.applicationStatus)" size="small">
+            {{ scope.row.applicationStatus }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" min-width="150">
+        <template #default="scope">
+          <el-button size="mini" @click="handleViewDetails(scope.row)">查看详情</el-button>
           <el-button
-            size="small"
-            type="danger"
-            @click="withdrawApplication(scope.row)"
-            v-if="scope.row.status === PROJECT_STATUS.PENDING"
-          >撤回申请</el-button>
+            size="mini"
+            type="warning"
+            @click="handleWithdraw(scope.row)"
+            :disabled="scope.row.applicationStatus !== '待审核'"
+          >
+            撤回申请
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
-    <!-- 空数据提示 -->
-    <div v-else class="empty-box">
-      <img src="https://img.alicdn.com/imgextra/i4/O1CN01v7Qw1B1QwQwQwQwQw_!!6000000002007-2-tps-200-200.png" alt="empty" />
-      <div>暂无项目信息</div>
-    </div>
-    <!-- 分页器 -->
-    <el-pagination
-        v-if="filteredProjects.length > pageSize"
-        style="margin-top: 24px; text-align: right;"
-        background
-        layout="prev, pager, next, jumper"
-        :total="filteredProjects.length"
-        :page-size="pageSize"
-        v-model:current-page="currentPage"
-    />
+
   </div>
 </template>
 
-<script>
-import { ref, computed, reactive } from 'vue'
+<script setup>
+import {ref, onMounted, computed} from 'vue';
+import {ElMessage, ElMessageBox} from 'element-plus';
+import request from '@/utils/request'; // 你的请求工具
+import {useUserStore} from '@/stores/userStore'; // 你的用户状态管理
 
-const PROJECT_STATUS = {
-  PENDING: '申请中',
-  APPROVED: '审核通过',
-  REJECTED: '审核不通过'
-}
+// --- 响应式数据 ---
+const userStore = useUserStore();
+const allActivities = ref([]); // 存储所有从后端获取的活动
+const filteredActivities = ref([]); // 存储筛选后的活动
+const isLoading = ref(false);
+const currentStatusFilter = ref('全部');
 
-export default {
-  name: 'ProjectApply',
-  setup() {
-    // 模拟待定项目数据
-    const projects = ref([
-      {
-        name: '“铸魂达尔罕”志愿服务项目',
-        joinDate: '2024-05-01',
-        position: '志愿者',
-        status: PROJECT_STATUS.PENDING
-      },
-      {
-        name: '社区防疫宣传',
-        joinDate: '2024-04-15',
-        position: '宣传员',
-        status: PROJECT_STATUS.APPROVED
-      },
-      {
-        name: '环保知识普及',
-        joinDate: '2024-03-20',
-        position: '志愿者',
-        status: PROJECT_STATUS.REJECTED
-      }
-    ])
-    // 分页相关
-    const pageSize = 5
-    const currentPage = ref(1)
-    const currentFilter = ref('all')
-    const filteredProjects = ref([...projects.value])
-    const pageData = computed(() => {
-      const start = (currentPage.value - 1) * pageSize
-      return filteredProjects.value.slice(start, start + pageSize)
-    })
+// --- 方法 ---
 
-    // 筛选逻辑
-    const applyFilter = (filterType) => {
-      currentFilter.value = filterType
-      currentPage.value = 1
-      if (filterType === 'all') {
-        filteredProjects.value = [...projects.value]
-      } else {
-        filteredProjects.value = projects.value.filter(p => p.status === filterType)
-      }
-    }
-
-    // 撤回申请
-    const withdrawApplication = (row) => {
-      // 这里可以调用接口，演示用alert
-      alert(`已撤回：${row.name}`)
-    }
-
-    return {
-      projects,
-      pageData,
-      pageSize,
-      currentPage,
-      currentFilter,
-      filteredProjects,
-      applyFilter,
-      withdrawApplication,
-      PROJECT_STATUS
-    }
+const fetchMyActivities = async () => {
+  // ✅ 正确：在这里使用 detailedVolunteerInfo
+  const volunteerId = userStore.detailedVolunteerInfo.volunteerId;
+  if (!volunteerId) {
+    // 这个警告现在主要由 onMounted 处理，但保留以防万一
+    ElMessage.warning('无法获取您的信息，请尝试重新登录');
+    return;
   }
-}
+
+  isLoading.value = true;
+  try {
+    const res = await request.get(`/api/application/my-activities/${volunteerId}`);
+    if (res.code === '200' && res.data) {
+      allActivities.value = res.data;
+      filterActivities(); // 获取数据后立即执行一次筛选
+    } else {
+      ElMessage.error(res.msg || '获取活动列表失败');
+    }
+  } catch (error) {
+    console.error("获取已报名活动时出错:", error);
+    ElMessage.error('网络请求失败');
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const filterActivities = () => {
+  if (currentStatusFilter.value === '全部') {
+    filteredActivities.value = allActivities.value;
+  } else {
+    filteredActivities.value = allActivities.value.filter(
+        activity => activity.applicationStatus === currentStatusFilter.value
+    );
+  }
+};
+
+const handleWithdraw = (activity) => {
+  ElMessageBox.confirm(
+      `确定要撤回对活动《${activity.activityName}》的报名申请吗？`,
+      '确认撤回',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  ).then(async () => {
+    try {
+      const payload = {applicationId: activity.applicationId};
+      const res = await request.put('/api/application/withdraw', payload);
+      if (res.code === '200') {
+        ElMessage.success('撤回成功');
+        fetchMyActivities(); // 刷新整个列表
+      } else {
+        ElMessage.error(res.msg || '撤回失败');
+      }
+    } catch (error) {
+      ElMessage.error('网络请求失败');
+    }
+  }).catch(() => {
+    ElMessage.info('已取消操作');
+  });
+};
+
+const handleViewDetails = (activity) => {
+  ElMessageBox.alert(
+      `
+      <div><strong>活动名称:</strong> ${activity.activityName}</div>
+      <div><strong>活动地点:</strong> ${activity.location}</div>
+      <div><strong>意向岗位:</strong> ${activity.intendedPositionName || '未指定'}</div>
+      <div><strong>报名状态:</strong> ${activity.applicationStatus}</div>
+    `,
+      '报名详情',
+      {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '关闭'
+      }
+  );
+};
+
+const formatDateTime = (time) => {
+  if (!time) return '';
+  return new Date(time).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const getStatusTagType = (status) => {
+  switch (status) {
+    case '已通过':
+      return 'success';
+    case '待审核':
+      return 'primary';
+    case '已拒绝':
+      return 'danger';
+    case '取消报名':
+      return 'info';
+    default:
+      return 'info';
+  }
+};
+
+// --- 生命周期钩子 ---
+onMounted(() => {
+  // ✅ 这是最关键的修改：确保能稳定获取到用户信息
+  // 检查store中是否已有ID
+  if (userStore.detailedVolunteerInfo && userStore.detailedVolunteerInfo.volunteerId) {
+    fetchMyActivities();
+  } else {
+    // 如果没有，可能是因为异步获取还没完成，或者用户直接访问此页面
+    // 尝试调用 userStore 中的 action 来获取一次用户信息
+    userStore.fetchDetailedVolunteerInfo().then(() => {
+      // 再次检查ID是否存在
+      if (userStore.detailedVolunteerInfo && userStore.detailedVolunteerInfo.volunteerId) {
+        fetchMyActivities();
+      } else {
+        // 如果还没有，则提示用户
+        ElMessage.warning('无法获取您的用户信息，请尝试重新登录');
+      }
+    }).catch(error => {
+      // 处理 fetchDetailedVolunteerInfo 可能发生的错误
+      console.error("在 onMounted 中获取用户信息失败:", error);
+      ElMessage.error('获取用户信息时出错，请刷新页面或重新登录');
+    });
+  }
+});
 </script>
 
 <style scoped>
-.project-apply-page {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
-  padding: 0 0 32px 0;
-  min-height: 400px;
+.registered-activities-page {
+  padding: 24px;
+  background-color: #fff;
 }
-.project-apply-title {
-  background: #fff0f0;
-  color: #ff0000;
-  font-weight: bold;
-  font-size: 20px;
-  padding: 18px 32px 8px 32px;
-  border-bottom: 3px solid #ff0000;
-  margin-bottom: 0;
-}
-.filter-buttons {
-  margin-top: 20px;
+
+.page-title {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.filter-buttons button {
-  background-color: #f0f0f0;
-  color: #333;
-  padding: 8px 15px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.filter-buttons button.active {
-  background-color: #ff0000;
-  color: white;
-  border-color: #ff0000;
-}
-.filter-buttons button:hover:not(.active) {
-  background-color: #e9e9e9;
-  border-color: #c0c0c0;
-}
-.table-header {
-  background: #fff0f0 !important;
-  color: #ff0000 !important;
-  font-weight: bold;
-}
-.empty-box {
-  display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  margin: 60px 0 0 0;
-  color: #aaa;
-  font-size: 16px;
+  margin-bottom: 20px;
+  font-size: 22px;
 }
-.empty-box img {
-  width: 80px;
-  margin-bottom: 12px;
-  opacity: 0.6;
+
+.filter-buttons {
+  margin-bottom: 20px;
+}
+
+.activity-table {
+  border-radius: 4px;
 }
 </style>
