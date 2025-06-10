@@ -140,10 +140,11 @@ public interface VolunteerOrganizationJoinMapper {
 
     //获得所有MemberStatus为“申请中”的成员信息
     @Select("SELECT voj.volunteerId, voj.orgId, voj.joinTime, voj.memberStatus, " +
-            "v.name, v.phoneNumber, v.idCardNumber, v.totalVolunteerHours, v.volunteerRating " +
+            "v.name, v.phoneNumber, v.idCardNumber, v.totalVolunteerHours, v.volunteerRating, " +
+            "v.username, v.country, v.gender, v.ethnicity, v.politicalStatus, v.highestEducation, " +
+            "v.employmentStatus, v.serviceArea, v.serviceCategory " +
             "FROM tbl_VolunteerOrganizationJoin voj " +
             "JOIN tbl_Volunteer v ON voj.volunteerId = v.volunteerId " +
             "WHERE voj.orgId = #{orgId} AND voj.memberStatus = #{memberStatus}")
     List<Map<String, Object>> selectPendingMembers(@Param("orgId") String orgId, @Param("memberStatus") String memberStatus);
-
 }
