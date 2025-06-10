@@ -13,6 +13,7 @@ import message from '../views/Administrator/Manager_message.vue';
 import managerOperation from '../views/Administrator/Manager_managerOperation.vue';
 import password from '../views/Administrator/Manager_password.vue';
 import handle from '../views/Administrator/Manager_handle.vue';
+import manageTraining from '../views/Administrator/Manager_manageTraining.vue';
 
 // 志愿组织页面组件导入 (这些是你已有的)
 import OrganizationOrganizationInfo from '../views/Organization/Organization-OrganizationInfo.vue'
@@ -103,6 +104,7 @@ const routes = [
     {path: '/managerOperation', name: 'managerOperation', component: managerOperation},
     {path: '/managerPassword', name: 'password', component: password},
     {path: '/handle', name: 'handle', component: handle},
+    {path: '/manageTraining', name: 'manageTraining', component: manageTraining},
 
 
     // 4. 整合的志愿者区域 (基于你刚刚提供的配置)

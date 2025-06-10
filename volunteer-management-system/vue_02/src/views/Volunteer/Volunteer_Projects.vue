@@ -15,15 +15,21 @@
       <el-table-column prop="name" label="项目名称" align="center" />
       <el-table-column prop="position" label="岗位" align="center" />
       <el-table-column prop="signIn" label="是否签到" align="center" />
-      <el-table-column prop="score" label="评价分数" align="center">
+      <el-table-column label="我的评分" align="center">
         <template #default="scope">
           <span v-if="scope.row.score">{{ scope.row.score }} 分</span>
-          <span v-else>未评价</span>
+          <el-tag v-else type="info">未评分</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="评价" align="center">
+      <el-table-column label="组织方评分" align="center">
         <template #default="scope">
-          <el-button size="small" type="primary" @click="openEvaluateDialog(scope.row)">评价</el-button>
+          <span v-if="scope.row.organisationScore">{{ scope.row.organisationScore }} 分</span>
+          <el-tag v-else type="warning">待评分</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center">
+        <template #default="scope">
+          <el-button size="small" type="primary" @click="openEvaluateDialog(scope.row)" :disabled="!!scope.row.score">评价</el-button>
           <el-button size="small" type="danger" @click="openComplaintDialog(scope.row)">我要投诉</el-button>
         </template>
       </el-table-column>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/01_tables/tables.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/02_initial_data/initial_data.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/03_views/01_volunteer_views.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/04_procedures/01_administrator_procedures.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/04_procedures/02_test_administrator_procedures.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/04_procedures/03_organization_procedures.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/04_procedures/05_volunteer_procedures.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/04_procedures/07_complaint_procedures.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/04_procedures/09_utility_functions.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/05_triggers/01_organization_trigger.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/05_triggers/03_volunteer_and_org_related_triggers.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/05_triggers/05_complaint_triggers.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/05_triggers/07_id_generation_triggers.sql" dialect="TSQL" />
+    <file url="file://$PROJECT_DIR$/volunteer-management-system/sql语句/修改语句/后期修改脚本.sql" dialect="TSQL" />
+    <file url="PROJECT" dialect="TSQL" />
+  </component>
+</project>

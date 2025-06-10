@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:sqlserver://127.0.0.1:1433;databaseName=volunteer_db_test;encrypt=false
-    username: caoyingying
-    password: 1234567
+    url: jdbc:sqlserver://127.0.0.1:1433;databaseName=volunteer_web_05;encrypt=false
+    username: sa
+    password: hyx123456
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
 
 # 配置mybatis实体和xml映射
