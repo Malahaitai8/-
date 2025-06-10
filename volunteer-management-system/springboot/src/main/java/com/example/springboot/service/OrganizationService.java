@@ -358,4 +358,28 @@ public class OrganizationService {
         list.forEach(org -> org.setOrgLoginPassword(null));
         return list;
     }
+
+    /**
+     * 【新增】获取指定志愿者可以加入的组织列表（即该志愿者尚未申请、尚未加入、尚未退出的组织）。
+     * 提供分页和模糊查询功能。
+     *
+     * @param volunteerId 志愿者的ID。
+     * @param orgName 组织名称的模糊查询关键词。
+     * @param pageNum 当前页码。
+     * @param pageSize 每页记录数。
+     * @return 包含Organization列表和分页信息的PageInfo对象。
+     */
+    public PageInfo<Organization> getAvailableOrganizationsForVolunteer(String volunteerId, String orgName, Integer pageNum, Integer pageSize) {
+        if (!StringUtils.hasText(volunteerId)) {
+            throw new IllegalArgumentException("志愿者ID不能为空");
+        }
+
+        PageHelper.startPage(pageNum, pageSize);
+        List<Organization> list = organizationMapper.findAvailableOrganizationsForVolunteer(volunteerId, orgName);
+
+        // 确保不返回密码信息
+        list.forEach(org -> org.setOrgLoginPassword(null));
+
+        return PageInfo.of(list);
+    }
 }
