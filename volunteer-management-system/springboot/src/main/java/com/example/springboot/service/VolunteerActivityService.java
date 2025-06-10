@@ -163,6 +163,78 @@ public class VolunteerActivityService {
         // 可以在这里添加额外的业务逻辑，例如，如果列表为空是否抛出异常，或者根据权限过滤
         return activities;
     }
+
+    /**
+     * 根据活动ID查询单个活动详情
+     * @param activityId 活动ID
+     * @return 志愿活动对象
+     * @throws CustomException 如果活动ID为空
+     */
+    public VolunteerActivity getActivityById(String activityId) throws CustomException {
+        if (activityId == null || activityId.trim().isEmpty()) {
+            throw new CustomException("400", "活动ID不能为空");
+        }
+        return volunteerActivityMapper.selectById(activityId);
+    }
+
+    /**
+     * 根据活动ID删除活动
+     * @param activityId 活动ID
+     * @throws CustomException 如果活动ID为空或活动不存在
+     */
+    @Transactional
+    public void deleteActivityById(String activityId) throws CustomException {
+        if (activityId == null || activityId.trim().isEmpty()) {
+            throw new CustomException("400", "活动ID不能为空");
+        }
+        VolunteerActivity existingActivity = volunteerActivityMapper.selectById(activityId);
+        if (existingActivity == null) {
+            throw new CustomException("404", "未找到要删除的活动，ID: " + activityId);
+        }
+        volunteerActivityMapper.deleteById(activityId);
+    }
+
+    /**
+     * 更新活动信息
+     * @param volunteerActivity 更新的活动信息
+     * @throws CustomException 如果校验失败或活动不存在
+     */
+    @Transactional
+    public void updateActivity(VolunteerActivity volunteerActivity) throws CustomException {
+        // 1. 参数校验
+        if (volunteerActivity == null || volunteerActivity.getActivityId() == null || volunteerActivity.getActivityId().trim().isEmpty()) {
+            throw new CustomException("400", "活动ID不能为空");
+        }
+
+        // 2. 检查活动是否存在
+        VolunteerActivity existingActivity = volunteerActivityMapper.selectById(volunteerActivity.getActivityId());
+        if (existingActivity == null) {
+            throw new CustomException("404", "未找到要更新的活动，ID: " + volunteerActivity.getActivityId());
+        }
+
+        // 3. 业务逻辑校验
+        if (volunteerActivity.getActivityName() != null && volunteerActivity.getActivityName().trim().isEmpty()) {
+            throw new CustomException("400", "活动名称不能为空");
+        }
+        if (volunteerActivity.getStartTime() != null && volunteerActivity.getEndTime() != null &&
+                volunteerActivity.getStartTime().after(volunteerActivity.getEndTime())) {
+            throw new CustomException("400", "活动开始时间不能晚于结束时间");
+        }
+        if (volunteerActivity.getRecruitmentCount() != null && volunteerActivity.getRecruitmentCount() <= 0) {
+            throw new CustomException("400", "招募人数必须大于0");
+        }
+        if (volunteerActivity.getActivityStatus() != null && !VALID_ACTIVITY_STATUSES.contains(volunteerActivity.getActivityStatus())) {
+            throw new CustomException("400", "无效的活动状态: " + volunteerActivity.getActivityStatus());
+        }
+
+        // 4. 更新活动信息
+        try {
+            volunteerActivityMapper.updateById(volunteerActivity);
+        } catch (Exception e) {
+            System.err.println("更新活动失败: " + e.getMessage());
+            throw new CustomException("500", "更新活动失败，请检查输入或联系管理员");
+        }
+    }
     /**
      * 根据培训ID查询志愿培训信息
      * (注意：此方法看起来是用于Training的，如果ActivityService不管理Training，应将其移至VolunteerTrainingService)
