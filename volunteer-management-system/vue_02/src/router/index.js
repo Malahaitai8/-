@@ -39,6 +39,8 @@ import OrganizationAddedMemberForActivity from "@/views/Organization/Organizatio
 import OrganizationDetailedInfoForAddActivity from "@/views/Organization/Organization-DetailedInfoForAddActivity.vue";
 import OrganizationDetailedInfoForAddedActivity
     from "@/views/Organization/Organization-DetailedInfoForAddedActivity.vue";
+import OrganizationActivityDetail from "@/views/Organization/Organization-ActivityDetail.vue";
+import OrganizationTrainingDetail from "@/views/Organization/Organization-TrainingDetail.vue";
 
 // 志愿者区域的布局/父组件 (这是你刚刚提供的配置中用到的 VolunteerHome.vue)
 //import VolunteerAreaLayout from '../views/VolunteerHome.vue';
@@ -186,6 +188,16 @@ const routes = [
         path: '/detailed-info-for-added-activity',
         name: 'detailed-info-for-added-activity',
         component: OrganizationDetailedInfoForAddedActivity
+    },
+    {
+        path: '/activity-detail/:id',
+        name: 'activity-detail',
+        component: OrganizationActivityDetail
+    },
+    {
+        path: '/training-detail/:id',
+        name: 'training-detail',
+        component: OrganizationTrainingDetail
     },
     // 6. 404 未找到页面路由 (必须放在 routes 数组的最后)
     {path: '/404', name: 'NotFound', meta: {title: '404找不到页面'}, component: NotFoundView},

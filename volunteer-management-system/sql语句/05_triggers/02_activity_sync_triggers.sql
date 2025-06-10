@@ -1,79 +1,14 @@
--- ÎªÖ¾Ô¸»î¶¯±íÌí¼ÓÁÙÊ±´æ´¢×Ö¶Î
--- ÓÃÓÚÔÚÉóºËÇ°±£´æ¸ÚÎ»ºÍÊ±¶ÎĞÅÏ¢µÄJSON¸ñÊ½Êı¾İ
-
-USE volunteer_db_test;  -- Çë¸ù¾İÄãµÄÊµ¼ÊÊı¾İ¿âÃû³ÆĞŞ¸Ä
-GO
-
--- Ìí¼ÓÁ½¸öĞÂ×Ö¶ÎÓÃÓÚÁÙÊ±´æ´¢¸ÚÎ»ºÍÊ±¶ÎĞÅÏ¢
-ALTER TABLE tbl_VolunteerActivity 
-ADD PendingPositionsJson NVARCHAR(MAX) NULL,  -- ´ıÉóºËµÄ¸ÚÎ»ĞÅÏ¢£¨JSON¸ñÊ½£©
-    PendingTimeslotsJson NVARCHAR(MAX) NULL;  -- ´ıÉóºËµÄÊ±¶ÎĞÅÏ¢£¨JSON¸ñÊ½£©
-GO
-
--- ÑéÖ¤×Ö¶ÎÊÇ·ñÌí¼Ó³É¹¦
-SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH
-FROM INFORMATION_SCHEMA.COLUMNS 
-WHERE TABLE_NAME = 'tbl_VolunteerActivity' 
-  AND COLUMN_NAME IN ('PendingPositionsJson', 'PendingTimeslotsJson');
-GO
-
-PRINT N'ÒÑ³É¹¦Îª tbl_VolunteerActivity ±íÌí¼Ó PendingPositionsJson ºÍ PendingTimeslotsJson ×Ö¶Î';
-GO 
-
-/* ¸üĞÂ¸ÅÊö
-ÎªÊµÏÖ»ù±¾ĞÅÏ¢ÖĞ"¿ªÊ¼Ê±¼ä"¡¢"½áÊøÊ±¼ä"¡¢"»î¶¯Ê±³¤"Óë"ÕĞÄ¼ÈËÊı"µÄ×Ô¶¯Í¬²½¼ÆËã£¬ĞÂÔöÁË2¸öÊı¾İ¿â´¥·¢Æ÷¡£
-
-## ĞÂÔö´¥·¢Æ÷ÁĞ±í
-
-### 1. »î¶¯Ê±³¤×Ô¶¯¼ÆËã´¥·¢Æ÷
-
-**´¥·¢Æ÷Ãû³Æ**: `trg_sync_activity_duration_from_timeslots`
-
-**×÷ÓÃ±í**: `dbo.tbl_ActivityTimeslot` (»î¶¯Ê±¶Î±í)
-
-**´¥·¢ÊÂ¼ş**: `AFTER INSERT, UPDATE, DELETE`
-
-**¹¦ÄÜÃèÊö**: 
-- µ±»î¶¯Ê±¶Î·¢Éú±ä»¯Ê±£¬×Ô¶¯¼ÆËã¸Ã»î¶¯ËùÓĞÊ±¶ÎµÄ×ÜÊ±³¤
-- ½«¼ÆËã½á¹û¸üĞÂµ½ `tbl_VolunteerActivity.ActivityDurationHours` ×Ö¶Î
-- È·±£»î¶¯Ê±³¤Ê¼ÖÕÓëÊ±¶Î°²ÅÅ±£³ÖÍ¬²½
-
-**ÒµÎñ³¡¾°**:
-- Ìí¼ÓĞÂÊ±¶Î ¡ú ×Ô¶¯Ôö¼Ó»î¶¯×ÜÊ±³¤
-- ĞŞ¸ÄÊ±¶ÎÊ±¼ä ¡ú ×Ô¶¯ÖØĞÂ¼ÆËã»î¶¯×ÜÊ±³¤  
-- É¾³ıÊ±¶Î ¡ú ×Ô¶¯¼õÉÙ»î¶¯×ÜÊ±³¤
-
-### 2. ÕĞÄ¼ÈËÊı×Ô¶¯¼ÆËã´¥·¢Æ÷
-
-**´¥·¢Æ÷Ãû³Æ**: `trg_sync_recruitment_count_from_positions`
-
-**×÷ÓÃ±í**: `dbo.tbl_Position` (¸ÚÎ»±í)
-
-**´¥·¢ÊÂ¼ş**: `AFTER INSERT, UPDATE, DELETE`
-
-**¹¦ÄÜÃèÊö**:
-- µ±»î¶¯¸ÚÎ»ĞÅÏ¢·¢Éú±ä»¯Ê±£¬×Ô¶¯¼ÆËã¸Ã»î¶¯ËùÓĞ¸ÚÎ»µÄĞèÇóÈËÊı×ÜºÍ
-- ½«¼ÆËã½á¹û¸üĞÂµ½ `tbl_VolunteerActivity.RecruitmentCount` ×Ö¶Î
-- È·±£ÕĞÄ¼ÈËÊıÊ¼ÖÕÓë¸ÚÎ»ĞèÇó±£³ÖÍ¬²½
-
-**ÒµÎñ³¡¾°**:
-- Ìí¼ÓĞÂ¸ÚÎ» ¡ú ×Ô¶¯Ôö¼Ó»î¶¯ÕĞÄ¼ÈËÊı
-- ĞŞ¸Ä¸ÚÎ»ĞèÇóÈËÊı ¡ú ×Ô¶¯ÖØĞÂ¼ÆËã»î¶¯ÕĞÄ¼ÈËÊı
-- É¾³ı¸ÚÎ» ¡ú ×Ô¶¯¼õÉÙ»î¶¯ÕĞÄ¼ÈËÊı
-
-## ´¥·¢Æ÷´´½¨SQLÓï¾ä*/
-
--- ´¥·¢Æ÷1: »î¶¯Ê±³¤×Ô¶¯¼ÆËã
-
 USE volunteer_db_test;
+GO
+PRINT N'å¼€å§‹åˆ›å»ºæ´»åŠ¨åŒæ­¥è§¦å‘å™¨...';
 GO
 
 --------------------------------------------------------------------------------
--- ´¥·¢Æ÷: trg_sync_activity_duration_from_timeslots
--- ×÷ÓÃ±í: dbo.tbl_ActivityTimeslot (»î¶¯Ê±¶Î±í)
--- ´¥·¢ÊÂ¼ş: AFTER INSERT, UPDATE, DELETE
--- ¹¦ÄÜ: µ±»î¶¯Ê±¶Î·¢Éú±ä»¯Ê±£¬×Ô¶¯¼ÆËã²¢¸üĞÂ»î¶¯±íÖĞµÄ ActivityDurationHours
---       ×Ö¶Î£¬Ê¹ÆäµÈÓÚ¸Ã»î¶¯ËùÓĞÊ±¶ÎµÄ×ÜÊ±³¤£¨Ğ¡Ê±Êı£©
+-- è§¦å‘å™¨ 1: trg_sync_activity_duration_from_timeslots
+-- ä½œç”¨è¡¨ï¼š  dbo.tbl_ActivityTimeslot (æ´»åŠ¨æ—¶æ®µè¡¨)
+-- è§¦å‘äº‹ä»¶ï¼šAFTER INSERT, UPDATE, DELETE (åœ¨æ—¶æ®µè®°å½•å¢åŠ ã€ä¿®æ”¹æˆ–åˆ é™¤ä¹‹å)
+-- ä¸»è¦åŠŸèƒ½ï¼šå½“æŸä¸ªæ´»åŠ¨çš„æ—¶æ®µå‘ç”Ÿå˜åŒ–æ—¶ï¼Œè‡ªåŠ¨è®¡ç®—å¹¶æ›´æ–°æ´»åŠ¨è¡¨ä¸­çš„ ActivityDurationHours
+--          å­—æ®µï¼Œä½¿å…¶ç­‰äºè¯¥æ´»åŠ¨æ‰€æœ‰æ—¶æ®µçš„æ€»æ—¶é•¿ï¼ˆå°æ—¶æ•°ï¼‰
 --------------------------------------------------------------------------------
 IF OBJECT_ID('dbo.trg_sync_activity_duration_from_timeslots', 'TR') IS NOT NULL
     DROP TRIGGER dbo.trg_sync_activity_duration_from_timeslots;
@@ -88,7 +23,7 @@ BEGIN
     
     DECLARE @AffectedActivityIDs TABLE (ActivityID CHAR(15) PRIMARY KEY);
 
-    -- ÊÕ¼¯ËùÓĞ¿ÉÄÜ±»Ó°ÏìµÄ»î¶¯ID
+    -- æ”¶é›†æ‰€æœ‰å¯èƒ½è¢«å½±å“çš„æ´»åŠ¨ID
     INSERT INTO @AffectedActivityIDs (ActivityID)
     SELECT DISTINCT EventID FROM inserted WHERE EventID IS NOT NULL AND LEFT(EventID, 3) = 'act'
     UNION 
@@ -105,17 +40,17 @@ BEGIN
 
     WHILE @@FETCH_STATUS = 0
     BEGIN
-        -- ¼ÆËã¸Ã»î¶¯ËùÓĞÊ±¶ÎµÄ×ÜÊ±³¤£¨Ğ¡Ê±£©
+        -- è®¡ç®—è¯¥æ´»åŠ¨æ‰€æœ‰æ—¶æ®µçš„æ€»æ—¶é•¿ï¼ˆå°æ—¶ï¼‰
         SELECT @TotalDurationHours = ISNULL(SUM(DATEDIFF(HOUR, StartTime, EndTime)), 0)
         FROM dbo.tbl_ActivityTimeslot
         WHERE EventID = @CurrentActivityID;
 
-        -- ¸üĞÂ»î¶¯±íÖĞµÄ ActivityDurationHours ×Ö¶Î
+        -- æ›´æ–°æ´»åŠ¨è¡¨ä¸­çš„ ActivityDurationHours å­—æ®µ
         UPDATE dbo.tbl_VolunteerActivity
         SET ActivityDurationHours = @TotalDurationHours
         WHERE ActivityID = @CurrentActivityID;
 
-        PRINT 'Activity ' + @CurrentActivityID + ' duration updated to: ' + CONVERT(VARCHAR(10), @TotalDurationHours) + ' hours';
+        PRINT N'æ´»åŠ¨ ' + @CurrentActivityID + N' çš„æ—¶é•¿å·²æ›´æ–°ä¸º: ' + CONVERT(NVARCHAR(10), @TotalDurationHours) + N' å°æ—¶';
 
         FETCH NEXT FROM activity_cursor INTO @CurrentActivityID;
     END
@@ -124,19 +59,15 @@ BEGIN
     DEALLOCATE activity_cursor;
 END;
 GO
-
-
--- ´¥·¢Æ÷2: ÕĞÄ¼ÈËÊı×Ô¶¯¼ÆËã
-
-USE volunteer_db_test;
+PRINT N'è§¦å‘å™¨ [trg_sync_activity_duration_from_timeslots] å·²åˆ›å»º/æ›´æ–°ã€‚';
 GO
 
 --------------------------------------------------------------------------------
--- ´¥·¢Æ÷: trg_sync_recruitment_count_from_positions
--- ×÷ÓÃ±í: dbo.tbl_Position (¸ÚÎ»±í)
--- ´¥·¢ÊÂ¼ş: AFTER INSERT, UPDATE, DELETE
--- ¹¦ÄÜ: µ±»î¶¯¸ÚÎ»ĞÅÏ¢·¢Éú±ä»¯Ê±£¬×Ô¶¯¼ÆËã²¢¸üĞÂ»î¶¯±íÖĞµÄ RecruitmentCount
---       ×Ö¶Î£¬Ê¹ÆäµÈÓÚ¸Ã»î¶¯ËùÓĞ¸ÚÎ»µÄĞèÇóÈËÊı×ÜºÍ
+-- è§¦å‘å™¨ 2: trg_sync_recruitment_count_from_positions
+-- ä½œç”¨è¡¨ï¼š  dbo.tbl_Position (å²—ä½è¡¨)
+-- è§¦å‘äº‹ä»¶ï¼šAFTER INSERT, UPDATE, DELETE (åœ¨å²—ä½è®°å½•å¢åŠ ã€ä¿®æ”¹æˆ–åˆ é™¤ä¹‹å)
+-- ä¸»è¦åŠŸèƒ½ï¼šå½“æŸä¸ªæ´»åŠ¨çš„å²—ä½ä¿¡æ¯å‘ç”Ÿå˜åŒ–æ—¶ï¼Œè‡ªåŠ¨è®¡ç®—å¹¶æ›´æ–°æ´»åŠ¨è¡¨ä¸­çš„ RecruitmentCount
+--          å­—æ®µï¼Œä½¿å…¶ç­‰äºè¯¥æ´»åŠ¨æ‰€æœ‰å²—ä½çš„éœ€æ±‚äººæ•°æ€»å’Œ
 --------------------------------------------------------------------------------
 IF OBJECT_ID('dbo.trg_sync_recruitment_count_from_positions', 'TR') IS NOT NULL
     DROP TRIGGER dbo.trg_sync_recruitment_count_from_positions;
@@ -151,7 +82,7 @@ BEGIN
     
     DECLARE @AffectedActivityIDs TABLE (ActivityID CHAR(15) PRIMARY KEY);
 
-    -- ÊÕ¼¯ËùÓĞ¿ÉÄÜ±»Ó°ÏìµÄ»î¶¯ID
+    -- æ”¶é›†æ‰€æœ‰å¯èƒ½è¢«å½±å“çš„æ´»åŠ¨ID
     INSERT INTO @AffectedActivityIDs (ActivityID)
     SELECT DISTINCT ActivityID FROM inserted WHERE ActivityID IS NOT NULL
     UNION 
@@ -168,17 +99,17 @@ BEGIN
 
     WHILE @@FETCH_STATUS = 0
     BEGIN
-        -- ¼ÆËã¸Ã»î¶¯ËùÓĞ¸ÚÎ»µÄĞèÇóÈËÊı×ÜºÍ
+        -- è®¡ç®—è¯¥æ´»åŠ¨æ‰€æœ‰å²—ä½çš„éœ€æ±‚äººæ•°æ€»å’Œ
         SELECT @TotalRecruitmentCount = ISNULL(SUM(RequiredVolunteers), 0)
         FROM dbo.tbl_Position
         WHERE ActivityID = @CurrentActivityID;
 
-        -- ¸üĞÂ»î¶¯±íÖĞµÄ RecruitmentCount ×Ö¶Î
+        -- æ›´æ–°æ´»åŠ¨è¡¨ä¸­çš„ RecruitmentCount å­—æ®µ
         UPDATE dbo.tbl_VolunteerActivity
         SET RecruitmentCount = @TotalRecruitmentCount
         WHERE ActivityID = @CurrentActivityID;
 
-        PRINT 'Activity ' + @CurrentActivityID + ' recruitment count updated to: ' + CONVERT(VARCHAR(10), @TotalRecruitmentCount) + ' people';
+        PRINT N'æ´»åŠ¨ ' + @CurrentActivityID + N' çš„æ‹›å‹Ÿäººæ•°å·²æ›´æ–°ä¸º: ' + CONVERT(NVARCHAR(10), @TotalRecruitmentCount) + N' äºº';
 
         FETCH NEXT FROM activity_cursor INTO @CurrentActivityID;
     END
@@ -187,3 +118,8 @@ BEGIN
     DEALLOCATE activity_cursor;
 END;
 GO
+PRINT N'è§¦å‘å™¨ [trg_sync_recruitment_count_from_positions] å·²åˆ›å»º/æ›´æ–°ã€‚';
+GO
+
+PRINT N'æ´»åŠ¨åŒæ­¥è§¦å‘å™¨åˆ›å»ºå®Œæˆï¼';
+GO 
