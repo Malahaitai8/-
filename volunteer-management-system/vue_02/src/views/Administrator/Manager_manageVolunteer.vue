@@ -263,11 +263,50 @@ const handleApprove = (volunteer) => {
     cancelButtonText: '取消',
     type: 'success',
   }).then(async () => {
-    await updateVolunteerStatusApi(volunteer.volunteerId, VOLUNTEER_STATUS.APPROVED, '通过认证');
+    try {
+      // 1. 首先更新志愿者的认证状态为已实名认证
+      const updateStatusResult = await updateVolunteerStatusApi(volunteer.volunteerId, VOLUNTEER_STATUS.APPROVED, '通过认证');
+
+      if (!updateStatusResult) {
+        return; // 如果认证状态更新失败，直接返回
+      }
+
+      // 2. 查找该志愿者的所有组织关联记录
+      const response = await request.get(`/volunteerOrganizationJoin/selectByVolunteerId`, {
+        params: { volunteerId: volunteer.volunteerId }
+      });
+
+      if (response.code === "200" && response.data && response.data.length > 0) {
+        // 找到申请中状态的记录
+        const pendingRecords = response.data.filter(record => record.memberStatus === "申请中");
+
+        if (pendingRecords.length > 0) {
+          // 如果有申请中的记录，更新为已加入
+          for (const record of pendingRecords) {
+            await request.put(`/volunteerOrganizationJoin/updateMemberStatus`, {
+              volunteerId: volunteer.volunteerId,
+              orgId: record.orgId,
+              memberStatus: "已加入"
+            });
+          }
+          ElMessage.success("志愿者已实名认证，并成功加入组织");
+        } else {
+          ElMessage.success("志愿者已实名认证，但没有待处理的组织申请");
+        }
+      } else {
+        ElMessage.success("志愿者已实名认证");
+      }
+    } catch (error) {
+      console.error("通过认证过程中发生错误:", error);
+      ElMessage.error("操作失败，请检查网络连接或联系管理员");
+    }
   }).catch(() => {
     ElMessage.info('已取消操作');
   });
 };
+
+
+
 
 const handleReject = (volunteer) => {
   ElMessageBox.prompt('请输入驳回认证的理由（可选）：', `确认驳回志愿者 "${volunteer.name}"`, {

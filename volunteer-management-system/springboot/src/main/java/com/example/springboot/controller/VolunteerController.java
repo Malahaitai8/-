@@ -37,6 +37,8 @@ public class VolunteerController {
         }
     }
 
+
+
     /**
      * 获取指定志愿者的所有培训评价
      * API: GET /volunteer/{volunteerId}/reviews/trainings
@@ -148,14 +150,22 @@ public class VolunteerController {
     /*
      * 志愿者注册
      * */
+//    @PostMapping("/register")
+//    public Result volunteerRegister(@RequestBody Volunteer volunteer) throws CustomException {
+//        // --- 添加这行调试代码 ---
+//        System.out.println("接收到的后端志愿者对象: " + volunteer);
+//        // --- 调试代码结束 ---
+//        volunteerService.register(volunteer);
+//        return Result.success("注册成功");
+//
+//    }
+
+
     @PostMapping("/register")
     public Result volunteerRegister(@RequestBody Volunteer volunteer) throws CustomException {
-        // --- 添加这行调试代码 ---
         System.out.println("接收到的后端志愿者对象: " + volunteer);
-        // --- 调试代码结束 ---
         volunteerService.register(volunteer);
-        return Result.success("注册成功");
-
+        return Result.success(volunteer.getVolunteerId());
     }
 
     /**

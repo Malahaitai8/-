@@ -167,4 +167,38 @@ public class VolunteerOrganizationJoinService {
             throw new CustomException("404", "未能找到ID为 '" + volunteerId + "' 和组织ID为 '" + orgId + "' 的成员记录，或该成员已处于 '已退出' 状态");
         }
     }
+
+    /**
+     * 更新成员在组织中的状态。
+     *
+     * @param volunteerId 志愿者ID
+     * @param orgId 组织ID
+     * @param newStatus 新的成员状态
+     * @throws CustomException 如果参数无效或更新失败
+     */
+    @Transactional
+    public void updateMemberStatus(String volunteerId, String orgId, String newStatus) throws CustomException {
+        // 参数非空校验
+        if (!StringUtils.hasText(volunteerId) || !StringUtils.hasText(orgId) || !StringUtils.hasText(newStatus)) {
+            throw new CustomException("400", "志愿者ID、组织ID和新状态不能为空");
+        }
+
+        // 调用Mapper更新数据库
+        int affectedRows = volunteerOrganizationJoinMapper.updateMemberStatus(volunteerId, orgId, newStatus);
+
+        // 检查更新结果
+        if (affectedRows == 0) {
+            // 如果影响行数为0，表示没有找到对应的记录或者记录已经处于目标状态
+            throw new CustomException("404", "未能找到ID为 '" + volunteerId + "' 和组织ID为 '" + orgId + "' 的成员记录，或该成员已处于 '" + newStatus + "' 状态");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getPendingVerifiedJoinRequests(String orgId) {
+        if (!StringUtils.hasText(orgId)) {
+            throw new IllegalArgumentException("组织ID不能为空或空白");
+        }
+        return volunteerOrganizationJoinMapper.selectMembersByStatusAndVerification(orgId, "申请中", "已实名认证");
+    }
+
 }

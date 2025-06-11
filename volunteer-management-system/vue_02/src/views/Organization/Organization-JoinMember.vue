@@ -95,7 +95,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addPersonDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitForm">添加该成员</el-button>
+        <el-button type="primary" @click="volunteerRegister">添加该成员</el-button>
       </div>
     </el-dialog>
 
@@ -181,6 +181,50 @@ const filteredVolunteers = computed(() => {
     );
 });
 
+const volunteerRegister = () => {
+  formRef.value.validate(async (valid) => {
+    if (valid) {
+      try {
+        // 注册志愿者
+        const registerRes = await request.post("/volunteer/register", formData.value);
+
+        if (registerRes.code === "200") {
+          // 注册成功后，获取新注册志愿者的ID
+          const usernameRes = await request.get("/volunteer/selectByUsername", {
+            params: { username: formData.value.username }
+          });
+
+          if (usernameRes.code === "200" && usernameRes.data) {
+            const volunteerId = usernameRes.data.volunteerId;
+
+            // 创建组织关联记录，状态为"申请中"
+            const joinRes = await request.post("/volunteerOrganizationJoin/applyToJoin", {
+              volunteerId: volunteerId,
+              orgId: orgIdStore.orgId
+            });
+
+            if (joinRes.code === "200") {
+              ElMessage.success("成员添加成功");
+              addPersonDialogVisible.value = false;
+              fetchPendingVolunteers(); // 刷新成员列表
+            } else {
+              ElMessage.warning("成员注册成功，但创建组织关联失败：" + (joinRes.msg || "未知错误"));
+            }
+          } else {
+            ElMessage.warning("成员注册成功，但获取成员信息失败");
+          }
+        } else {
+          ElMessage.error(registerRes.msg || "注册失败");
+        }
+      } catch (error) {
+        console.error("添加成员过程中发生错误:", error);
+        ElMessage.error("添加成员失败，请检查网络连接或联系管理员");
+      }
+    }
+  });
+};
+
+
 const fetchPendingVolunteers = async () => {
   try {
     const orgId = orgIdStore.orgId;
@@ -188,19 +232,20 @@ const fetchPendingVolunteers = async () => {
       ElMessage.warning('组织ID未加载，请刷新页面或重新登录。');
       return;
     }
-    const res = await request.get("/volunteerOrganizationJoin/pending", {
+    const res = await request.get("/volunteerOrganizationJoin/pendingVerified", {
       params: { orgId }
     });
-    // ✅ 正确解析数据
+
     if (res.code === '200' && res.data) {
-        volunteers.value = res.data;
+      volunteers.value = res.data;
     } else {
-        ElMessage.error(res.msg || "获取申请列表失败");
+      ElMessage.error(res.msg || "获取申请列表失败");
     }
   } catch (error) {
     ElMessage.error("获取申请列表时发生网络错误");
   }
 };
+
 
 const approve = async (row) => {
   try {

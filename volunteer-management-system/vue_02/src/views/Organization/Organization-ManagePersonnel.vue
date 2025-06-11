@@ -96,7 +96,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addPersonDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitForm">添加该成员</el-button>
+        <el-button type="primary" @click="volunteerRegister">添加该成员</el-button>
       </div>
     </el-dialog>
 
@@ -123,7 +123,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
+import { reactive ,ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { useOrgIdStore } from "@/stores/useOrgIdStore.js";
@@ -138,24 +138,6 @@ export default {
     const detailsDialogVisible = ref(false); // 控制详细信息弹窗的显示
     const selectedVolunteer = ref({}); // 用于存储选中的志愿者信息
     const orgIdStore = useOrgIdStore();
-    const formRef = ref(null); // 表单引用
-
-    const formData = ref({
-      username: "",
-      password: "",
-      confirmPassword: "",
-      name: "",
-      gender: "",
-      phone: "",
-      idCard: "",
-      country: "",
-      ethnicity: "",
-      politicalStatus: "",
-      highestEducation: "",
-      employmentStatus: "",
-      serviceArea: "",
-      serviceCategory: ""
-    });
 
     const validatePass = (rule, value, callback) => {
       if (!value) {
@@ -167,6 +149,23 @@ export default {
       }
     };
 
+// 表单数据和验证规则
+    const formData = ref({
+      username: "",
+      password: "",
+      confirmPassword: "",
+      name: "",
+      gender: "",
+      phone: "",
+      idCard: "",
+      country: "中国",
+      ethnicity: "",
+      politicalStatus: "",
+      highestEducation: "",
+      employmentStatus: "",
+      serviceArea: "",
+      serviceCategory: ""
+    });
     const formRules = ref({
       username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
       password: [{ required: true, message: "请输入密码", trigger: "blur" }],
@@ -175,17 +174,64 @@ export default {
         { validator: validatePass, trigger: "blur" }
       ],
       name: [{ required: true, message: "请输入真实姓名", trigger: "blur" }],
-      gender: [{ required: true, message: "请选择性别", trigger: "change" }],
+      gender: [{ required: true, message: "请选择性别", trigger: "blur" }],
       phone: [{ required: true, message: "请输入手机号", trigger: "blur" }],
       idCard: [{ required: true, message: "请输入身份证号", trigger: "blur" }],
-      country: [{ required: true, message: "请输入国籍", trigger: "blur" }],
-      ethnicity: [{ required: true, message: "请输入民族", trigger: "blur" }],
-      politicalStatus: [{ required: true, message: "请输入政治面貌", trigger: "blur" }],
-      highestEducation: [{ required: true, message: "请输入最高学历", trigger: "blur" }],
-      employmentStatus: [{ required: true, message: "请输入从业情况", trigger: "blur" }],
-      serviceArea: [{ required: true, message: "请输入服务区域", trigger: "blur" }],
-      serviceCategory: [{ required: true, message: "请输入服务类别", trigger: "blur" }]
+      country: [{ required: true, message: "请选择国籍", trigger: "blur" }],
+      ethnicity: [{ required: true, message: "请选择民族", trigger: "blur" }],
+      politicalStatus: [{ required: true, message: "请选择政治面貌", trigger: "blur" }],
+      highestEducation: [{ required: true, message: "请选择最高学历", trigger: "blur" }],
+      employmentStatus: [{ required: true, message: "请选择从业情况", trigger: "blur" }],
+      serviceArea: [{ required: true, message: "请选择服务区域", trigger: "blur" }],
+      serviceCategory: [{ required: true, message: "请选择服务类别", trigger: "blur" }]
     });
+
+    const formRef = ref(); // 表单引用
+
+    const volunteerRegister = () => {
+      formRef.value.validate(async (valid) => {
+        if (valid) {
+          try {
+            // 注册志愿者
+            const registerRes = await request.post("/volunteer/register", formData.value);
+
+            if (registerRes.code === "200") {
+              // 注册成功后，获取新注册志愿者的ID
+              const usernameRes = await request.get("/volunteer/selectByUsername", {
+                params: { username: formData.value.username }
+              });
+
+              if (usernameRes.code === "200" && usernameRes.data) {
+                const volunteerId = usernameRes.data.volunteerId;
+
+                // 创建组织关联记录，状态为"申请中"
+                const joinRes = await request.post("/volunteerOrganizationJoin/applyToJoin", {
+                  volunteerId: volunteerId,
+                  orgId: orgIdStore.orgId
+                });
+
+                if (joinRes.code === "200") {
+                  ElMessage.success("成员添加成功");
+                  addPersonDialogVisible.value = false;
+                  fetchVolunteers(); // 刷新成员列表
+                } else {
+                  ElMessage.warning("成员注册成功，但创建组织关联失败：" + (joinRes.msg || "未知错误"));
+                }
+              } else {
+                ElMessage.warning("成员注册成功，但获取成员信息失败");
+              }
+            } else {
+              ElMessage.error(registerRes.msg || "注册失败");
+            }
+          } catch (error) {
+            console.error("添加成员过程中发生错误:", error);
+            ElMessage.error("添加成员失败，请检查网络连接或联系管理员");
+          }
+        }
+      });
+    };
+
+
 
     const fetchVolunteers = async () => {
       try {
@@ -276,13 +322,15 @@ export default {
       selectedVolunteer,
       formData,
       formRules,
+      formRef,
       home,
       managePersonnel,
       joinMember,
       submitForm,
       filteredVolunteers,
       deleteMember,
-      showDetails
+      showDetails,
+      volunteerRegister
     };}
 };
 
