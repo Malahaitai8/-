@@ -19,9 +19,7 @@
         empty-text="暂无相关活动信息"
     >
       <el-table-column prop="activityName" label="活动名称" align="center" width="180"></el-table-column>
-
       <el-table-column prop="positionName" label="我的岗位" align="center" width="180"></el-table-column>
-
       <el-table-column prop="startTime" label="开始日期" align="center" width="160">
         <template #default="scope">{{ formatDate(scope.row.startTime) }}</template>
       </el-table-column>
@@ -50,16 +48,19 @@
           <el-tag v-else type="warning">待评分</el-tag>
         </template>
       </el-table-column>
-
-      <el-table-column label="操作" align="center" width="240" fixed="right">
+      <el-table-column label="操作" align="center" width="250" fixed="right">
         <template #default="scope">
-          <el-button
-              size="small" type="primary" @click="openEvaluateDialog(scope.row)"
-              :disabled="scope.row.activityStatus !== '已结束' || !!scope.row.volunteerToOrgRating || isAfterEvaluationWindow(scope.row.endTime)"
-              :title="getEvaluationButtonTooltip(scope.row)">
-            {{ scope.row.volunteerToOrgRating ? '已评价' : '评价' }}
-          </el-button>
-          <el-button size="small" type="danger" @click="openComplaintDialog(scope.row)" style="margin-left: 10px;">我要投诉</el-button>
+          <!-- 【MODIFIED】Wrapped buttons in a button group for better aesthetics -->
+          <el-button-group>
+            <el-button size="small" type="primary" plain @click="openDetailDialog(scope.row.activityId)">查看详情</el-button>
+            <el-button
+                size="small" type="primary" @click="openEvaluateDialog(scope.row)"
+                :disabled="scope.row.activityStatus !== '已结束' || !!scope.row.volunteerToOrgRating || isAfterEvaluationWindow(scope.row.endTime)"
+                :title="getEvaluationButtonTooltip(scope.row)">
+              {{ scope.row.volunteerToOrgRating ? '已评价' : '评价' }}
+            </el-button>
+            <el-button size="small" type="danger" @click="openComplaintDialog(scope.row)">我要投诉</el-button>
+          </el-button-group>
         </template>
       </el-table-column>
     </el-table>
@@ -103,15 +104,50 @@
         <el-button type="primary" @click="submitComplaint">提交投诉</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="detailDialog.visible" title="活动详细信息" width="800px">
+      <div v-loading="detailDialog.isLoading" style="min-height: 300px;">
+        <div v-if="detailDialog.data">
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="活动名称">{{ detailDialog.data.activityName }}</el-descriptions-item>
+            <el-descriptions-item label="活动状态"><el-tag size="small">{{ detailDialog.data.activityStatus }}</el-tag></el-descriptions-item>
+            <el-descriptions-item label="开始时间">{{ formatDate(detailDialog.data.startTime) }}</el-descriptions-item>
+            <el-descriptions-item label="结束时间">{{ formatDate(detailDialog.data.endTime) }}</el-descriptions-item>
+            <el-descriptions-item label="活动地点" :span="2">{{ detailDialog.data.location }}</el-descriptions-item>
+            <el-descriptions-item label="联系电话">{{ detailDialog.data.contactPersonPhone }}</el-descriptions-item>
+          </el-descriptions>
+
+          <el-divider content-position="left">可用岗位</el-divider>
+          <el-table :data="detailDialog.positions" border stripe style="width: 100%">
+            <el-table-column prop="positionName" label="岗位名称" />
+            <el-table-column prop="positionServiceHours" label="服务时长 (小时)" width="140" align="center" />
+            <el-table-column prop="requiredVolunteers" label="需求人数" width="120" align="center" />
+            <el-table-column prop="recruitedVolunteers" label="已招募人数" width="120" align="center" />
+             <template #empty>
+                <p>该活动暂未设置岗位</p>
+            </template>
+          </el-table>
+
+          <el-divider content-position="left">活动时段</el-divider>
+          <el-table :data="detailDialog.timeslots" border stripe style="width: 100%">
+            <el-table-column prop="startTime" label="开始时间" />
+            <el-table-column prop="endTime" label="结束时间" />
+             <template #empty>
+                <p>该活动暂未设置时段</p>
+            </template>
+          </el-table>
+        </div>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 
 <script setup>
-// Script部分完全不变，因为后端已经返回了positionName字段
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import request from '@/utils/request';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 
 const userStore = useUserStore();
 const allActivities = ref([]);
@@ -120,6 +156,14 @@ const isLoading = ref(false);
 const pageSize = 5;
 const currentPage = ref(1);
 const currentFilter = ref('all');
+
+const detailDialog = reactive({
+  visible: false,
+  isLoading: false,
+  data: null,
+  positions: [],
+  timeslots: []
+});
 
 const pageData = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
@@ -154,6 +198,7 @@ const submitEvaluate = async () => {
   try {
     const payload = {
       volunteerId: evaluateDialog.participation.volunteerId,
+      activityId: evaluateDialog.participation.activityId, // Need activityId to find the participation record
       actualPositionId: evaluateDialog.participation.actualPositionId,
       rating: evaluateDialog.score,
     };
@@ -232,8 +277,10 @@ const applyFilter = (filterType) => {
 
 const formatDate = (time) => {
     if (!time) return 'N/A';
-    return new Date(time).toLocaleDateString();
+    // Format to YYYY-MM-DD
+    return new Date(time).toISOString().split('T')[0];
 };
+
 const getStatusTagType = (status) => {
     switch (status) {
         case '进行中': return 'success';
@@ -241,6 +288,50 @@ const getStatusTagType = (status) => {
         case '审核通过': return 'primary';
         default: return 'warning';
     }
+};
+
+const openDetailDialog = async (activityId) => {
+  // Reset previous data
+  detailDialog.data = null;
+  detailDialog.positions = [];
+  detailDialog.timeslots = [];
+  detailDialog.visible = true;
+  detailDialog.isLoading = true;
+
+  try {
+    // Use Promise.all to fetch all data in parallel for better performance
+    const [detailsRes, positionsRes, timeslotsRes] = await Promise.all([
+      request.get(`/volunteerActivity/${activityId}`), // Fetches main details
+      request.get(`/volunteerActivity/${activityId}/positions`), // Fetches positions
+      request.get(`/volunteerActivity/${activityId}/timeslots`) // Fetches timeslots
+    ]);
+
+    // Check responses and populate the dialog data
+    if (detailsRes.code === '200' && detailsRes.data) {
+      detailDialog.data = detailsRes.data;
+    } else {
+      ElMessage.error(detailsRes.msg || '获取活动详情失败');
+      detailDialog.visible = false;
+    }
+
+    if (positionsRes.code === '200' && positionsRes.data) {
+      detailDialog.positions = positionsRes.data;
+    } else {
+      ElMessage.error(positionsRes.msg || '获取岗位列表失败');
+    }
+
+    if (timeslotsRes.code === '200' && timeslotsRes.data) {
+      detailDialog.timeslots = timeslotsRes.data;
+    } else {
+      ElMessage.error(timeslotsRes.msg || '获取时段列表失败');
+    }
+
+  } catch (error) {
+    ElMessage.error('网络错误，无法获取活动完整信息');
+    detailDialog.visible = false;
+  } finally {
+    detailDialog.isLoading = false;
+  }
 };
 
 onMounted(() => {
@@ -259,7 +350,7 @@ watch(() => userStore.detailedVolunteerInfo.volunteerId, (newId) => {
 </script>
 
 <style scoped>
-/* 样式保持不变 */
+/* Styles remain unchanged */
 .activities-page {
   background: #fff;
   border-radius: 8px;
@@ -299,6 +390,7 @@ watch(() => userStore.detailedVolunteerInfo.volunteerId, (newId) => {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-right: 8px;
 }
 .filter-buttons button.active {
   background-color: #ff0000;
@@ -319,5 +411,10 @@ watch(() => userStore.detailedVolunteerInfo.volunteerId, (newId) => {
   width: 80px;
   margin-bottom: 12px;
   opacity: 0.6;
+}
+.table-header {
+  background-color: #fafafa !important;
+  color: #333;
+  font-weight: bold;
 }
 </style>
