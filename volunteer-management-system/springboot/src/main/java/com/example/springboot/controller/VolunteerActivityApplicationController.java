@@ -3,6 +3,7 @@
 package com.example.springboot.controller;
 
 import com.example.springboot.common.Result; // 假设: 你有统一的返回结果类
+import com.example.springboot.exception.CustomException;
 import com.example.springboot.service.VolunteerActivityApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -39,4 +40,26 @@ public class VolunteerActivityApplicationController {
             return Result.error("400", "操作失败或申请状态已无法撤回");
         }
     }
+
+    /**
+     * 【新增接口】志愿者提交报名申请
+     * @param payload 包含 volunteerId, activityId, intendedPositionId 的请求体
+     * @return 操作结果
+     */
+    @PostMapping("/apply")
+    public Result applyForActivity(@RequestBody Map<String, String> payload) {
+        try {
+            String volunteerId = payload.get("volunteerId");
+            String activityId = payload.get("activityId");
+            String intendedPositionId = payload.get("intendedPositionId");
+
+            applicationService.createApplication(volunteerId, activityId, intendedPositionId);
+            return Result.success("报名成功！请等待组织审核。");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            return Result.error("500", "报名时发生未知错误: " + e.getMessage());
+        }
+    }
+
 }

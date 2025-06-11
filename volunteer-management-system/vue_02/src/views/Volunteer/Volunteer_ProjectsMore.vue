@@ -15,10 +15,10 @@
           </div>
           <div class="project-name">{{ item.activityName }}</div>
           <div class="project-info-row">
-            <div class="recruit-label">招募人数 {{ item.recruitmentCount }}</div>
+            <div class="recruit-label">招募人数 {{ item.recruitmentCount || 0 }}</div>
           </div>
           <div class="project-info-row">
-            <div class="admitted-label">已录取人数 {{ item.acceptedCount }}</div>
+            <div class="admitted-label">已录取人数 {{ item.acceptedCount || 0 }}</div>
           </div>
           <div class="project-action-row">
             <el-button type="primary" plain size="small" @click="openDetailDialog(item.activityId)">查看详情</el-button>
@@ -54,17 +54,42 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="detailDialog.visible" title="活动详细信息" width="600px">
-      <el-descriptions v-if="detailDialog.data" :column="2" border>
-        <el-descriptions-item label="活动名称">{{ detailDialog.data.activityName }}</el-descriptions-item>
-        <el-descriptions-item label="活动状态"><el-tag size="small">{{ detailDialog.data.activityStatus }}</el-tag></el-descriptions-item>
-        <el-descriptions-item label="开始时间">{{ detailDialog.data.startTime }}</el-descriptions-item>
-        <el-descriptions-item label="结束时间">{{ detailDialog.data.endTime }}</el-descriptions-item>
-        <el-descriptions-item label="活动地点" :span="2">{{ detailDialog.data.location }}</el-descriptions-item>
-        <el-descriptions-item label="联系电话">{{ detailDialog.data.contactPersonPhone }}</el-descriptions-item>
-      </el-descriptions>
-      <div v-else v-loading="detailDialog.isLoading" style="min-height: 150px;"></div>
+    <el-dialog v-model="detailDialog.visible" title="活动详细信息" width="800px">
+      <div v-loading="detailDialog.isLoading" style="min-height: 300px;">
+        <div v-if="detailDialog.data">
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="活动名称">{{ detailDialog.data.activityName }}</el-descriptions-item>
+            <el-descriptions-item label="活动状态"><el-tag size="small">{{ detailDialog.data.activityStatus }}</el-tag></el-descriptions-item>
+            <el-descriptions-item label="开始时间">{{ detailDialog.data.startTime }}</el-descriptions-item>
+            <el-descriptions-item label="结束时间">{{ detailDialog.data.endTime }}</el-descriptions-item>
+            <el-descriptions-item label="活动地点" :span="2">{{ detailDialog.data.location }}</el-descriptions-item>
+            <el-descriptions-item label="联系电话">{{ detailDialog.data.contactPersonPhone }}</el-descriptions-item>
+          </el-descriptions>
+
+          <el-divider content-position="left">可用岗位</el-divider>
+          <el-table :data="detailDialog.positions" border stripe style="width: 100%">
+            <el-table-column prop="positionName" label="岗位名称" />
+            <el-table-column prop="positionServiceHours" label="服务时长 (小时)" width="140" align="center" />
+            <el-table-column prop="requiredVolunteers" label="需求人数" width="120" align="center" />
+            <el-table-column prop="recruitedVolunteers" label="已招募人数" width="120" align="center" />
+             <template #empty>
+                <p>该活动暂未设置岗位</p>
+            </template>
+          </el-table>
+
+          <el-divider content-position="left">活动时段</el-divider>
+          <el-table :data="detailDialog.timeslots" border stripe style="width: 100%">
+            <el-table-column prop="startTime" label="开始时间" />
+            <el-table-column prop="endTime" label="结束时间" />
+             <template #empty>
+                <p>该活动暂未设置时段</p>
+            </template>
+          </el-table>
+
+        </div>
+      </div>
     </el-dialog>
+
   </div>
 </template>
 
@@ -83,7 +108,15 @@ const currentPage = ref(1);
 const searchText = ref('');
 
 const joinDialog = reactive({ visible: false, isLoadingPositions: false, isSubmitting: false, activityId: null, activityName: '', intendedPositionId: '', positions: [] });
-const detailDialog = reactive({ visible: false, isLoading: false, data: null });
+
+//【MODIFIED】Added properties to store positions and timeslots for the detail view
+const detailDialog = reactive({
+  visible: false,
+  isLoading: false,
+  data: null,
+  positions: [],
+  timeslots: []
+});
 
 const pageData = computed(() => {
     const start = (currentPage.value - 1) * pageSize;
@@ -96,7 +129,7 @@ const fetchActivities = async () => {
     isLoading.value = true;
     try {
         const params = { activityName: searchText.value, volunteerId: volunteerId };
-        const res = await request.get('/api/volunteer-activity/available-for-volunteer', { params });
+        const res = await request.get('/volunteerActivity/available-for-volunteer', { params });
         if (res.code === '200' && res.data) {
             activities.value = res.data;
         } else {
@@ -121,8 +154,7 @@ const openJoinDialog = async (activity) => {
     joinDialog.activityId = activity.activityId;
     joinDialog.activityName = activity.activityName;
   try {
-    // 【已修正】这里的API地址之前写错了，现在修正为获取岗位的正确地址
-    const res = await request.get(`/api/volunteer-activity/${activity.activityId}/positions`);
+    const res = await request.get(`/volunteerActivity/${activity.activityId}/positions`);
     if (res.code === '200' && res.data) {
       joinDialog.positions = res.data;
     } else {
@@ -164,21 +196,45 @@ const submitJoin = async () => {
   }
 };
 
+//【MODIFIED】This function now fetches details, positions, and timeslots concurrently.
 const openDetailDialog = async (activityId) => {
+  // Reset previous data
+  detailDialog.data = null;
+  detailDialog.positions = [];
+  detailDialog.timeslots = [];
   detailDialog.visible = true;
   detailDialog.isLoading = true;
-  detailDialog.data = null;
+
   try {
-    // 【已修正】这里的API地址也统一为/api前缀
-    const res = await request.get(`/api/volunteer-activity/${activityId}`);
-    if (res.code === '200' && res.data) {
-      detailDialog.data = res.data;
+    // Use Promise.all to fetch all data in parallel for better performance
+    const [detailsRes, positionsRes, timeslotsRes] = await Promise.all([
+      request.get(`/volunteerActivity/${activityId}`), // Fetches main details
+      request.get(`/volunteerActivity/${activityId}/positions`), // Fetches positions
+      request.get(`/volunteerActivity/${activityId}/timeslots`) // Fetches timeslots
+    ]);
+
+    // Check responses and populate the dialog data
+    if (detailsRes.code === '200' && detailsRes.data) {
+      detailDialog.data = detailsRes.data;
     } else {
-      ElMessage.error(res.msg || '获取详情失败');
+      ElMessage.error(detailsRes.msg || '获取活动详情失败');
       detailDialog.visible = false;
     }
+
+    if (positionsRes.code === '200' && positionsRes.data) {
+      detailDialog.positions = positionsRes.data;
+    } else {
+      ElMessage.error(positionsRes.msg || '获取岗位列表失败');
+    }
+
+    if (timeslotsRes.code === '200' && timeslotsRes.data) {
+      detailDialog.timeslots = timeslotsRes.data;
+    } else {
+      ElMessage.error(timeslotsRes.msg || '获取时段列表失败');
+    }
+
   } catch (error) {
-    ElMessage.error('网络错误');
+    ElMessage.error('网络错误，无法获取活动完整信息');
     detailDialog.visible = false;
   } finally {
     detailDialog.isLoading = false;
@@ -187,7 +243,7 @@ const openDetailDialog = async (activityId) => {
 </script>
 
 <style scoped>
-/* 样式保持不变 */
+/* Styles remain unchanged */
 .projects-more-page {
   background: #fff;
   border-radius: 8px;

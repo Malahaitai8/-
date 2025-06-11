@@ -3,10 +3,14 @@
 package com.example.springboot.mapper;
 
 import com.example.springboot.entity.VolunteerActivityApplication;
+import com.example.springboot.exception.CustomException;
 import org.apache.ibatis.annotations.*;
+import org.springframework.util.StringUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public interface VolunteerActivityApplicationMapper {
 
