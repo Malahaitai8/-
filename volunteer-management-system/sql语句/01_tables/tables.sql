@@ -1,20 +1,8 @@
-USE volunteer_web
+USE volunteer_web_02
 GO
-select * from tbl_Volunteer
-CREATE VIEW Volunteer_Stars AS
-SELECT
-    VolunteerID,                     -- 对应 tbl_Volunteer 表中的 VolunteerID
-    TotalVolunteerHours,             -- 对应 tbl_Volunteer 表中的 TotalVolunteerHours
-    CASE
-        WHEN TotalVolunteerHours >= 1500 THEN 5
-        WHEN TotalVolunteerHours >= 1000 THEN 4
-        WHEN TotalVolunteerHours >= 600  THEN 3
-        WHEN TotalVolunteerHours >= 300  THEN 2
-        WHEN TotalVolunteerHours >= 100  THEN 1
-        ELSE 0
-    END AS StarLevel                 -- 视图中计算出的星级列
-FROM
-    tbl_Volunteer;                   -- 您的志愿者表名
+select * from tbl_Volunteer;
+select * from tbl_Organization;
+
 -- 顺序 1: 创建 管理员表 (tbl_Administrator)
 CREATE TABLE tbl_Administrator (
     AdminID CHAR(15) PRIMARY KEY,                                  -- 管理员唯一标识
@@ -23,14 +11,13 @@ CREATE TABLE tbl_Administrator (
     IDCardNumber VARCHAR(18) NOT NULL UNIQUE,                      -- 身份证号, 标准处理
     PhoneNumber VARCHAR(11) NOT NULL UNIQUE,                       -- 标准手机号
     Password NVARCHAR(50) NOT NULL,                                -- 登录密码 (已修改为明文存储)
-    PermissionScope NVARCHAR(100) CHECK (PermissionScope IN (N'全国', N'省级', N'市级', N'区县级')), -- 管理员负责管辖的地区级别
     ServiceArea NVARCHAR(100) NOT NULL,                            -- 管理员负责管辖的地区
     CurrentPosition NVARCHAR(20) NOT NULL DEFAULT N'普通管理员'
 	CHECK (CurrentPosition IN (N'系统维护员', N'审核监督员', N'权限管理员', N'数据维护员', N'应急管理员', N'用户服务员',N'普通管理员')), -- 当前职务
     PermissionLevel NVARCHAR(8) NOT NULL CHECK (PermissionLevel IN (N'高', N'中', N'低')) -- 权限等级
 );
 GO
-
+select * from tbl_Administrator;
 -- 顺序 2: 创建 组织机构表 (tbl_Organization)
 CREATE TABLE tbl_Organization (
     OrgID CHAR(15) PRIMARY KEY,                                    -- 唯一标识组织的编号
@@ -43,13 +30,21 @@ CREATE TABLE tbl_Organization (
 	'山东', '河南', '湖北', '湖南','广东', '广西', '海南', '四川', '贵州', '云南', '西藏', '陕西', '甘肃','青海', '台湾', '香港', '澳门')),
 	-- 服务区域
     OrgScale INT NOT NULL,                                         -- 组织人数
-    OrgRating DECIMAL(3,1) NOT NULL DEFAULT 0.0 CHECK (OrgRating >= 1.0 AND OrgRating <= 10.0), -- 组织评分
+    OrgRating DECIMAL(3,1) NOT NULL DEFAULT 0.0 CHECK (OrgRating >= 0.0 AND OrgRating <= 10.0), -- 组织评分
     OrgAccountStatus NVARCHAR(10) NOT NULL DEFAULT N'待认证'
-	CHECK (OrgAccountStatus IN (N'已认证', N'待认证', N'冻结')), -- 组织注册申请的当前审批状态
+	CHECK (OrgAccountStatus IN (N'已认证', N'待认证', N'冻结',N'认证未通过')), -- 组织注册申请的当前审批状态
     TotalServiceHours INT NOT NULL DEFAULT 0,                      -- 反映组织活跃度与贡献度，可为组织评价标准之一
     ActivityCount INT NOT NULL DEFAULT 0,
     TrainingCount INT NOT NULL DEFAULT 0
 );
+GO
+--例如，如果约束名是 'DF__tbl_Organ__OrgRa__3F466844' (这只是一个示例名称)
+ALTER TABLE dbo.tbl_Organization
+DROP CONSTRAINT CK__tbl_Organ__OrgRa__4222D4EF; -- 请替换为您的实际约束名
+GO
+
+ALTER TABLE dbo.tbl_Organization
+ADD CONSTRAINT CK_tbl_Organization_OrgRating_0_to_10 CHECK (OrgRating >= 0.0 AND OrgRating <= 10.0);
 GO
 
 -- 顺序 3: 创建 志愿者表 (tbl_Volunteer)
@@ -96,9 +91,10 @@ CREATE TABLE tbl_Volunteer (
     TotalVolunteerHours DECIMAL(10,2) DEFAULT 0.00,                  -- 总志愿时长
     VolunteerRating DECIMAL(10,2) DEFAULT 0.00,                      -- 志愿者综合评分
     AccountStatus NVARCHAR(10) NOT NULL DEFAULT N'未实名认证'
-	CHECK (AccountStatus IN (N'未实名认证', N'已实名认证', N'已冻结'))
+	CHECK (AccountStatus IN (N'未实名认证', N'已实名认证', N'已冻结',N'认证未通过'))
 );
 GO
+select * from tbl_VolunteerActivity;
 
 -- 顺序 4: 创建 志愿活动表 (tbl_VolunteerActivity)
 CREATE TABLE tbl_VolunteerActivity (
@@ -111,7 +107,7 @@ CREATE TABLE tbl_VolunteerActivity (
     Location NVARCHAR(30) NOT NULL,                                    -- 活动地点
     RecruitmentCount INT NOT NULL CHECK (RecruitmentCount > 0),        -- 招募人数
     AcceptedCount INT NOT NULL DEFAULT 0 , -- 录取人数
-    ActivityStatus NVARCHAR(10) NOT NULL
+    ActivityStatus NVARCHAR(10) NOT NULL,DEFAULT N'待审核' ,
 	CHECK (ActivityStatus IN (N'待审核', N'审核通过', N'审核不通过', N'进行中', N'已结束', N'已停用')), -- 志愿活动状态
     CreationTime DATETIME2(0) NOT NULL DEFAULT GETDATE(),                  -- 创建时间
     ReviewerAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID), -- 审核管理员ID, 关联管理员表 (可空)
@@ -128,13 +124,13 @@ CREATE TABLE tbl_VolunteerTraining (
     TrainingID CHAR(15) PRIMARY KEY,                                  -- 唯一标识培训
     OrgID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Organization(OrgID), -- 关联组织表
     TrainingName NVARCHAR(20) NOT NULL,                               -- 培训名称
-    Theme NVARCHAR(15) NOT NULL UNIQUE,                                -- 主题
+    Theme NVARCHAR(15) NOT NULL ,                                     -- 主题（组织内部培训，活动培训，特定岗位培训）
     StartTime SMALLDATETIME NOT NULL,                                  -- 培训开始时间
     EndTime SMALLDATETIME NOT NULL,                                    -- 培训结束时间
     Location NVARCHAR(30) NOT NULL,                                    -- 培训地点
     RecruitmentCount INT NOT NULL CHECK (RecruitmentCount > 0),        -- 招募人数
-    TrainingStatus NVARCHAR(10) NOT NULL  -- << 修改点：长度调整为 NVARCHAR(10)
-	CHECK (TrainingStatus IN (N'待审核', N'运行中', N'已结项', N'已停用', N'审核不通过')), -- << 修改点：添加 N'审核不通过'
+    TrainingStatus NVARCHAR(10) NOT NULL 
+	CHECK (TrainingStatus IN (N'待审核', N'审核通过', N'审核不通过', N'进行中', N'已结束', N'已停用')), -- << 修改点：添加 N'审核不通过'
     CreationTime SMALLDATETIME NOT NULL DEFAULT GETDATE(),             -- 创建时间
     ReviewerAdminID CHAR(15) FOREIGN KEY REFERENCES tbl_Administrator(AdminID), -- 审核管理员ID, 关联管理员表 (可空)
     ContactPersonPhone NVARCHAR(11) NOT NULL,                         -- 负责人联系方式，标准手机号
@@ -183,7 +179,7 @@ CREATE TABLE tbl_VolunteerActivityApplication (
     IntendedPositionID CHAR(15) NULL FOREIGN KEY REFERENCES tbl_Position(PositionID), -- 外键到岗位表
     ApplicationTime DATETIME NOT NULL DEFAULT GETDATE(),               -- 志愿者提交申请的具体时间
     ApplicationStatus NVARCHAR(10) NOT NULL DEFAULT N'待审核'
-	CHECK (ApplicationStatus IN (N'待审核', N'已通过', N'已拒绝', N'取消报名')) -- 申请的当前状态
+	CHECK (ApplicationStatus IN (N'待审核', N'已通过', N'已拒绝',N'取消报名')) -- 申请的当前状态
 );
 GO
 
@@ -195,7 +191,7 @@ CREATE TABLE tbl_VolunteerActivityParticipation (
     IsCheckedIn NCHAR(1) NOT NULL DEFAULT N'否' CHECK (IsCheckedIn IN (N'是', N'否')),     -- 志愿者是否进行签到
     VolunteerToOrgRating INT CHECK (VolunteerToOrgRating >= 1 AND VolunteerToOrgRating <= 10), -- 志愿者给组织评分
     OrgToVolunteerRating INT CHECK (OrgToVolunteerRating >= 1 AND OrgToVolunteerRating <= 10), -- 组织给志愿者评分
-    PRIMARY KEY (VolunteerID, ActivityID, ActualPositionID) -- 调整主键以允许一个志愿者在同一活动的不同岗位参与，或根据实际情况调整
+    PRIMARY KEY (VolunteerID, ActualPositionID) -- 主键：活动ID+实际岗位ID
 );
 GO
 
@@ -203,7 +199,7 @@ GO
 CREATE TABLE tbl_VolunteerTrainingParticipation (
     VolunteerID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_Volunteer(VolunteerID),       -- 关联志愿者表的唯一标志
     TrainingID CHAR(15) NOT NULL FOREIGN KEY REFERENCES tbl_VolunteerTraining(TrainingID),   -- 关联志愿培训表的唯一标志
-    ParticipationStatus NVARCHAR(4) NOT NULL CHECK (ParticipationStatus IN (N'未开始', N'正在参加', N'已结束', N'未参加')), -- 志愿者当前参与培训的状态
+    IsCheckedIn NCHAR(1) NOT NULL DEFAULT N'否' CHECK (IsCheckedIn IN (N'是', N'否')),     -- 志愿者是否进行签到
     OrgToVolunteerRating INT CHECK (OrgToVolunteerRating >= 1 AND OrgToVolunteerRating <= 10), -- 组织给志愿者评分
     VolunteerToOrgRating INT CHECK (VolunteerToOrgRating >= 1 AND VolunteerToOrgRating <= 10), -- 志愿者给组织评分
     PRIMARY KEY (VolunteerID, TrainingID)                                                  -- 联合主键

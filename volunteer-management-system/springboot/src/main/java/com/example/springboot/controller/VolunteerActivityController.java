@@ -454,4 +454,14 @@ public class VolunteerActivityController {
         
         return allMessages.toString();
     }
+    /**
+     * 【新增接口】为志愿者端获取可报名活动列表
+     * API端点: GET /api/volunteer-activity/available-for-volunteer?volunteerId=xxx&activityName=爱心
+     * 路径名详细，避免与您已有的 /list 或 /selectAll 冲突。
+     */
+    @GetMapping("/available-for-volunteer")
+    public Result listAvailableActivitiesForVolunteer(VolunteerActivity filter, @RequestParam String volunteerId) {
+        List<VolunteerActivity> activities = volunteerActivityService.findAvailableActivitiesForVolunteer(filter, volunteerId);
+        return Result.success(activities);
+    }
 }

@@ -392,6 +392,16 @@ public class VolunteerActivityService {
         List<VolunteerActivity> activities = volunteerActivityMapper.selectAll(filter);
         return activities;
     }
+    /**
+     * 【新增方法】为特定志愿者查找可用的活动
+     * 它调用了Mapper中我们刚刚新增的方法。
+     */
+    public List<VolunteerActivity> findAvailableActivitiesForVolunteer(VolunteerActivity filter, String volunteerId) {
+        if (filter == null) {
+            filter = new VolunteerActivity();
+        }
+        return volunteerActivityMapper.selectAvailableActivitiesForVolunteer(filter, volunteerId);
+    }
 
     // 可以添加其他 VolunteerActivityService 独有的方法
 }
