@@ -5,6 +5,7 @@ import com.example.springboot.common.Result; // 假设这是您的统一响应�
 import com.example.springboot.exception.CustomException; // 假设这是您的自定义异常类
 import com.example.springboot.service.VolunteerOrganizationJoinService;
 import jakarta.annotation.Resource;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -109,6 +110,59 @@ public class VolunteerOrganizationJoinController {
             return Result.error("400", e.getMessage());
         } catch (Exception e) {
             System.err.println("获取申请中的成员信息失败: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("500", "获取申请中的成员信息失败，请稍后再试");
+        }
+    }
+
+    @PostMapping("/approveJoinRequest")
+    public Result approveJoinRequest(@RequestBody Map<String, String> payload) {
+        try {
+            String volunteerId = payload.get("volunteerId");
+            String orgId = payload.get("orgId");
+
+            volunteerOrganizationJoinService.approveJoinRequest(volunteerId, orgId);
+            return Result.success("成功批准加入");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (IllegalArgumentException e) {
+            return Result.error("400", e.getMessage());
+        } catch (Exception e) {
+            System.err.println("批准加入失败: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("500", "批准加入失败，系统内部错误");
+        }
+    }
+
+    @PostMapping("/deleteMemberRequest")
+    public Result deleteMemberRequest(@RequestBody Map<String, String> payload) {
+        try {
+            String volunteerId = payload.get("volunteerId");
+            String orgId = payload.get("orgId");
+
+            volunteerOrganizationJoinService.deleteMemberRequest(volunteerId, orgId);
+            return Result.success("成功剔除该成员");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (IllegalArgumentException e) {
+            return Result.error("400", e.getMessage());
+        } catch (Exception e) {
+            System.err.println("剔除失败: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("500", "剔除失败，系统内部错误");
+        }
+    }
+
+    //获取所有已加入的成员信息。
+    @GetMapping("/active")
+    public Result getActiveJoinRequests(@RequestParam String orgId) {
+        try {
+            List<Map<String, Object>> pendingRequests = volunteerOrganizationJoinService.getActiveJoinRequests(orgId);
+            return Result.success(pendingRequests);
+        } catch (IllegalArgumentException e) {
+            return Result.error("400", e.getMessage());
+        } catch (Exception e) {
+            System.err.println("获取已加入的成员信息失败: " + e.getMessage());
             e.printStackTrace();
             return Result.error("500", "获取申请中的成员信息失败，请稍后再试");
         }

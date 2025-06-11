@@ -34,12 +34,13 @@
       <el-table-column label="操作" width="300" align="center">
         <template #default="scope">
           <el-button type="primary" size="small" @click="approve(scope.row)">允许加入</el-button>
+          <el-button type="info" size="small" @click="showDetails(scope.row)">详细信息</el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <el-button type="primary" @click="home" style="margin-top: 20px">返回主页</el-button>
-
+<!--    添加系统外成员-->
     <el-dialog v-model="addPersonDialogVisible" title="添加系统外人员" width="70%">
       <el-form ref="formRef" :rules="formRules" :model="formData" class="register-form">
         <div class="form-column">
@@ -97,6 +98,26 @@
         <el-button type="primary" @click="submitForm">添加该成员</el-button>
       </div>
     </el-dialog>
+
+<!--    详细信息-->
+    <el-dialog v-model="detailsDialogVisible" title="志愿者详细信息" width="50%">
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="用户名">{{ selectedVolunteer.username }}</el-descriptions-item>
+        <el-descriptions-item label="真实姓名">{{ selectedVolunteer.name }}</el-descriptions-item>
+        <el-descriptions-item label="性别">{{ selectedVolunteer.gender }}</el-descriptions-item>
+        <el-descriptions-item label="手机号">{{ selectedVolunteer.phoneNumber }}</el-descriptions-item>
+        <el-descriptions-item label="身份证号">{{ selectedVolunteer.idCardNumber }}</el-descriptions-item>
+        <el-descriptions-item label="国籍">{{ selectedVolunteer.country }}</el-descriptions-item>
+        <el-descriptions-item label="民族">{{ selectedVolunteer.ethnicity }}</el-descriptions-item>
+        <el-descriptions-item label="政治面貌">{{ selectedVolunteer.politicalStatus }}</el-descriptions-item>
+        <el-descriptions-item label="最高学历">{{ selectedVolunteer.highestEducation }}</el-descriptions-item>
+        <el-descriptions-item label="从业情况">{{ selectedVolunteer.employmentStatus }}</el-descriptions-item>
+        <el-descriptions-item label="服务区域">{{ selectedVolunteer.serviceArea }}</el-descriptions-item>
+        <el-descriptions-item label="服务类别">{{ selectedVolunteer.serviceCategory }}</el-descriptions-item>
+        <el-descriptions-item label="志愿总时长">{{ selectedVolunteer.totalVolunteerHours }}</el-descriptions-item>
+        <el-descriptions-item label="志愿者综合评分">{{ selectedVolunteer.volunteerRating }}</el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -115,10 +136,17 @@ const searchQuery = ref('');
 const addPersonDialogVisible = ref(false);
 const orgIdStore = useOrgIdStore();
 const formRef = ref(null); // ✅ formRef 在顶层定义
+const detailsDialogVisible = ref(false); // 控制详细信息弹窗的显示
+const selectedVolunteer = ref({}); // 用于存储选中的志愿者信息
+
+const showDetails = (row) => {
+  selectedVolunteer.value = row; // 将选中的志愿者信息赋值
+  detailsDialogVisible.value = true; // 打开弹窗
+};
 
 const formData = ref({
   username: "", password: "", confirmPassword: "", name: "", gender: "", phone: "",
-  idCard: "", country: "中国", ethnicity: "汉族", politicalStatus: "群众",
+  idCard: "", country: "", ethnicity: "", politicalStatus: "",
   highestEducation: "", employmentStatus: "", serviceArea: "", serviceCategory: ""
 });
 
@@ -177,9 +205,9 @@ const fetchPendingVolunteers = async () => {
 const approve = async (row) => {
   try {
     const orgId = orgIdStore.orgId;
-    const res = await request.post("/volunteerOrganizationJoin/approve", {
-        volunteerId: row.volunteerId,
-        orgId: orgId
+    const res = await request.post("/volunteerOrganizationJoin/approveJoinRequest", {
+      volunteerId: row.volunteerId,
+      orgId: orgId
     });
     // ✅ 正确判断成功条件
     if (res.code === '200') {
@@ -189,7 +217,7 @@ const approve = async (row) => {
       ElMessage.error(res.msg || '批准加入失败');
     }
   } catch (error) {
-    ElMessage.error("批准加入时发生网络错误");
+      ElMessage.error("批准加入时发生网络错误");
   }
 };
 
