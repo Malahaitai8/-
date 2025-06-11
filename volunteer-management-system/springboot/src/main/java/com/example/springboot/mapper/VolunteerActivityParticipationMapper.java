@@ -137,4 +137,34 @@ public interface VolunteerActivityParticipationMapper {
             "WHERE p.ActivityID = #{activityId,jdbcType=CHAR} " +
             "ORDER BY v.VolunteerName")
     List<Map<String, Object>> selectParticipantsWithDetailsByActivityId(@Param("activityId") String activityId);
+
+
+    /**
+     * 【核心方法】查询一个志愿者所有“已参与”的活动及其详细信息。
+     * 这个查询会连接活动表、岗位表和组织表，获取前端所需的所有字段。
+     */
+    @Select({
+        "SELECT",
+        "    part.VolunteerID          AS volunteerId,",
+        "    part.ActualPositionID     AS actualPositionId,",
+        "    part.IsCheckedIn          AS isCheckedIn,",
+        "    part.VolunteerToOrgRating AS volunteerToOrgRating,",
+        "    part.OrgToVolunteerRating AS orgToVolunteerRating,",
+        "    act.ActivityID            AS activityId,",
+        "    act.ActivityName          AS activityName,",
+        "    act.StartTime             AS startTime,",
+        "    act.EndTime               AS endTime,",
+        "    act.ActivityStatus        AS activityStatus,",
+        "    o.OrgName                 AS orgName,",
+        "    o.OrgID                   AS orgId,",
+        "    pos.PositionName          AS positionName",
+        "FROM",
+        "    tbl_VolunteerActivityParticipation part",
+        "JOIN tbl_VolunteerActivity act ON part.ActivityID = act.ActivityID",
+        "JOIN tbl_Position pos ON part.ActualPositionID = pos.PositionID",
+        "JOIN tbl_Organization o ON act.OrgID = o.OrgID",
+        "WHERE part.VolunteerID = #{volunteerId,jdbcType=CHAR}"
+    })
+    List<Map<String, Object>> selectMyParticipations(@Param("volunteerId") String volunteerId);
+
 }
