@@ -85,4 +85,26 @@ public interface VolunteerActivityMapper {
      */
     @Update("UPDATE tbl_VolunteerActivity SET AcceptedCount = AcceptedCount + #{countChange} WHERE ActivityID = #{activityId}")
     int updateAcceptedCount(@Param("activityId") String activityId, @Param("countChange") int countChange);
+
+    /**
+     * 【新增方法】为特定志愿者查询可报名的活动列表
+     * 这个查询会排除掉该志愿者已经是“待审核”或“已通过”状态的活动。
+     * 方法名详细，避免与 selectAll 冲突。
+     */
+    @Select({
+        "<script>",
+        "SELECT act.* FROM tbl_VolunteerActivity act ",
+        "LEFT JOIN tbl_VolunteerActivityApplication app ON act.ActivityID = app.ActivityID AND app.VolunteerID = #{volunteerId,jdbcType=CHAR} ",
+        "<where>",
+        "    act.ActivityStatus = N'审核通过' ", // 规则1：只显示审核通过的活动
+        "    AND (app.ApplicationID IS NULL OR app.ApplicationStatus NOT IN (N'待审核', N'已通过'))", // 规则2：志愿者对该活动没有“待审核”或“已通过”的申请
+        "    <if test='filter != null and filter.activityName != null and filter.activityName != \"\"'>",
+        "        AND act.ActivityName LIKE CONCAT('%', #{filter.activityName, jdbcType=NVARCHAR}, '%')",
+        "    </if>",
+        "</where>",
+        "ORDER BY act.StartTime DESC",
+        "</script>"
+    })
+    List<VolunteerActivity> selectAvailableActivitiesForVolunteer(@Param("filter") VolunteerActivity filter, @Param("volunteerId") String volunteerId);
+
 }
