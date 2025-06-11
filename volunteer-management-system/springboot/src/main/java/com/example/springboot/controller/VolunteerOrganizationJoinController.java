@@ -2,7 +2,9 @@
 package com.example.springboot.controller;
 
 import com.example.springboot.common.Result; // 假设这是您的统一响应封装类
+import com.example.springboot.entity.VolunteerOrganizationJoin;
 import com.example.springboot.exception.CustomException; // 假设这是您的自定义异常类
+import com.example.springboot.mapper.VolunteerOrganizationJoinMapper;
 import com.example.springboot.service.VolunteerOrganizationJoinService;
 import jakarta.annotation.Resource;
 import org.springframework.util.StringUtils;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/volunteerOrganizationJoin") // 定义基础请求路径
@@ -17,6 +20,9 @@ public class VolunteerOrganizationJoinController {
 
     @Resource
     private VolunteerOrganizationJoinService volunteerOrganizationJoinService;
+
+    @Resource // 添加正确的注入
+    private VolunteerOrganizationJoinMapper volunteerOrganizationJoinMapper;
 
     /**
      * API: 获取指定志愿者加入的所有组织及其详细信息。
@@ -40,6 +46,38 @@ public class VolunteerOrganizationJoinController {
             return Result.error("500", "获取我的队伍信息失败，请稍后再试");
         }
     }
+
+    // 在VolunteerOrganizationJoinController中添加
+    @GetMapping("/checkMembership")
+    public Result checkMembership(@RequestParam String volunteerId) {
+        try {
+            if (!StringUtils.hasText(volunteerId)) {
+                return Result.error("400", "志愿者ID不能为空");
+            }
+
+            // 查找该志愿者的组织关系记录
+            List<VolunteerOrganizationJoin> joinRecords = volunteerOrganizationJoinMapper.selectByVolunteerId(volunteerId);
+
+            if (joinRecords != null && !joinRecords.isEmpty()) {
+                // 找出申请中或已加入状态的记录
+                Optional<VolunteerOrganizationJoin> pendingOrActive = joinRecords.stream()
+                        .filter(record -> "申请中".equals(record.getMemberStatus()) || "已加入".equals(record.getMemberStatus()))
+                        .findFirst();
+
+                if (pendingOrActive.isPresent()) {
+                    return Result.success(pendingOrActive.get());
+                }
+            }
+
+            // 如果没有找到记录或没有符合条件的记录
+            return Result.success(null);
+        } catch (Exception e) {
+            System.err.println("检查成员关系失败: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("500", "检查成员关系失败");
+        }
+    }
+
 
     /**
      * API: 志愿者退出队伍（更新成员状态为 '已退出'）。
@@ -167,4 +205,56 @@ public class VolunteerOrganizationJoinController {
             return Result.error("500", "获取申请中的成员信息失败，请稍后再试");
         }
     }
+
+    @PutMapping("/updateMemberStatus")
+    public Result updateMemberStatus(@RequestBody Map<String, String> payload) {
+        try {
+            String volunteerId = payload.get("volunteerId");
+            String orgId = payload.get("orgId");
+            String memberStatus = payload.get("memberStatus");
+
+            volunteerOrganizationJoinService.updateMemberStatus(volunteerId, orgId, memberStatus);
+            return Result.success("成员状态更新成功");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (IllegalArgumentException e) {
+            return Result.error("400", e.getMessage());
+        } catch (Exception e) {
+            System.err.println("更新成员状态失败: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("500", "更新成员状态失败，系统内部错误");
+        }
+    }
+
+    @GetMapping("/selectByVolunteerId")
+    public Result selectByVolunteerId(@RequestParam String volunteerId) {
+        try {
+            if (!StringUtils.hasText(volunteerId)) {
+                return Result.error("400", "志愿者ID不能为空");
+            }
+
+            List<VolunteerOrganizationJoin> joinRecords = volunteerOrganizationJoinMapper.selectByVolunteerId(volunteerId);
+            return Result.success(joinRecords);
+        } catch (Exception e) {
+            System.err.println("获取志愿者组织关系失败: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("500", "获取志愿者组织关系失败");
+        }
+    }
+
+    @GetMapping("/pendingVerified")
+    public Result getPendingVerifiedJoinRequests(@RequestParam String orgId) {
+        try {
+            List<Map<String, Object>> pendingVerifiedRequests =
+                    volunteerOrganizationJoinService.getPendingVerifiedJoinRequests(orgId);
+            return Result.success(pendingVerifiedRequests);
+        } catch (IllegalArgumentException e) {
+            return Result.error("400", e.getMessage());
+        } catch (Exception e) {
+            System.err.println("获取已认证申请中的成员信息失败: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("500", "获取已认证申请中的成员信息失败，请稍后再试");
+        }
+    }
+
 }

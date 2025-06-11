@@ -55,6 +55,8 @@ public interface VolunteerOrganizationJoinMapper {
                            @Param("orgId") String orgId,
                            @Param("memberStatus") String memberStatus);
 
+
+
     /**
      * 志愿者退出组织 (或管理员移除成员) - 实际上是更新状态为“已退出”
      * 为了保持记录，通常不直接删除，而是更新状态。如果确实需要删除，则使用下面的delete方法。
@@ -150,5 +152,17 @@ public interface VolunteerOrganizationJoinMapper {
             "WHERE voj.orgId = #{orgId} AND voj.memberStatus = #{memberStatus}")
     List<Map<String, Object>> selectMembers(@Param("orgId") String orgId, @Param("memberStatus") String memberStatus);
 
+
+    @Select("SELECT voj.volunteerId, voj.orgId, voj.joinTime, voj.memberStatus, " +
+            "v.name, v.phoneNumber, v.idCardNumber, v.totalVolunteerHours, v.volunteerRating, " +
+            "v.username, v.country, v.gender, v.ethnicity, v.politicalStatus, v.highestEducation, " +
+            "v.employmentStatus, v.serviceArea, v.serviceCategory, v.accountStatus " +
+            "FROM tbl_VolunteerOrganizationJoin voj " +
+            "JOIN tbl_Volunteer v ON voj.volunteerId = v.volunteerId " +
+            "WHERE voj.orgId = #{orgId} AND voj.memberStatus = #{memberStatus} AND v.accountStatus = #{accountStatus}")
+    List<Map<String, Object>> selectMembersByStatusAndVerification(
+            @Param("orgId") String orgId,
+            @Param("memberStatus") String memberStatus,
+            @Param("accountStatus") String accountStatus);
 
 }
