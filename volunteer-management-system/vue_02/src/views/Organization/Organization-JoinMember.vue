@@ -205,9 +205,9 @@ const fetchPendingVolunteers = async () => {
 const approve = async (row) => {
   try {
     const orgId = orgIdStore.orgId;
-    const res = await request.post("/volunteerOrganizationJoin/approve", {
-        volunteerId: row.volunteerId,
-        orgId: orgId
+    const res = await request.post("/volunteerOrganizationJoin/approveJoinRequest", {
+      volunteerId: row.volunteerId,
+      orgId: orgId
     });
     // ✅ 正确判断成功条件
     if (res.code === '200') {
@@ -217,7 +217,7 @@ const approve = async (row) => {
       ElMessage.error(res.msg || '批准加入失败');
     }
   } catch (error) {
-    ElMessage.error("批准加入时发生网络错误");
+      ElMessage.error("批准加入时发生网络错误");
   }
 };
 

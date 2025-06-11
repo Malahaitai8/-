@@ -111,12 +111,14 @@ public interface VolunteerOrganizationJoinMapper {
      * @param memberStatus 成员状态
      * @return 加入记录列表
      */
-    @Select("SELECT VolunteerID as volunteerId, OrgID as orgId, JoinTime as joinTime, MemberStatus as memberStatus " +
-            "FROM tbl_VolunteerOrganizationJoin " +
-            "WHERE OrgID = #{orgId,jdbcType=CHAR} AND MemberStatus = #{memberStatus,jdbcType=NVARCHAR} " +
-            "ORDER BY JoinTime DESC")
-    List<VolunteerOrganizationJoin> selectByOrgIdAndStatus(@Param("orgId") String orgId, @Param("memberStatus") String memberStatus);
-
+    @Select("SELECT voj.volunteerId, voj.orgId, voj.joinTime, voj.memberStatus, " +
+            "v.name, v.phoneNumber AS telephone, v.idCardNumber, v.totalVolunteerHours, v.volunteerRating, " +
+            "v.username, v.country, v.gender, v.ethnicity, v.politicalStatus, v.highestEducation, " +
+            "v.employmentStatus, v.serviceArea, v.serviceCategory " +
+            "FROM tbl_VolunteerOrganizationJoin voj " +
+            "JOIN tbl_Volunteer v ON voj.volunteerId = v.volunteerId " +
+            "WHERE voj.orgId = #{orgId} AND voj.memberStatus = #{memberStatus}")
+    List<Map<String, Object>> selectByOrgIdAndStatus(@Param("orgId") String orgId, @Param("memberStatus") String memberStatus);
     /**
      * 查询所有加入记录 (可用于后台管理，谨慎使用，数据量可能较大)
      * (SQL defined in XML for potential dynamic filtering)
@@ -138,7 +140,7 @@ public interface VolunteerOrganizationJoinMapper {
             @Param("volunteerId") String volunteerId,
             @Param("orgId") String orgId);
 
-    //获得所有MemberStatus为“申请中”的成员信息
+    //获得所有特定MemberStatus的成员信息
     @Select("SELECT voj.volunteerId, voj.orgId, voj.joinTime, voj.memberStatus, " +
             "v.name, v.phoneNumber, v.idCardNumber, v.totalVolunteerHours, v.volunteerRating, " +
             "v.username, v.country, v.gender, v.ethnicity, v.politicalStatus, v.highestEducation, " +
@@ -146,5 +148,7 @@ public interface VolunteerOrganizationJoinMapper {
             "FROM tbl_VolunteerOrganizationJoin voj " +
             "JOIN tbl_Volunteer v ON voj.volunteerId = v.volunteerId " +
             "WHERE voj.orgId = #{orgId} AND voj.memberStatus = #{memberStatus}")
-    List<Map<String, Object>> selectPendingMembers(@Param("orgId") String orgId, @Param("memberStatus") String memberStatus);
+    List<Map<String, Object>> selectMembers(@Param("orgId") String orgId, @Param("memberStatus") String memberStatus);
+
+
 }
