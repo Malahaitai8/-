@@ -260,13 +260,64 @@ watch(() => userStore.detailedVolunteerInfo.volunteerId, (newId) => {
 
 <style scoped>
 /* 样式保持不变 */
-.activities-page { background: #fff; border-radius: 8px; box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.06); padding: 0 32px 32px; min-height: 400px; }
-.page-title { background: #fff0f0; color: #c32f1b; font-weight: bold; font-size: 20px; padding: 18px 32px; margin: 0 -32px 20px -32px; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom: 2px solid #fde2e2; }
-.filter-buttons { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
-.filter-buttons button { background-color: #f0f0f0; color: #333; padding: 8px 15px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; }
-.filter-buttons button.active { background-color: #c32f1b; color: white; border-color: #c32f1b; }
-.filter-buttons button:hover:not(.active) { background-color: #e9e9e9; border-color: #c0c0c0; }
-.table-header { background: #f8f8f9 !important; color: #515a6e !important; font-weight: bold; }
-.empty-box { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 60px; color: #aaa; font-size: 16px; min-height: 200px; }
-.empty-box img { width: 80px; margin-bottom: 12px; opacity: 0.6; }
+.activities-page {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.06);
+  padding: 0 32px 32px;
+  min-height: 400px;
+}
+.page-title {
+  background: #fff0f0;
+  color: #ff0000;
+  font-weight: bold;
+  font-size: 20px;
+  padding: 18px 32px;
+  margin: 0 -32px 20px -32px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom: 2px solid #fde2e2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.more-btn-in-menu {
+   background: linear-gradient(90deg, #ff4d4f 0%, #ff0000 100%);
+  color: #fff;
+  border: none;
+}
+.filter-buttons button {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-buttons button.active {
+  background-color: #ff0000;
+  color: white;
+  border-color: #ff0000;
+}
+.empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 60px;
+  color: #aaa;
+  font-size: 16px;
+  min-height: 200px;
+}
+.empty-box img {
+  width: 80px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
 </style>
