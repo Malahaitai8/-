@@ -42,6 +42,7 @@ import OrganizationDetailedInfoForAddedActivity
     from "@/views/Organization/Organization-DetailedInfoForAddedActivity.vue";
 import OrganizationActivityDetail from "@/views/Organization/Organization-ActivityDetail.vue";
 import OrganizationTrainingDetail from "@/views/Organization/Organization-TrainingDetail.vue";
+import OrganizationCheckVolunteer from "@/views/Organization/Organization-CheckVolunteer.vue";
 
 // 志愿者区域的布局/父组件 (这是你刚刚提供的配置中用到的 VolunteerHome.vue)
 //import VolunteerAreaLayout from '../views/VolunteerHome.vue';
@@ -153,6 +154,11 @@ const routes = [
         path: '/change-organization-info',
         name: 'change-organization-info',
         component: OrganizationChangeOrganizationInfo,
+    },
+    {
+        path: '/OrganizationCheckVolunteer',
+        name: '/OrganizationCheckVolunteer',
+        component:OrganizationCheckVolunteer
     },
     {
         path: '/detailed-volunteer-info',

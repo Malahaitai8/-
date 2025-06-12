@@ -68,4 +68,15 @@ public class VolunteerActivityApplicationService {
         // 调用Mapper将报名信息插入数据库
         applicationMapper.insert(application);
     }
+
+    //修改的代码都在下面
+
+    public int updateApplicationStatus(String applicationId, String status) {
+        return applicationMapper.updateStatus(applicationId, status);
+    }
+
+    public List<Map<String, Object>> getPendingApplicationsForOrg(String orgId) {
+        return applicationMapper.selectPendingApplicationsForOrg(orgId);
+    }
+
 }

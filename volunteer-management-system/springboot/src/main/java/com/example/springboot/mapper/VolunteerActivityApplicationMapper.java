@@ -91,4 +91,42 @@ public interface VolunteerActivityApplicationMapper {
         "    app.ApplicationTime DESC"
     })
     List<Map<String, Object>> selectMyApplicationDetails(@Param("volunteerId") String volunteerId);
+
+    //修改的代码都在下面
+
+
+    @Select({
+            "SELECT ",
+            "    v.VolunteerID           AS id, ",
+            "    v.Name                  AS name, ",
+            "    v.Gender                AS gender, ",
+            "    v.PhoneNumber           AS telephone, ",
+            "    v.PoliticalStatus       AS zzmm, ",
+            "    v.HighestEducation      AS study, ",
+            "    v.VolunteerRating       AS rating, ",
+            "    act.ActivityName        AS activityName, ",
+            "    pos.PositionName        AS desiredPosition, ",
+            "    app.ApplicationTime     AS applicationDate, ",
+            "    app.ApplicationID       AS applicationId, ",
+            // --- NEWLY ADDED LINE ---
+            // Formats and concatenates the start and end times into a single string.
+            // LEFT(CONVERT(..., 120), 16) formats the datetime to 'YYYY-MM-DD HH:MI'.
+            "    LEFT(CONVERT(varchar, ts.StartTime, 120), 16) + ' to ' + LEFT(CONVERT(varchar, ts.EndTime, 120), 16) AS activityPeriod ",
+            "FROM ",
+            "    tbl_VolunteerActivityApplication app ",
+            "INNER JOIN ",
+            "    tbl_VolunteerActivity act ON app.ActivityID = act.ActivityID ",
+            "INNER JOIN ",
+            "    tbl_Volunteer v ON app.VolunteerID = v.VolunteerID ",
+            "LEFT JOIN ",
+            "    tbl_Position pos ON app.IntendedPositionID = pos.PositionID ",
+            // --- NEWLY ADDED JOIN ---
+            "LEFT JOIN ",
+            "    tbl_ActivityTimeslot ts ON act.ActivityID = ts.EventID ",
+            "WHERE ",
+            "    act.OrgID = #{orgId,jdbcType=CHAR} AND app.ApplicationStatus = N'待审核' ",
+            "ORDER BY ",
+            "    app.ApplicationTime DESC"
+    })
+    List<Map<String, Object>> selectPendingApplicationsForOrg(@Param("orgId") String orgId);
 }

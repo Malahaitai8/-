@@ -3,9 +3,12 @@
 package com.example.springboot.controller;
 
 import com.example.springboot.common.Result; // 假设: 你有统一的返回结果类
+import com.example.springboot.entity.VolunteerActivityApplication;
 import com.example.springboot.exception.CustomException;
 import com.example.springboot.service.VolunteerActivityApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -62,4 +65,25 @@ public class VolunteerActivityApplicationController {
         }
     }
 
+
+
+    @PutMapping("/update-status")
+    public Result updateApplicationStatus(@RequestBody Map<String, String> payload) {
+        String applicationId = payload.get("applicationId");
+        String applicationStatus = payload.get("applicationStatus");
+        int result = applicationService.updateApplicationStatus(applicationId, applicationStatus);
+        if (result > 0) {
+            return Result.success("状态更新成功");
+        } else {
+            return Result.error("400", "状态更新失败");
+        }
+    }
+
+    @GetMapping("/pending-applications/{orgId}")
+    public Result getPendingApplications(@PathVariable String orgId) {
+        System.out.println("后台接收到审核请求，组织ID为: " + orgId); // 用于调试
+        // 【同步修改】变量类型现在是 List<Map<String, Object>>
+        List<Map<String, Object>> pendingApplications = applicationService.getPendingApplicationsForOrg(orgId);
+        return Result.success(pendingApplications);
+    }
 }

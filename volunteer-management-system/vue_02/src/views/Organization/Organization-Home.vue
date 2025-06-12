@@ -14,6 +14,7 @@
 
       <div class="button-container">
         <el-button class="big-button" @click="viewActivityRecords">查看志愿活动记录</el-button>
+        <el-button class="big-button" @click="viewCheckVolunteer">审核志愿活动报名</el-button>
         <el-button class="big-button" @click="viewTrainingRecords">查看志愿培训记录</el-button>
         <el-button class="big-button" @click="managePersonnel">人员管理</el-button>
       </div>
@@ -53,6 +54,9 @@ const viewActivityRecords = () => {
   router.push('/view-activity-records');
 };
 
+const viewCheckVolunteer = () => {
+  router.push('/OrganizationCheckVolunteer');
+};
 const viewTrainingRecords = () => {
   router.push('/view-training-records');
 };
