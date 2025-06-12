@@ -115,7 +115,8 @@ public interface VolunteerActivityParticipationMapper {
                                    @Param("actualPositionId") String actualPositionId,
                                    @Param("orgToVolunteerRating") Integer orgToVolunteerRating);
 
-    /**
+
+ /**
      * 获取活动的参与志愿者详细信息
      * @param activityId 活动ID
      * @return 包含志愿者信息的Map列表
@@ -127,17 +128,15 @@ public interface VolunteerActivityParticipationMapper {
             "    p.IsCheckedIn as isCheckedIn, " +
             "    p.VolunteerToOrgRating as volunteerToOrgRating, " +
             "    p.OrgToVolunteerRating as orgToVolunteerRating, " +
-            "    v.VolunteerName as volunteerName, " +
-            "    v.Phone as volunteerPhone, " +
-            "    v.Email as volunteerEmail, " +
+            "    v.Name as volunteerName, " +
+            "    v.PhoneNumber as volunteerPhone, " + // 【最终修复】根据 VolunteerMapper.xml，正确的列名是 "Phone"
             "    pos.PositionName as positionName " +
             "FROM tbl_VolunteerActivityParticipation p " +
             "INNER JOIN tbl_Volunteer v ON p.VolunteerID = v.VolunteerID " +
             "INNER JOIN tbl_Position pos ON p.ActualPositionID = pos.PositionID " +
             "WHERE p.ActivityID = #{activityId,jdbcType=CHAR} " +
-            "ORDER BY v.VolunteerName")
+            "ORDER BY v.Name")
     List<Map<String, Object>> selectParticipantsWithDetailsByActivityId(@Param("activityId") String activityId);
-
 
     /**
      * 【核心方法】查询一个志愿者所有“已参与”的活动及其详细信息。

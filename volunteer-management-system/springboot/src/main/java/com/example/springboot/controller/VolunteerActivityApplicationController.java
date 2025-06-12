@@ -62,4 +62,24 @@ public class VolunteerActivityApplicationController {
         }
     }
 
+@PutMapping("/update-status")
+public Result updateApplicationStatus(@RequestBody Map<String, String> payload) {
+    String applicationId = payload.get("applicationId");
+    String applicationStatus = payload.get("applicationStatus");
+    int result = applicationService.updateApplicationStatus(applicationId, applicationStatus);
+    if (result > 0) {
+        return Result.success("状态更新成功");
+    } else {
+        return Result.error("400", "状态更新失败");
+    }
+}
+
+@GetMapping("/pending-applications/{orgId}")
+public Result getPendingApplications(@PathVariable String orgId) {
+    System.out.println("后台接收到审核请求，组织ID为: " + orgId); // 用于调试
+    // 【同步修改】变量类型现在是 List<Map<String, Object>>
+    List<Map<String, Object>> pendingApplications = applicationService.getPendingApplicationsForOrg(orgId);
+    return Result.success(pendingApplications);
+}
+
 }

@@ -464,4 +464,55 @@ public class VolunteerActivityController {
         List<VolunteerActivity> activities = volunteerActivityService.findAvailableActivitiesForVolunteer(filter, volunteerId);
         return Result.success(activities);
     }
-}
+
+
+ /**
+     * 更新志愿者的签到状态
+     * 接口: PUT /volunteerActivity/participation/check-in
+     * @param payload 包含 activityId, volunteerId, isCheckedIn 的 Map
+     * @return Result
+     */
+    @PutMapping("/participation/check-in")
+    public Result updateCheckInStatus(@RequestBody Map<String, String> payload) {
+        try {
+            volunteerActivityService.updateCheckInStatus(
+                payload.get("activityId"),
+                payload.get("volunteerId"),
+                payload.get("isCheckedIn")
+            );
+            return Result.success("签到状态更新成功");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("500", "服务器内部错误，更新签到状态失败");
+        }
+    }
+
+    /**
+     * 组织对活动中的志愿者进行评分
+     * 接口: PUT /volunteerActivity/rate-participant
+     * @param payload 包含 activityId, volunteerId, rating 的 Map
+     * @return Result
+     */
+    @PutMapping("/rate-participant")
+    public Result rateParticipant(@RequestBody Map<String, Object> payload) {
+        try {
+            String activityId = (String) payload.get("activityId");
+            String volunteerId = (String) payload.get("volunteerId");
+            Integer rating = ((Number) payload.get("rating")).intValue();
+
+            volunteerActivityService.rateParticipantByOrg(activityId, volunteerId, rating);
+            return Result.success("评价成功");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("500", "服务器内部错误，评价失败");
+        }
+
+
+
+
+
+}}

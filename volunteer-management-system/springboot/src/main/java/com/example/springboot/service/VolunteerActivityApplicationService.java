@@ -7,6 +7,7 @@ import com.example.springboot.exception.CustomException;
 import com.example.springboot.mapper.VolunteerActivityApplicationMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -67,5 +68,56 @@ public class VolunteerActivityApplicationService {
 
         // 调用Mapper将报名信息插入数据库
         applicationMapper.insert(application);
+    }
+
+
+
+
+
+
+
+
+/**
+     * 【重要修改】更新申请状态，并在通过时自动创建参与记录。
+     * 使用 @Transactional 注解确保数据库操作的原子性。
+     *
+     * @param applicationId 申请ID
+     * @param status        新的状态 (例如 "已通过", "已拒绝")
+     * @return 更新的行数
+     */
+    @Transactional // 2. 添加注解，启用事务管理
+    public int updateApplicationStatus(String applicationId, String status) {
+        // 3. 当申请被批准时，执行核心逻辑
+        if ("已通过".equals(status)) {
+            // a. 根据 applicationID 获取完整的申请信息
+            VolunteerActivityApplication application = applicationMapper.selectById(applicationId);
+            if (application == null) {
+                throw new CustomException("404", "找不到指定的报名申请记录");
+            }
+
+            // b. 检查是否已存在参与记录，防止因重复操作导致数据库出错
+            int existingParticipation = applicationMapper.checkExistingParticipation(
+                application.getVolunteerId(),
+                application.getActivityId()
+            );
+
+            // c. 如果不存在，则插入新的参与记录
+            if (existingParticipation == 0) {
+                applicationMapper.insertIntoParticipation(
+                        application.getVolunteerId(),
+                        application.getActivityId(),
+                        application.getIntendedPositionId() // 将申请的意向岗位作为实际岗位
+                );
+            }
+            // 如果已存在，则不执行任何操作，直接继续更新状态
+        }
+
+        // 4. 无论如何，最后都更新申请表中的状态
+        return applicationMapper.updateStatus(applicationId, status);
+    }
+
+
+    public List<Map<String, Object>> getPendingApplicationsForOrg(String orgId) {
+        return applicationMapper.selectPendingApplicationsForOrg(orgId);
     }
 }

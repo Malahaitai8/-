@@ -46,9 +46,8 @@
             </div>
 
             <div class="info-grid">
-              <!-- 此处省略基本信息网格，与您之前代码一致 -->
-               <!-- 培训名称 -->
-               <div class="info-item">
+              <!-- 培训名称 -->
+              <div class="info-item">
                 <label class="info-label">培训名称</label>
                 <div v-if="!isEditing" class="info-value">{{ training.trainingName || '-' }}</div>
                 <el-input v-else v-model="editForm.trainingName" class="edit-input"/>
@@ -279,6 +278,19 @@
                     </div>
                   </div>
                 </div>
+                <!-- 评价按钮区域 -->
+                <div class="participant-actions">
+                  <el-button
+                    type="primary"
+                    size="small"
+                    class="rate-btn"
+                    :disabled="training.trainingStatus !== '已结束' || !!participant.orgToVolunteerRating"
+                    :title="getRateButtonTooltip(participant)"
+                    @click="openRateDialog(participant)"
+                  >
+                    {{ participant.orgToVolunteerRating ? '已评价' : '评价' }}
+                  </el-button>
+                </div>
               </div>
             </div>
           </div>
@@ -376,6 +388,26 @@
       </template>
     </el-dialog>
 
+    <!-- 评价志愿者对话框 -->
+    <el-dialog v-model="rateDialog.visible" title="评价志愿者表现" width="400px" @close="resetRateDialog">
+      <div class="rate-dialog-content">
+        <p>正在为志愿者 <strong>{{ rateDialog.participantName }}</strong> 评分</p>
+        <el-rate
+          v-model="rateDialog.score"
+          :max="10"
+          show-score
+          score-template="{value} 分"
+          size="large"
+        />
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="rateDialog.visible = false">取消</el-button>
+          <el-button type="primary" @click="submitRating" :loading="rateDialog.isSubmitting">提交评价</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
     <!-- 操作按钮 -->
     <div class="button-group">
       <el-button @click="goBack" class="back-btn">返回</el-button>
@@ -417,10 +449,18 @@ export default {
     const isFetchingAddable = ref(false)
     const addParticipantSearchQuery = ref('')
 
-
     const addTimeslotForm = reactive({
       startTime: '',
       endTime: '',
+    })
+
+    // 新增：评价志愿者的对话框状态
+    const rateDialog = reactive({
+      visible: false,
+      isSubmitting: false,
+      score: 0,
+      participantId: null,
+      participantName: '',
     })
 
     const timeslotRules = {
@@ -475,12 +515,9 @@ export default {
     const fetchParticipants = async () => {
       isLoadingParticipants.value = true
       try {
-        // 【核心修复】此接口现在返回 List<Map>
         const res = await request.get(`/volunteerTraining/${route.params.id}/participants`)
         if (res.code === '200' && res.data) {
           participants.value = res.data.map(p => {
-            // 后端返回的Map的键现在直接对应前端模板中的字段
-            // 我们只需要确保 isCheckedIn 字段的逻辑正确
             return {
               ...p,
               isCheckedIn: p.isCheckedIn && p.isCheckedIn.trim() === '是' ? '是' : '否'
@@ -490,7 +527,8 @@ export default {
            participants.value = []
            ElMessage.error(res.msg || '获取参与者列表失败');
         }
-      } catch (err) {
+      } catch (err)
+ {
         console.error('获取参与者信息出错:', err)
         ElMessage.error('网络错误，获取参与者信息失败');
       } finally {
@@ -671,6 +709,62 @@ export default {
       }
     }
 
+    // --- 新增评价功能相关方法 ---
+    const getRateButtonTooltip = (participant) => {
+      if (training.value.trainingStatus !== '已结束') {
+        return '培训结束后方可评价';
+      }
+      if (!!participant.orgToVolunteerRating) {
+        return `已评分为: ${participant.orgToVolunteerRating}分`;
+      }
+      return '评价该志愿者的表现';
+    };
+
+    const openRateDialog = (participant) => {
+      rateDialog.participantId = participant.volunteerId;
+      rateDialog.participantName = participant.name;
+      rateDialog.score = participant.orgToVolunteerRating || 0;
+      rateDialog.visible = true;
+    };
+
+    const resetRateDialog = () => {
+      rateDialog.visible = false;
+      rateDialog.isSubmitting = false;
+      rateDialog.score = 0;
+      rateDialog.participantId = null;
+      rateDialog.participantName = '';
+    };
+
+    const submitRating = async () => {
+      if (rateDialog.score === 0) {
+        ElMessage.warning('请选择评分');
+        return;
+      }
+      rateDialog.isSubmitting = true;
+      try {
+        const payload = {
+          trainingId: route.params.id,
+          volunteerId: rateDialog.participantId,
+          rating: rateDialog.score,
+        };
+        const res = await request.put('/volunteerTraining/org-rate-volunteer', payload);
+        if (res.code === '200') {
+          ElMessage.success('评价成功！');
+          resetRateDialog();
+          await fetchParticipants(); // 刷新参与者列表以显示新评分
+        } else {
+          ElMessage.error(res.msg || '评价失败');
+        }
+      } catch (err) {
+        console.error('评价志愿者失败:', err);
+        ElMessage.error('网络错误，评价失败');
+      } finally {
+        rateDialog.isSubmitting = false;
+      }
+    };
+
+    // --- 辅助方法 ---
+
     const formatDateTime = (dateString) => {
       if (!dateString) return '-'
       try {
@@ -756,7 +850,6 @@ export default {
       goBack,
       fetchTrainingDetail,
       updateCheckInStatus,
-      // Expose state and methods for the new dialog
       showAddParticipantDialog,
       addableVolunteers,
       isFetchingAddable,
@@ -765,6 +858,12 @@ export default {
       fetchAddableVolunteers,
       handleAddParticipant,
       InfoFilled,
+      // 导出评价相关
+      rateDialog,
+      openRateDialog,
+      resetRateDialog,
+      submitRating,
+      getRateButtonTooltip
     }
   }
 }
@@ -789,7 +888,6 @@ export default {
   font-weight: 600;
 }
 
-/* 内容区域 */
 .content-wrapper {
   display: flex;
   justify-content: center;
@@ -817,7 +915,6 @@ export default {
   min-height: 600px;
 }
 
-/* 加载和错误状态 */
 .loading-section, .error-section {
   display: flex;
   flex-direction: column;
@@ -862,7 +959,6 @@ export default {
   margin-bottom: 1rem;
 }
 
-/* 信息区域 */
 .info-section {
   background: white;
   border-radius: 12px;
@@ -886,10 +982,10 @@ export default {
   font-weight: 600;
 }
 
-.header-actions {
+.header-actions, .header-controls, .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 15px;
 }
 
 .add-timeslot-btn {
@@ -906,60 +1002,22 @@ export default {
   border-color: rgba(255, 255, 255, 0.6);
 }
 
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
 .status-tag {
   display: inline-block;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
-}
-
-.status-pending {
-  background-color: #e6a23c;
   color: white;
 }
 
-.status-approved {
-  background-color: #67c23a;
-  color: white;
-}
-
-.status-rejected {
-  background-color: #f56c6c;
-  color: white;
-}
-
-.status-cancelled {
-  background-color: #909399;
-  color: white;
-}
-
-.status-completed {
-  background-color: #409eff;
-  color: white;
-}
-
-.status-in-progress {
-  background-color: #67c23a;
-  color: white;
-}
-
-.status-unknown {
-  background-color: #909399;
-  color: white;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.status-pending { background-color: #e6a23c; }
+.status-approved { background-color: #67c23a; }
+.status-rejected { background-color: #f56c6c; }
+.status-cancelled { background-color: #909399; }
+.status-completed { background-color: #409eff; }
+.status-in-progress { background-color: #67c23a; }
+.status-unknown { background-color: #909399; }
 
 .count-tag {
   background: rgba(255, 255, 255, 0.2);
@@ -974,245 +1032,91 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.4);
   color: white;
 }
-
 .edit-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.6);
 }
+.edit-controls { display: flex; gap: 10px; }
 
-.edit-controls {
-  display: flex;
-  gap: 10px;
-}
-
-/* 基本信息网格 */
 .info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 25px;
   padding: 30px;
 }
+.info-item { display: flex; flex-direction: column; gap: 8px; }
+.info-label { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 5px; }
+.info-value { padding: 12px 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #ff3333; font-size: 14px; color: #666; min-height: 20px; }
+.edit-input { width: 100%; }
+.edit-input :deep(.el-input__wrapper) { border-radius: 8px; border: 1px solid #dcdfe6; transition: all 0.3s ease; }
+.edit-input :deep(.el-input__wrapper:hover) { border-color: #ff6666; }
+.edit-input :deep(.el-input.is-focus .el-input__wrapper) { border-color: #ff3333; box-shadow: 0 0 0 2px rgba(255, 51, 51, 0.2); }
 
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.timeslots-container { padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+.timeslot-card { display: flex; align-items: center; padding: 20px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #ff3333; transition: all 0.3s ease; position: relative; }
+.timeslot-number { width: 24px; height: 24px; background: #ff3333; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 15px; }
+.timeslot-content { flex: 1; }
+.timeslot-time { font-size: 14px; color: #333; margin-bottom: 5px; }
+.separator { margin: 0 8px; color: #999; }
+.timeslot-duration { font-size: 12px; color: #666; }
+.timeslot-actions { margin-left: 15px; }
+
+.participants-container { padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+.participant-card { background: #f8f9fa; border-radius: 12px; border-left: 4px solid #ff3333; overflow: hidden; display: flex; flex-direction: column; }
+.participant-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-bottom: 1px solid #eee; }
+.participant-info { flex: 1; }
+.participant-name { margin: 0; font-size: 16px; font-weight: 600; color: #333; }
+.participant-details { padding: 15px 20px; flex-grow: 1; }
+.detail-row { display: flex; align-items: center; margin-bottom: 10px; font-size: 14px; }
+.detail-row:last-child { margin-bottom: 0; }
+.detail-label { width: 80px; color: #666; flex-shrink: 0; }
+.detail-value { flex: 1; color: #333; word-break: break-all; }
+.rating-display { flex: 1; }
+
+/* 新增：评价按钮和对话框样式 */
+.participant-actions {
+  margin-top: 15px;
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  text-align: right;
+  background-color: #fff;
 }
-
-.info-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 5px;
+.rate-btn {
+  background-color: #ff3333;
+  border-color: #ff3333;
+  color: white;
 }
-
-.info-value {
-  padding: 12px 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #ff3333;
-  font-size: 14px;
-  color: #666;
-  min-height: 20px;
-}
-
-.edit-input {
-  width: 100%;
-}
-
-.edit-input :deep(.el-input__wrapper) {
-  border-radius: 8px;
-  border: 1px solid #dcdfe6;
-  transition: all 0.3s ease;
-}
-
-.edit-input :deep(.el-input__wrapper:hover) {
+.rate-btn:hover {
+  background-color: #ff6666;
   border-color: #ff6666;
 }
-
-.edit-input :deep(.el-input.is-focus .el-input__wrapper) {
-  border-color: #ff3333;
-  box-shadow: 0 0 0 2px rgba(255, 51, 51, 0.2);
-}
-
-/* 时段容器 */
-.timeslots-container {
-  padding: 30px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 20px;
-}
-
-.timeslot-card {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  border-left: 4px solid #ff3333;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.timeslot-number {
-  width: 24px;
-  height: 24px;
-  background: #ff3333;
+.rate-btn:disabled {
+  background-color: #fab9bb;
+  border-color: #fab9bb;
   color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  margin-right: 15px;
 }
-
-.timeslot-content {
-  flex: 1;
-}
-
-.timeslot-time {
-  font-size: 14px;
-  color: #333;
-  margin-bottom: 5px;
-}
-
-.separator {
-  margin: 0 8px;
-  color: #999;
-}
-
-.timeslot-duration {
-  font-size: 12px;
-  color: #666;
-}
-
-.timeslot-actions {
-  margin-left: 15px;
-}
-
-/* 参与者容器 */
-.participants-container {
-  padding: 30px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Adjusted minmax */
-  gap: 20px;
-}
-
-.participant-card {
-  background: #f8f9fa;
-  border-radius: 12px;
-  border-left: 4px solid #ff3333;
-  overflow: hidden;
-  display: flex; /* Added */
-  flex-direction: column; /* Added */
-}
-
-.participant-header {
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: white;
-  border-bottom: 1px solid #eee;
-}
-
-.participant-info {
-  flex: 1;
-}
-
-.participant-name {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
-
-.participant-details {
-  padding: 15px 20px;
-  flex-grow: 1; /* Added */
-}
-
-.detail-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-  font-size: 14px; /* Standardized font size */
-}
-
-.detail-row:last-child {
-  margin-bottom: 0;
-}
-
-.detail-label {
-  width: 80px;
-  color: #666;
-  flex-shrink: 0; /* Prevent label from shrinking */
-}
-
-.detail-value {
-  flex: 1;
-  color: #333;
-  word-break: break-all; /* Prevent long values from overflowing */
-}
-
-.rating-display {
-  flex: 1;
-}
-
-/* Style for the add participant dialog search bar */
-.dialog-search-bar {
-  margin-bottom: 20px;
-}
-
-/* 空状态 */
-.empty-section {
-  padding: 40px;
+.rate-dialog-content {
   text-align: center;
-  color: #909399;
+  padding: 20px 0;
+}
+.rate-dialog-content p {
+  margin-bottom: 20px;
+  font-size: 16px;
+  color: #333;
+}
+:deep(.el-rate__text) {
+  color: #ff9900;
 }
 
-/* 按钮组 */
-.button-group {
-  display: flex;
-  justify-content: center;
-  margin-top: 30px;
-  padding-bottom: 30px;
-}
+.dialog-search-bar { margin-bottom: 20px; }
+.empty-section { padding: 40px; text-align: center; color: #909399; }
+.button-group { display: flex; justify-content: center; margin-top: 30px; padding-bottom: 30px; }
+.back-btn { min-width: 120px; }
 
-.back-btn {
-  min-width: 120px;
-}
-
-/* 对话框样式 */
-:deep(.el-dialog) {
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-:deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #ff3333, #ff6666);
-  color: white;
-  padding: 20px;
-  margin: 0;
-}
-
-:deep(.el-dialog__title) {
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-:deep(.el-dialog__headerbtn .el-dialog__close) {
-  color: white;
-}
-
-:deep(.el-dialog__body) {
-  padding: 30px;
-}
-
-:deep(.el-dialog__footer) {
-  padding: 20px;
-  border-top: 1px solid #eee;
-}
+:deep(.el-dialog) { border-radius: 12px; overflow: hidden; }
+:deep(.el-dialog__header) { background: linear-gradient(135deg, #ff3333, #ff6666); color: white; padding: 20px; margin: 0; }
+:deep(.el-dialog__title) { color: white; font-size: 18px; font-weight: 600; }
+:deep(.el-dialog__headerbtn .el-dialog__close) { color: white; }
+:deep(.el-dialog__body) { padding: 30px; }
+:deep(.el-dialog__footer) { padding: 20px; border-top: 1px solid #eee; }
 </style>

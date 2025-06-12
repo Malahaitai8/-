@@ -436,4 +436,29 @@ public class VolunteerTrainingController {
         }
     }
 
+
+    /**
+     * 【新增】组织对培训中的志愿者进行评分
+     * API: PUT /volunteerTraining/org-rate-volunteer
+     * @param payload 包含 trainingId, volunteerId, rating 的 Map
+     * @return Result
+     */
+    @PutMapping("/org-rate-volunteer")
+    public Result rateParticipant(@RequestBody Map<String, Object> payload) {
+        try {
+            String trainingId = (String) payload.get("trainingId");
+            String volunteerId = (String) payload.get("volunteerId");
+            // 前端 ElRate 组件可能传递浮点数，然后转为整数
+            Integer rating = ((Number) payload.get("rating")).intValue();
+
+            volunteerTrainingService.rateParticipantByOrg(trainingId, volunteerId, rating);
+            return Result.success("评价成功");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("500", "评价失败，服务器内部错误");
+        }
+    }
+
 }

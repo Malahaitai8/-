@@ -6,6 +6,7 @@ import com.example.springboot.entity.VolunteerTraining; // 保留此行，如果
 import com.example.springboot.exception.CustomException;
 import com.example.springboot.mapper.VolunteerActivityMapper;
 import com.example.springboot.mapper.OrganizationMapper;
+import com.example.springboot.mapper.VolunteerActivityParticipationMapper;
 import com.example.springboot.mapper.VolunteerTrainingMapper; // 保留此行，如果其他非活动相关方法需要使用
 import com.github.pagehelper.PageHelper; // 保留此行，如果 selectPage 等方法需要使用
 import com.github.pagehelper.PageInfo; // 保留此行，如果 selectPage 等方法需要使用
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -29,6 +32,8 @@ public class VolunteerActivityService {
 
     @Resource // 确保注入了 VolunteerTrainingMapper，如果这个Service确实也处理了Training相关逻辑
     private VolunteerTrainingMapper volunteerTrainingMapper;
+    @Resource
+    private VolunteerActivityParticipationMapper participationMapper;
 
     // 定义合法的活动状态常量
     private static final List<String> VALID_ACTIVITY_STATUSES = Arrays.asList(
@@ -402,6 +407,72 @@ public class VolunteerActivityService {
         }
         return volunteerActivityMapper.selectAvailableActivitiesForVolunteer(filter, volunteerId);
     }
+
+/**
+     * 【新增】更新志愿者的签到状态
+     * @param activityId 活动ID
+     * @param volunteerId 志愿者ID
+     * @param isCheckedIn 签到状态 ("是" 或 "否")
+     */
+    @Transactional
+    public void updateCheckInStatus(String activityId, String volunteerId, String isCheckedIn) {
+        if (!"是".equals(isCheckedIn) && !"否".equals(isCheckedIn)) {
+            throw new CustomException("400", "无效的签到状态");
+        }
+        int updatedRows = participationMapper.updateCheckInStatus(activityId, volunteerId, isCheckedIn);
+        if (updatedRows == 0) {
+            throw new CustomException("404", "未找到对应的参与记录，更新失败");
+        }
+    }
+
+    /**
+     * 【新增】组织对参与活动的志愿者进行评分，并校验时间
+     * @param activityId 活动ID
+     * @param volunteerId 志愿者ID
+     * @param rating 评分
+     */
+    @Transactional
+    public void rateParticipantByOrg(String activityId, String volunteerId, Integer rating) {
+        // 1. 验证评分范围
+        if (rating < 1 || rating > 10) {
+            throw new CustomException("400", "评分必须在1到10之间");
+        }
+
+        // 2. 获取活动信息
+        VolunteerActivity activity = volunteerActivityMapper.selectById(activityId);
+        if (activity == null) {
+            throw new CustomException("404", "活动不存在");
+        }
+
+        // 3. 校验业务规则：活动必须已结束
+        if (!"已结束".equals(activity.getActivityStatus())) {
+            throw new CustomException("403", "活动尚未结束，无法评分");
+        }
+
+        // 4. 【核心】校验时间是否在结束后7天内
+        Date endTime = activity.getEndTime();
+        if (endTime == null) {
+            throw new CustomException("400", "活动结束时间未设置，无法判断评分时效");
+        }
+        LocalDateTime endDateTime = endTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime sevenDaysAfter = endDateTime.plusDays(7);
+
+        if (now.isBefore(endDateTime)) {
+            throw new CustomException("403", "活动尚未结束，无法评分");
+        }
+        if (now.isAfter(sevenDaysAfter)) {
+            throw new CustomException("403", "已超过7天评价期限，无法评分");
+        }
+
+        // 5. 更新数据库
+        int updatedRows = participationMapper.updateOrgToVolunteerRating(activityId, volunteerId, rating);
+        if (updatedRows == 0) {
+            throw new CustomException("404", "未找到对应的参与记录，更新评分失败");
+        }
+    }
+
+
 
     // 可以添加其他 VolunteerActivityService 独有的方法
 }

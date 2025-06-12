@@ -386,4 +386,45 @@ public class VolunteerTrainingService {
         participationMapper.insert(newParticipation);
     }
 
+
+    /**
+     * 【新增】组织对参与培训的志愿者进行评分
+     * @param trainingId 培训ID
+     * @param volunteerId 志愿者ID
+     * @param rating 评分 (1-10)
+     * @throws CustomException 业务逻辑异常
+     */
+    @Transactional
+    public void rateParticipantByOrg(String trainingId, String volunteerId, Integer rating) throws CustomException {
+        // 1. 验证参数
+        if (!StringUtils.hasText(trainingId) || !StringUtils.hasText(volunteerId) || rating == null) {
+            throw new CustomException("400", "培训ID、志愿者ID和评分均不能为空");
+        }
+        if (rating < 1 || rating > 10) {
+            throw new CustomException("400", "评分必须在1到10之间");
+        }
+
+        // 2. 检查培训状态
+        VolunteerTraining training = volunteerTrainingMapper.selectById(trainingId);
+        if (training == null) {
+            throw new CustomException("404", "未找到ID为 " + trainingId + " 的培训");
+        }
+        if (!"已结束".equals(training.getTrainingStatus())) {
+            throw new CustomException("403", "培训尚未结束，无法进行评分");
+        }
+
+        // 3. 检查参与记录是否存在
+        VolunteerTrainingParticipation participation = participationMapper.selectByPrimaryKey(volunteerId, trainingId);
+        if (participation == null) {
+            throw new CustomException("404", "未找到该志愿者的参与记录");
+        }
+
+        // 4. 更新评分
+        int updatedRows = participationMapper.updateOrgToVolunteerRating(volunteerId, trainingId, rating);
+        if (updatedRows == 0) {
+            // 此情况理论上较少发生，因为前面已经检查过记录存在
+            throw new CustomException("500", "数据库更新评分失败");
+        }
+    }
+
 }
