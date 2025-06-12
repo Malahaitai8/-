@@ -46,8 +46,9 @@
             </div>
 
             <div class="info-grid">
-              <!-- 培训名称 -->
-              <div class="info-item">
+              <!-- 此处省略基本信息网格，与您之前代码一致 -->
+               <!-- 培训名称 -->
+               <div class="info-item">
                 <label class="info-label">培训名称</label>
                 <div v-if="!isEditing" class="info-value">{{ training.trainingName || '-' }}</div>
                 <el-input v-else v-model="editForm.trainingName" class="edit-input"/>
@@ -190,7 +191,6 @@
               <h2>参与志愿者</h2>
               <div class="header-right">
                 <el-tag class="count-tag">共 {{ participants.length }} 名志愿者</el-tag>
-                <!-- [NEW] Add Participant Button -->
                 <el-button
                   type="primary"
                   size="small"
@@ -286,7 +286,7 @@
       </el-card>
     </div>
 
-    <!-- [NEW] Add Participant Dialog -->
+    <!-- Add Participant Dialog -->
     <el-dialog
       v-model="showAddParticipantDialog"
       title="添加培训人员"
@@ -412,7 +412,6 @@ export default {
     const timeslotFormRef = ref(null)
     const editForm = ref({})
 
-    // [NEW] State for adding participants
     const showAddParticipantDialog = ref(false)
     const addableVolunteers = ref([])
     const isFetchingAddable = ref(false)
@@ -476,18 +475,24 @@ export default {
     const fetchParticipants = async () => {
       isLoadingParticipants.value = true
       try {
+        // 【核心修复】此接口现在返回 List<Map>
         const res = await request.get(`/volunteerTraining/${route.params.id}/participants`)
         if (res.code === '200' && res.data) {
-          participants.value = res.data.map(p => ({
-            ...p,
-            isCheckedIn: p.isCheckedIn || '否'
-          }))
+          participants.value = res.data.map(p => {
+            // 后端返回的Map的键现在直接对应前端模板中的字段
+            // 我们只需要确保 isCheckedIn 字段的逻辑正确
+            return {
+              ...p,
+              isCheckedIn: p.isCheckedIn && p.isCheckedIn.trim() === '是' ? '是' : '否'
+            };
+          });
         } else {
            participants.value = []
-           console.error(res.msg || '获取参与者列表失败')
+           ElMessage.error(res.msg || '获取参与者列表失败');
         }
       } catch (err) {
         console.error('获取参与者信息出错:', err)
+        ElMessage.error('网络错误，获取参与者信息失败');
       } finally {
         isLoadingParticipants.value = false
       }
@@ -515,7 +520,6 @@ export default {
       }
     };
 
-    // [NEW] Methods for adding participants
     const openAddParticipantDialog = () => {
       addParticipantSearchQuery.value = ''
       fetchAddableVolunteers();
@@ -525,7 +529,7 @@ export default {
     const fetchAddableVolunteers = async () => {
       isFetchingAddable.value = true
       try {
-        const res = await request.get(`/volunteerTraining/${route.params.id}/addable-volunteers`, {
+        const res = await request.get(`/volunteerTraining/${route.params.id}/potential-participants`, {
           params: { name: addParticipantSearchQuery.value }
         })
         if (res.code === '200') {
@@ -543,15 +547,13 @@ export default {
 
     const handleAddParticipant = async (volunteer) => {
       try {
-        const res = await request.post('/volunteerTraining/add-participant', {
+        const res = await request.post('/volunteerTraining/enroll-participant', {
           trainingId: route.params.id,
           volunteerId: volunteer.volunteerId
         })
         if (res.code === '200') {
           ElMessage.success(`已成功添加志愿者: ${volunteer.name}`)
-          // Refresh participant list on the main page
           await fetchParticipants()
-          // Remove the added volunteer from the dialog list
           addableVolunteers.value = addableVolunteers.value.filter(v => v.volunteerId !== volunteer.volunteerId)
         } else {
           ElMessage.error(res.msg || '添加失败')
@@ -754,7 +756,7 @@ export default {
       goBack,
       fetchTrainingDetail,
       updateCheckInStatus,
-      // [NEW] Expose state and methods for the new dialog
+      // Expose state and methods for the new dialog
       showAddParticipantDialog,
       addableVolunteers,
       isFetchingAddable,
@@ -1158,7 +1160,7 @@ export default {
   flex: 1;
 }
 
-/* [NEW] Style for the add participant dialog search bar */
+/* Style for the add participant dialog search bar */
 .dialog-search-bar {
   margin-bottom: 20px;
 }

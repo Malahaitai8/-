@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class VolunteerTrainingService {
@@ -299,77 +300,72 @@ public class VolunteerTrainingService {
         return volunteerTrainingMapper.selectTrainingsWithOrgNameByTheme(theme);
     }
 
-    /**
-     * 【新方法】根据培训ID获取所有参与的志愿者列表
-     *
-     * @param trainingId 培训ID
-     * @return 参与该培训的志愿者列表
-     * @throws CustomException 如果培训ID为空或培训不存在
-     */
-    public List<Volunteer> getParticipantsByTrainingId(String trainingId) throws CustomException {
-        if (!StringUtils.hasText(trainingId)) {
-            throw new CustomException("培训ID不能为空", "400");
-        }
-        // 可选：检查培训是否存在
-        if (volunteerTrainingMapper.selectById(trainingId) == null) {
-            throw new CustomException("未找到ID为 " + trainingId + " 的培训", "404");
-        }
-        // 调用新创建的Mapper方法
-        return participationMapper.selectVolunteersByTrainingId(trainingId);
-}
-/**
-     * 【新方法】更新志愿者在某项培训中的签到状态
-     *
-     * @param trainingId  培训ID
-     * @param volunteerId 志愿者ID
-     * @param isCheckedIn 新的签到状态
-     * @throws CustomException 如果参数无效或更新失败
-     */
-    @Transactional
-    public void updateParticipationStatus(String trainingId, String volunteerId, String isCheckedIn) throws CustomException {
-        if (!StringUtils.hasText(trainingId) || !StringUtils.hasText(volunteerId) || !StringUtils.hasText(isCheckedIn)) {
-            throw new CustomException("参数不能为空 (trainingId, volunteerId, isCheckedIn)", "400");
-        }
 
-        int updatedRows = participationMapper.updateCheckInStatus(trainingId, volunteerId, isCheckedIn);
-
-        if (updatedRows == 0) {
-            // 可能是因为找不到对应的参与记录
-            throw new CustomException("更新签到状态失败，未找到对应的参与记录", "404");
-        }
-    }
 
 
    // 在类的顶部注入 VolunteerMapper
     @Resource
     private VolunteerMapper volunteerMapper;
 
-    /**
-     * 【新方法-已重命名】获取可添加到指定培训的志愿者列表 (排除已参加的)
+
+
+
+
+/**
+     * 【核心】获取指定培训的参与者列表（包含签到状态）
      * @param trainingId 培训ID
-     * @param name 搜索关键词 (按姓名)
-     * @return 可添加的志愿者列表
+     * @return 包含志愿者完整信息和签到状态的Map列表
      */
-    public List<Volunteer> getPotentialParticipantsForTraining(String trainingId, String name) {
-        // 1. 获取所有符合搜索条件的志愿者
-        List<Volunteer> allVolunteers = volunteerMapper.searchVolunteersByName(name);
-
-        // 2. 获取已经参与此培训的志愿者ID列表
-        List<String> participantIds = participationMapper.selectByTrainingId(trainingId)
-                .stream()
-                .map(VolunteerTrainingParticipation::getVolunteerId)
-                .toList();
-
-        // 3. 从所有志愿者中，排除已经参与的
-        return allVolunteers.stream()
-                .filter(v -> !participantIds.contains(v.getVolunteerId()))
-                .toList();
+    public List<Map<String, Object>> getParticipantsByTrainingId(String trainingId) {
+        if (!StringUtils.hasText(trainingId)) {
+            throw new CustomException("培训ID不能为空", "400");
+        }
+        return participationMapper.selectParticipantsWithStatusByTrainingId(trainingId);
     }
 
     /**
-     * 【新方法-已重命名】将一名志愿者添加到培训中
-     * @param trainingId 培训ID
-     * @param volunteerId 志愿者ID
+     * 【核心】更新志愿者在某项培训中的签到状态
+     */
+    @Transactional
+    public void updateParticipationStatus(String trainingId, String volunteerId, String isCheckedIn) {
+        if (!StringUtils.hasText(trainingId) || !StringUtils.hasText(volunteerId) || !StringUtils.hasText(isCheckedIn)) {
+            throw new CustomException("参数不能为空 (trainingId, volunteerId, isCheckedIn)", "400");
+        }
+
+        VolunteerTrainingParticipation existingRecord = participationMapper.selectByPrimaryKey(volunteerId, trainingId);
+        if (existingRecord == null) {
+            throw new CustomException("更新签到状态失败，未找到对应的参与记录", "404");
+        }
+
+        VolunteerTrainingParticipation participationToUpdate = new VolunteerTrainingParticipation();
+        participationToUpdate.setVolunteerId(volunteerId);
+        participationToUpdate.setTrainingId(trainingId);
+        participationToUpdate.setIsCheckedIn(isCheckedIn);
+
+        int updatedRows = participationMapper.updateByPrimaryKey(participationToUpdate);
+
+        if (updatedRows == 0) {
+            throw new CustomException("数据库更新失败，请稍后重试", "500");
+        }
+    }
+
+    /**
+     * 获取可添加到指定培训的志愿者列表 (排除已参加的)
+     */
+    public List<Volunteer> getPotentialParticipantsForTraining(String trainingId, String name) {
+        List<Volunteer> allVolunteers = volunteerMapper.searchVolunteersByName(name);
+        List<String> participantIds = participationMapper.selectByTrainingId(trainingId)
+                .stream()
+                .map(VolunteerTrainingParticipation::getVolunteerId)
+                .collect(Collectors.toList());
+
+        return allVolunteers.stream()
+                .filter(v -> !participantIds.contains(v.getVolunteerId()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 将一名志愿者添加到培训中
      */
     @Transactional
     public void enrollVolunteerInTraining(String trainingId, String volunteerId) {
@@ -377,17 +373,15 @@ public class VolunteerTrainingService {
             throw new CustomException("培训ID和志愿者ID均不能为空", "400");
         }
 
-        // 检查是否已存在
         VolunteerTrainingParticipation existing = participationMapper.selectByPrimaryKey(volunteerId, trainingId);
         if (existing != null) {
-            throw new CustomException("该志愿者已参加此培训，请勿重复添加", "409"); // 409 Conflict
+            throw new CustomException("该志愿者已参加此培训，请勿重复添加", "409");
         }
 
-        // 创建新的参与记录
         VolunteerTrainingParticipation newParticipation = new VolunteerTrainingParticipation();
         newParticipation.setTrainingId(trainingId);
         newParticipation.setVolunteerId(volunteerId);
-        newParticipation.setIsCheckedIn("否"); // 默认未签到
+        newParticipation.setIsCheckedIn("否");
 
         participationMapper.insert(newParticipation);
     }

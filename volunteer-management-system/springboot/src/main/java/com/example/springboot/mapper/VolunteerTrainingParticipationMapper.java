@@ -5,6 +5,7 @@ import com.example.springboot.entity.VolunteerTrainingParticipation;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface VolunteerTrainingParticipationMapper {
 
@@ -134,9 +135,9 @@ public interface VolunteerTrainingParticipationMapper {
                               @Param("rating") Integer rating);
 
 
-
     /**
      * 【已修改】根据培训ID查询所有参与的志愿者详细信息，并包含签到状态
+     *
      * @param trainingId 培训ID
      * @return 包含签到状态的志愿者对象列表
      */
@@ -147,7 +148,8 @@ public interface VolunteerTrainingParticipationMapper {
 
     /**
      * 【已修改】更新指定培训中某个志愿者的签到状态
-     * @param trainingId 培训ID
+     *
+     * @param trainingId  培训ID
      * @param volunteerId 志愿者ID
      * @param isCheckedIn 签到状态 ("是" 或 "否")
      * @return 更新的行数
@@ -160,6 +162,26 @@ public interface VolunteerTrainingParticipationMapper {
                             @Param("isCheckedIn") String isCheckedIn);
 
 
+    /**
+     * 【核心】联表查询参与者的详细信息及其在该培训中的特定状态
+     *
+     * @return 返回一个Map列表，每个Map代表一个带有签到状态的参与者
+     */
+    @Select("SELECT " +
+            "    v.VolunteerID as volunteerId, " +
+            "    v.Name as name, " +
+            "    v.PhoneNumber as phone, " +
+            "    v.Gender as gender, " +
+            "    v.PoliticalStatus as politicalStatus, " +
+            "    v.HighestEducation as highestEducation, " +
+            "    v.ServiceCategory as serviceCategory, " +
+            "    p.IsCheckedIn as isCheckedIn, " +
+            "    p.OrgToVolunteerRating as orgToVolunteerRating, " +
+            "    p.VolunteerToOrgRating as volunteerToOrgRating " +
+            "FROM tbl_Volunteer v " +
+            "JOIN tbl_VolunteerTrainingParticipation p ON v.VolunteerID = p.VolunteerID " +
+            "WHERE p.TrainingID = #{trainingId}")
+    List<Map<String, Object>> selectParticipantsWithStatusByTrainingId(@Param("trainingId") String trainingId);
 
 
 }

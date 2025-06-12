@@ -44,28 +44,6 @@ public class VolunteerTrainingController {
     }
 
     /**
-     * 【新接口】根据培训ID查询参与该培训的所有志愿者列表
-     * API: GET /volunteerTraining/{trainingId}/participants
-     *
-     * @param trainingId 培训ID
-     * @return 包含志愿者列表的Result对象
-     */
-    @GetMapping("/{trainingId}/participants")
-    public Result getTrainingParticipants(@PathVariable String trainingId) {
-        try {
-            List<Volunteer> participants = volunteerTrainingService.getParticipantsByTrainingId(trainingId);
-            return Result.success(participants);
-        } catch (CustomException e) {
-            return Result.error(e.getCode(), e.getMsg());
-        } catch (Exception e) {
-            // 记录日志 e.printStackTrace();
-            return Result.error("500", "获取培训参与者列表失败：" + e.getMessage());
-        }
-    }
-
-    // 【主要修改点】修改了此方法的实现
-
-    /**
      * 志愿者对培训进行评价
      * API: POST /volunteerTraining/rate
      */
@@ -373,10 +351,41 @@ public class VolunteerTrainingController {
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ /**
+     * 【核心】获取指定培训的参与者列表（包含签到状态）
+     * API: GET /volunteerTraining/{trainingId}/participants
+     */
+    @GetMapping("/{trainingId}/participants")
+    public Result getTrainingParticipants(@PathVariable String trainingId) {
+        try {
+            // 正确调用返回 List<Map> 的方法
+            List<Map<String, Object>> participants = volunteerTrainingService.getParticipantsByTrainingId(trainingId);
+            return Result.success(participants);
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            return Result.error("500", "获取培训参与者列表失败：" + e.getMessage());
+        }
+    }
+
     /**
-     * 【新接口】更新培训中某个志愿者的签到状态
+     * 更新培训中某个志愿者的签到状态
      * API: PUT /volunteerTraining/participation/status
-     * Request Body: { "trainingId": "...", "volunteerId": "...", "isCheckedIn": "是|否" }
      */
     @PutMapping("/participation/status")
     public Result updateParticipationStatus(@RequestBody Map<String, String> payload) {
@@ -396,7 +405,7 @@ public class VolunteerTrainingController {
     }
 
     /**
-     * 【新接口-已重命名】获取可添加到某培训的志愿者列表
+     * 获取可添加到某培训的志愿者列表
      * API: GET /volunteerTraining/{trainingId}/potential-participants
      */
     @GetMapping("/{trainingId}/potential-participants")
@@ -410,7 +419,7 @@ public class VolunteerTrainingController {
     }
 
     /**
-     * 【新接口-已重命名】将志愿者添加到培训中
+     * 将志愿者添加到培训中
      * API: POST /volunteerTraining/enroll-participant
      */
     @PostMapping("/enroll-participant")
@@ -426,4 +435,5 @@ public class VolunteerTrainingController {
             return Result.error("500", "添加失败：" + e.getMessage());
         }
     }
+
 }
