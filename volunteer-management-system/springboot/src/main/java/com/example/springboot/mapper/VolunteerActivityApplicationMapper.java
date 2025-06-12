@@ -129,4 +129,29 @@ public interface VolunteerActivityApplicationMapper {
             "    app.ApplicationTime DESC"
     })
     List<Map<String, Object>> selectPendingApplicationsForOrg(@Param("orgId") String orgId);
+
+
+    //新增
+
+    /**
+     * 当申请被批准时，将志愿者、活动和岗位信息插入到参与表中。
+     * @param volunteerId 志愿者ID
+     * @param activityId 活动ID
+     * @param actualPositionId 实际参与的岗位ID (来自申请时的意向岗位)
+     * @return 插入的行数
+     */
+    @Insert("INSERT INTO tbl_VolunteerActivityParticipation (VolunteerID, ActivityID, ActualPositionID) " +
+            "VALUES (#{volunteerId,jdbcType=CHAR}, #{activityId,jdbcType=CHAR}, #{actualPositionId,jdbcType=CHAR})")
+    int insertIntoParticipation(@Param("volunteerId") String volunteerId,
+                                @Param("activityId") String activityId,
+                                @Param("actualPositionId") String actualPositionId);
+
+    /**
+     * 检查参与记录是否已存在，防止重复插入
+     * @return 存在的记录数
+     */
+    @Select("SELECT COUNT(*) FROM tbl_VolunteerActivityParticipation WHERE VolunteerID = #{volunteerId} AND ActivityID = #{activityId}")
+    int checkExistingParticipation(@Param("volunteerId") String volunteerId, @Param("activityId") String activityId);
+
+
 }
