@@ -190,6 +190,16 @@
               <h2>参与志愿者</h2>
               <div class="header-right">
                 <el-tag class="count-tag">共 {{ participants.length }} 名志愿者</el-tag>
+                <!-- [NEW] Add Participant Button -->
+                <el-button
+                  type="primary"
+                  size="small"
+                  @click="openAddParticipantDialog"
+                  class="add-timeslot-btn"
+                  icon="el-icon-plus"
+                >
+                  添加培训人员
+                </el-button>
               </div>
             </div>
 
@@ -201,14 +211,12 @@
               <p>暂无参与者信息</p>
             </div>
             <div v-else class="participants-container">
-              <!-- [MODIFIED] Participant card structure updated -->
               <div v-for="participant in participants" :key="participant.volunteerId" class="participant-card">
                 <div class="participant-header">
                   <div class="participant-info">
                     <h3 class="participant-name">{{ participant.name }}</h3>
                   </div>
                   <div class="participant-status">
-                    <!-- [MODIFIED] Switched from el-tag to el-switch -->
                     <el-switch
                         v-model="participant.isCheckedIn"
                         active-value="是"
@@ -277,6 +285,47 @@
         </div>
       </el-card>
     </div>
+
+    <!-- [NEW] Add Participant Dialog -->
+    <el-dialog
+      v-model="showAddParticipantDialog"
+      title="添加培训人员"
+      width="60%"
+      top="5vh"
+    >
+      <div class="dialog-search-bar">
+        <el-input
+          v-model="addParticipantSearchQuery"
+          placeholder="按姓名搜索志愿者"
+          clearable
+          @keyup.enter="fetchAddableVolunteers"
+          @clear="fetchAddableVolunteers"
+        >
+          <template #append>
+            <el-button @click="fetchAddableVolunteers" :icon="InfoFilled">搜索</el-button>
+          </template>
+        </el-input>
+      </div>
+      <el-table
+        :data="addableVolunteers"
+        v-loading="isFetchingAddable"
+        style="width: 100%"
+        height="50vh"
+        border
+        stripe
+      >
+        <el-table-column prop="volunteerId" label="志愿者ID" width="180"></el-table-column>
+        <el-table-column prop="name" label="姓名" width="120"></el-table-column>
+        <el-table-column prop="phone" label="电话"></el-table-column>
+        <el-table-column prop="gender" label="性别" width="80"></el-table-column>
+        <el-table-column label="操作" width="100" fixed="right">
+          <template #default="scope">
+            <el-button size="small" type="success" @click="handleAddParticipant(scope.row)">添加</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
 
     <!-- 添加时段对话框 -->
     <el-dialog
@@ -363,6 +412,13 @@ export default {
     const timeslotFormRef = ref(null)
     const editForm = ref({})
 
+    // [NEW] State for adding participants
+    const showAddParticipantDialog = ref(false)
+    const addableVolunteers = ref([])
+    const isFetchingAddable = ref(false)
+    const addParticipantSearchQuery = ref('')
+
+
     const addTimeslotForm = reactive({
       startTime: '',
       endTime: '',
@@ -384,7 +440,6 @@ export default {
         const res = await request.get(`/volunteerTraining/get/${route.params.id}`)
         if (res.code === '200' && res.data) {
           training.value = res.data
-          // [MODIFIED] Fetching participants now gets full volunteer details
           await Promise.all([
             fetchTimeslots(),
             fetchParticipants()
@@ -421,13 +476,11 @@ export default {
     const fetchParticipants = async () => {
       isLoadingParticipants.value = true
       try {
-        // This endpoint now returns detailed volunteer info
         const res = await request.get(`/volunteerTraining/${route.params.id}/participants`)
         if (res.code === '200' && res.data) {
-          // ensure every participant has an isCheckedIn property
           participants.value = res.data.map(p => ({
             ...p,
-            isCheckedIn: p.isCheckedIn || '否' // Default to '否' if null/undefined
+            isCheckedIn: p.isCheckedIn || '否'
           }))
         } else {
            participants.value = []
@@ -440,7 +493,6 @@ export default {
       }
     }
 
-    // [NEW] Method to update check-in status
     const updateCheckInStatus = async (participant) => {
       const originalStatus = participant.isCheckedIn === '是' ? '否' : '是'
       try {
@@ -453,17 +505,62 @@ export default {
         if (res.code === '200') {
           ElMessage.success('签到状态更新成功！');
         } else {
-          // Revert on failure
           participant.isCheckedIn = originalStatus;
           ElMessage.error(res.msg || '更新失败');
         }
       } catch (err) {
-        // Revert on failure
         participant.isCheckedIn = originalStatus;
         console.error('更新签到状态出错:', err);
         ElMessage.error('网络错误，更新签到状态失败');
       }
     };
+
+    // [NEW] Methods for adding participants
+    const openAddParticipantDialog = () => {
+      addParticipantSearchQuery.value = ''
+      fetchAddableVolunteers();
+      showAddParticipantDialog.value = true
+    }
+
+    const fetchAddableVolunteers = async () => {
+      isFetchingAddable.value = true
+      try {
+        const res = await request.get(`/volunteerTraining/${route.params.id}/addable-volunteers`, {
+          params: { name: addParticipantSearchQuery.value }
+        })
+        if (res.code === '200') {
+          addableVolunteers.value = res.data || []
+        } else {
+          ElMessage.error(res.msg || '获取可添加志愿者列表失败')
+        }
+      } catch (err) {
+        console.error('获取可添加志愿者列表失败:', err)
+        ElMessage.error('网络错误，获取可添加志愿者列表失败')
+      } finally {
+        isFetchingAddable.value = false
+      }
+    }
+
+    const handleAddParticipant = async (volunteer) => {
+      try {
+        const res = await request.post('/volunteerTraining/add-participant', {
+          trainingId: route.params.id,
+          volunteerId: volunteer.volunteerId
+        })
+        if (res.code === '200') {
+          ElMessage.success(`已成功添加志愿者: ${volunteer.name}`)
+          // Refresh participant list on the main page
+          await fetchParticipants()
+          // Remove the added volunteer from the dialog list
+          addableVolunteers.value = addableVolunteers.value.filter(v => v.volunteerId !== volunteer.volunteerId)
+        } else {
+          ElMessage.error(res.msg || '添加失败')
+        }
+      } catch (err) {
+        console.error('添加志愿者失败:', err)
+        ElMessage.error('网络错误，添加志愿者失败')
+      }
+    }
 
 
     const handleAddTimeslot = async () => {
@@ -472,7 +569,6 @@ export default {
         return
       }
 
-      // 验证开始时间是否晚于结束时间
       const startTime = new Date(addTimeslotForm.startTime)
       const endTime = new Date(addTimeslotForm.endTime)
       if (startTime >= endTime) {
@@ -489,7 +585,7 @@ export default {
         }
 
         const res = await request.post('/activityTimeslot', payload, {
-          timeout: 10000 // 设置10秒超时
+          timeout: 10000
         })
 
         if (res.code === '200') {
@@ -657,7 +753,16 @@ export default {
       handleTimeslotDialogClose,
       goBack,
       fetchTrainingDetail,
-      updateCheckInStatus, // [NEW] Expose method
+      updateCheckInStatus,
+      // [NEW] Expose state and methods for the new dialog
+      showAddParticipantDialog,
+      addableVolunteers,
+      isFetchingAddable,
+      addParticipantSearchQuery,
+      openAddParticipantDialog,
+      fetchAddableVolunteers,
+      handleAddParticipant,
+      InfoFilled,
     }
   }
 }
@@ -1051,6 +1156,11 @@ export default {
 
 .rating-display {
   flex: 1;
+}
+
+/* [NEW] Style for the add participant dialog search bar */
+.dialog-search-bar {
+  margin-bottom: 20px;
 }
 
 /* 空状态 */

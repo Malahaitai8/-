@@ -2,7 +2,9 @@ package com.example.springboot.service;
 
 import com.example.springboot.entity.Volunteer;
 import com.example.springboot.entity.VolunteerTraining;
+import com.example.springboot.entity.VolunteerTrainingParticipation;
 import com.example.springboot.exception.CustomException;
+import com.example.springboot.mapper.VolunteerMapper;
 import com.example.springboot.mapper.VolunteerTrainingMapper;
 import com.example.springboot.mapper.VolunteerTrainingParticipationMapper;
 import com.github.pagehelper.PageHelper;
@@ -335,6 +337,59 @@ public class VolunteerTrainingService {
             // 可能是因为找不到对应的参与记录
             throw new CustomException("更新签到状态失败，未找到对应的参与记录", "404");
         }
+    }
+
+
+   // 在类的顶部注入 VolunteerMapper
+    @Resource
+    private VolunteerMapper volunteerMapper;
+
+    /**
+     * 【新方法-已重命名】获取可添加到指定培训的志愿者列表 (排除已参加的)
+     * @param trainingId 培训ID
+     * @param name 搜索关键词 (按姓名)
+     * @return 可添加的志愿者列表
+     */
+    public List<Volunteer> getPotentialParticipantsForTraining(String trainingId, String name) {
+        // 1. 获取所有符合搜索条件的志愿者
+        List<Volunteer> allVolunteers = volunteerMapper.searchVolunteersByName(name);
+
+        // 2. 获取已经参与此培训的志愿者ID列表
+        List<String> participantIds = participationMapper.selectByTrainingId(trainingId)
+                .stream()
+                .map(VolunteerTrainingParticipation::getVolunteerId)
+                .toList();
+
+        // 3. 从所有志愿者中，排除已经参与的
+        return allVolunteers.stream()
+                .filter(v -> !participantIds.contains(v.getVolunteerId()))
+                .toList();
+    }
+
+    /**
+     * 【新方法-已重命名】将一名志愿者添加到培训中
+     * @param trainingId 培训ID
+     * @param volunteerId 志愿者ID
+     */
+    @Transactional
+    public void enrollVolunteerInTraining(String trainingId, String volunteerId) {
+        if (!StringUtils.hasText(trainingId) || !StringUtils.hasText(volunteerId)) {
+            throw new CustomException("培训ID和志愿者ID均不能为空", "400");
+        }
+
+        // 检查是否已存在
+        VolunteerTrainingParticipation existing = participationMapper.selectByPrimaryKey(volunteerId, trainingId);
+        if (existing != null) {
+            throw new CustomException("该志愿者已参加此培训，请勿重复添加", "409"); // 409 Conflict
+        }
+
+        // 创建新的参与记录
+        VolunteerTrainingParticipation newParticipation = new VolunteerTrainingParticipation();
+        newParticipation.setTrainingId(trainingId);
+        newParticipation.setVolunteerId(volunteerId);
+        newParticipation.setIsCheckedIn("否"); // 默认未签到
+
+        participationMapper.insert(newParticipation);
     }
 
 }

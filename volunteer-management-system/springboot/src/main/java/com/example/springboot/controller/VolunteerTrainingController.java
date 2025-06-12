@@ -63,7 +63,8 @@ public class VolunteerTrainingController {
         }
     }
 
-        // 【主要修改点】修改了此方法的实现
+    // 【主要修改点】修改了此方法的实现
+
     /**
      * 志愿者对培训进行评价
      * API: POST /volunteerTraining/rate
@@ -77,7 +78,7 @@ public class VolunteerTrainingController {
             Integer rating = ratingNum != null ? ratingNum.intValue() : null;
 
             // 接收 Service 返回的最新对象
-             volunteerTrainingService.rateTraining(volunteerId, trainingId, rating);
+            volunteerTrainingService.rateTraining(volunteerId, trainingId, rating);
 
             // 将最新对象返回给前端
             return Result.success("评价成功");
@@ -270,7 +271,7 @@ public class VolunteerTrainingController {
         try {
             // 创建VolunteerTraining对象
             VolunteerTraining training = new VolunteerTraining();
-            
+
             // 映射前端字段到实体字段
             training.setTrainingName((String) payload.get("trainingName"));
             training.setTheme((String) payload.get("trainingType")); // 前端传trainingType，实体用theme
@@ -278,31 +279,31 @@ public class VolunteerTrainingController {
             training.setOrgId((String) payload.get("orgId"));
             training.setContactPersonPhone((String) payload.get("contactPersonPhone"));
             training.setTrainingStatus((String) payload.get("trainingStatus"));
-            
+
             // 处理参与人数字段映射
             Object participantCount = payload.get("participantCount");
             if (participantCount instanceof Number) {
                 training.setRecruitmentCount(((Number) participantCount).intValue());
             }
-            
+
             // 处理时间字段转换
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String startTimeStr = (String) payload.get("startTime");
             String endTimeStr = (String) payload.get("endTime");
-            
+
             if (startTimeStr != null) {
                 training.setStartTime(sdf.parse(startTimeStr));
             }
             if (endTimeStr != null) {
                 training.setEndTime(sdf.parse(endTimeStr));
             }
-            
+
             // 设置创建时间
             training.setCreationTime(new Date());
-            
+
             System.out.println("申请培训数据: " + payload);
             System.out.println("转换后的培训实体: " + training.getTrainingName() + ", " + training.getTheme());
-            
+
             volunteerTrainingService.addTraining(training);
             return Result.success("志愿培训申请提交成功");
         } catch (CustomException e) {
@@ -316,6 +317,7 @@ public class VolunteerTrainingController {
     /**
      * 根据组织ID查询培训，并包含组织名称
      * API: GET /volunteerTraining/detailedByOrg/{orgId}
+     *
      * @param orgId 组织ID
      * @return 包含组织名称的培训列表
      */
@@ -335,6 +337,7 @@ public class VolunteerTrainingController {
      * 根据培训状态查询培训，并包含组织名称
      * API: GET /volunteerTraining/detailedByStatus
      * Query Param: status
+     *
      * @param status 培训状态
      * @return 包含组织名称的培训列表
      */
@@ -354,6 +357,7 @@ public class VolunteerTrainingController {
      * 根据培训主题查询培训，并包含组织名称
      * API: GET /volunteerTraining/detailedByTheme
      * Query Param: theme
+     *
      * @param theme 培训主题
      * @return 包含组织名称的培训列表
      */
@@ -391,5 +395,35 @@ public class VolunteerTrainingController {
         }
     }
 
+    /**
+     * 【新接口-已重命名】获取可添加到某培训的志愿者列表
+     * API: GET /volunteerTraining/{trainingId}/potential-participants
+     */
+    @GetMapping("/{trainingId}/potential-participants")
+    public Result getPotentialParticipants(@PathVariable String trainingId, @RequestParam(required = false) String name) {
+        try {
+            List<Volunteer> volunteers = volunteerTrainingService.getPotentialParticipantsForTraining(trainingId, name);
+            return Result.success(volunteers);
+        } catch (Exception e) {
+            return Result.error("500", "获取可添加志愿者列表失败：" + e.getMessage());
+        }
+    }
 
+    /**
+     * 【新接口-已重命名】将志愿者添加到培训中
+     * API: POST /volunteerTraining/enroll-participant
+     */
+    @PostMapping("/enroll-participant")
+    public Result enrollParticipant(@RequestBody Map<String, String> payload) {
+        try {
+            String trainingId = payload.get("trainingId");
+            String volunteerId = payload.get("volunteerId");
+            volunteerTrainingService.enrollVolunteerInTraining(trainingId, volunteerId);
+            return Result.success("添加成功");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            return Result.error("500", "添加失败：" + e.getMessage());
+        }
+    }
 }
