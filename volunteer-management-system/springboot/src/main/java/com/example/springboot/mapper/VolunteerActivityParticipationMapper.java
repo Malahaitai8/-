@@ -83,11 +83,11 @@ public interface VolunteerActivityParticipationMapper {
      * @param isCheckedIn 签到状态 ('是' 或 '否')
      * @return 影响行数
      */
-    @Update("UPDATE tbl_VolunteerActivityParticipation SET IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR} " +
-            "WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND ActualPositionID = #{actualPositionId,jdbcType=CHAR}")
-    int updateCheckInStatus(@Param("volunteerId") String volunteerId,
-                            @Param("actualPositionId") String actualPositionId,
-                            @Param("isCheckedIn") String isCheckedIn);
+//    @Update("UPDATE tbl_VolunteerActivityParticipation SET IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR} " +
+//            "WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND ActualPositionID = #{actualPositionId,jdbcType=CHAR}")
+//    int updateCheckInStatus(@Param("volunteerId") String volunteerId,
+//                            @Param("actualPositionId") String actualPositionId,
+//                            @Param("isCheckedIn") String isCheckedIn);
 
     /**
      * 更新志愿者对组织的评分
@@ -102,18 +102,18 @@ public interface VolunteerActivityParticipationMapper {
                                    @Param("actualPositionId") String actualPositionId,
                                    @Param("volunteerToOrgRating") Integer volunteerToOrgRating);
 
-    /**
-     * 更新组织对志愿者的评分
-     * @param volunteerId 志愿者ID
-     * @param actualPositionId 实际岗位ID
-     * @param orgToVolunteerRating 组织给志愿者的评分
-     * @return 影响行数
-     */
-    @Update("UPDATE tbl_VolunteerActivityParticipation SET OrgToVolunteerRating = #{orgToVolunteerRating,jdbcType=INTEGER} " +
-            "WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND ActualPositionID = #{actualPositionId,jdbcType=CHAR}")
-    int updateOrgToVolunteerRating(@Param("volunteerId") String volunteerId,
-                                   @Param("actualPositionId") String actualPositionId,
-                                   @Param("orgToVolunteerRating") Integer orgToVolunteerRating);
+//    /**
+//     * 更新组织对志愿者的评分
+//     * @param volunteerId 志愿者ID
+//     * @param actualPositionId 实际岗位ID
+//     * @param orgToVolunteerRating 组织给志愿者的评分
+//     * @return 影响行数
+//     */
+//    @Update("UPDATE tbl_VolunteerActivityParticipation SET OrgToVolunteerRating = #{orgToVolunteerRating,jdbcType=INTEGER} " +
+//            "WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND ActualPositionID = #{actualPositionId,jdbcType=CHAR}")
+//    int updateOrgToVolunteerRating(@Param("volunteerId") String volunteerId,
+//                                   @Param("actualPositionId") String actualPositionId,
+//                                   @Param("orgToVolunteerRating") Integer orgToVolunteerRating);
 
 
  /**
@@ -165,5 +165,15 @@ public interface VolunteerActivityParticipationMapper {
         "WHERE part.VolunteerID = #{volunteerId,jdbcType=CHAR}"
     })
     List<Map<String, Object>> selectMyParticipations(@Param("volunteerId") String volunteerId);
+
+
+
+     @Update("UPDATE tbl_VolunteerActivityParticipation SET OrgToVolunteerRating = #{orgToVolunteerRating} WHERE VolunteerID = #{volunteerId} AND ActivityID = #{activityId}")
+    void updateOrgToVolunteerRating(@Param("volunteerId") String volunteerId, @Param("activityId") String actualPositionId, @Param("orgToVolunteerRating") Integer orgToVolunteerRating);
+
+      // [修复] 新增一个专门用于更新签到状态的方法
+    @Update("UPDATE tbl_VolunteerActivityParticipation SET IsCheckedIn = #{isCheckedIn} WHERE VolunteerID = #{volunteerId} AND ActualPositionID = #{actualPositionId}")
+    void updateCheckInStatus(@Param("volunteerId") String volunteerId, @Param("actualPositionId") String actualPositionId, @Param("isCheckedIn") String isCheckedIn);
+
 
 }

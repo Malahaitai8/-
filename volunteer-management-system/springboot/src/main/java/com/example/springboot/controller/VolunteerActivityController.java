@@ -467,52 +467,34 @@ public class VolunteerActivityController {
 
 
  /**
-     * 更新志愿者的签到状态
-     * 接口: PUT /volunteerActivity/participation/check-in
-     * @param payload 包含 activityId, volunteerId, isCheckedIn 的 Map
-     * @return Result
+     * 更新志愿者签到状态
      */
     @PutMapping("/participation/check-in")
     public Result updateCheckInStatus(@RequestBody Map<String, String> payload) {
-        try {
-            volunteerActivityService.updateCheckInStatus(
-                payload.get("activityId"),
-                payload.get("volunteerId"),
-                payload.get("isCheckedIn")
-            );
-            return Result.success("签到状态更新成功");
-        } catch (CustomException e) {
-            return Result.error(e.getCode(), e.getMsg());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.error("500", "服务器内部错误，更新签到状态失败");
-        }
+        // [修复] 从请求体中获取 actualPositionId
+        String activityId = payload.get("activityId");
+        String volunteerId = payload.get("volunteerId");
+        String isCheckedIn = payload.get("isCheckedIn");
+        String actualPositionId = payload.get("actualPositionId"); // 新增获取
+
+        // [修复] 调用服务时传入 actualPositionId
+        volunteerActivityService.updateCheckInStatus(activityId, volunteerId, actualPositionId, isCheckedIn);
+        return Result.success("更新签到状态成功");
     }
 
     /**
-     * 组织对活动中的志愿者进行评分
-     * 接口: PUT /volunteerActivity/rate-participant
-     * @param payload 包含 activityId, volunteerId, rating 的 Map
-     * @return Result
+     * 组织为志愿者评分
      */
     @PutMapping("/rate-participant")
     public Result rateParticipant(@RequestBody Map<String, Object> payload) {
-        try {
-            String activityId = (String) payload.get("activityId");
-            String volunteerId = (String) payload.get("volunteerId");
-            Integer rating = ((Number) payload.get("rating")).intValue();
+        // [修复] 从请求体中获取 activityId, volunteerId, actualPositionId, 和 rating
+        String activityId = (String) payload.get("activityId");
+        String volunteerId = (String) payload.get("volunteerId");
+        //String actualPositionId = (String) payload.get("actualPositionId"); // 新增获取
+        Integer rating = (Integer) payload.get("rating");
 
-            volunteerActivityService.rateParticipantByOrg(activityId, volunteerId, rating);
-            return Result.success("评价成功");
-        } catch (CustomException e) {
-            return Result.error(e.getCode(), e.getMsg());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.error("500", "服务器内部错误，评价失败");
-        }
-
-
-
-
-
-}}
+        // [修复] 调用服务时传入 actualPositionId
+        volunteerActivityService.rateParticipantByOrg(activityId, volunteerId, rating);
+        return Result.success("评价成功");
+    }
+}

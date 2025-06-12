@@ -334,7 +334,7 @@ export default {
       this.isSaving = true;
       try {
         const payload = { ...this.activity, ...this.editForm };
-        const response = await request.put(`/volunteerActivity/update`, payload);
+        const response = await request.put(`/volunteerActivity/${this.activity.activityId}`, payload);
         if (response.code === '200') {
           ElMessage.success('活动信息更新成功！');
           this.isEditing = false;
@@ -351,9 +351,11 @@ export default {
     async updateCheckInStatus(participant) {
       const originalStatus = participant.isCheckedIn === '是' ? '否' : '是';
       try {
+        // [修复] 在请求体中增加了 actualPositionId
         await request.put('/volunteerActivity/participation/check-in', {
           activityId: this.activity.activityId,
           volunteerId: participant.volunteerId,
+          actualPositionId: participant.actualPositionId, // 新增此行
           isCheckedIn: participant.isCheckedIn,
         });
         ElMessage.success('签到状态更新成功！');
@@ -363,6 +365,7 @@ export default {
       }
     },
     openRateDialog(participant) {
+      console.log('打开评分窗口，参与者信息:', participant); // 新增这行日志
       this.rateDialog = {
         visible: true,
         isSubmitting: false,
