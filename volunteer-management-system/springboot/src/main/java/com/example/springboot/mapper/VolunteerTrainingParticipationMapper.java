@@ -1,5 +1,6 @@
 package com.example.springboot.mapper;
 
+import com.example.springboot.entity.Volunteer;
 import com.example.springboot.entity.VolunteerTrainingParticipation;
 import org.apache.ibatis.annotations.*;
 
@@ -131,4 +132,20 @@ public interface VolunteerTrainingParticipationMapper {
     int updateVolunteerRating(@Param("volunteerId") String volunteerId,
                               @Param("trainingId") String trainingId,
                               @Param("rating") Integer rating);
+
+
+
+    /**
+     * 【新方法】根据培训ID查询所有参与的志愿者详细信息
+     * @param trainingId 培训ID
+     * @return 志愿者对象列表
+     */
+    @Select("SELECT v.* FROM tbl_Volunteer v " +
+            "JOIN tbl_VolunteerTrainingParticipation p ON v.VolunteerID = p.VolunteerID " +
+            "WHERE p.TrainingID = #{trainingId}")
+    List<Volunteer> selectVolunteersByTrainingId(@Param("trainingId") String trainingId);
+
+
+
+
 }

@@ -107,4 +107,7 @@ public interface VolunteerActivityMapper {
     })
     List<VolunteerActivity> selectAvailableActivitiesForVolunteer(@Param("filter") VolunteerActivity filter, @Param("volunteerId") String volunteerId);
 
+    @Select("select * from tbl_VolunteerActivity where ActivityID = #{id}")
+    VolunteerActivity getById(String id);
+
 }

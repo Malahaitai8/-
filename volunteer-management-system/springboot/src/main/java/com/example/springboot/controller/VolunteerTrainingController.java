@@ -1,6 +1,7 @@
 package com.example.springboot.controller;
 
 import com.example.springboot.common.Result;
+import com.example.springboot.entity.Volunteer;
 import com.example.springboot.entity.VolunteerTraining;
 import com.example.springboot.exception.CustomException;
 import com.example.springboot.service.VolunteerTrainingService;
@@ -39,6 +40,26 @@ public class VolunteerTrainingController {
             System.err.println("[DIAGNOSTIC] ==> Error caught in getMyParticipatedTrainings: " + e.getMessage());
             e.printStackTrace(); // 打印完整的堆栈信息
             return Result.error("500", "获取我的培训列表失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 【新接口】根据培训ID查询参与该培训的所有志愿者列表
+     * API: GET /volunteerTraining/{trainingId}/participants
+     *
+     * @param trainingId 培训ID
+     * @return 包含志愿者列表的Result对象
+     */
+    @GetMapping("/{trainingId}/participants")
+    public Result getTrainingParticipants(@PathVariable String trainingId) {
+        try {
+            List<Volunteer> participants = volunteerTrainingService.getParticipantsByTrainingId(trainingId);
+            return Result.success(participants);
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            // 记录日志 e.printStackTrace();
+            return Result.error("500", "获取培训参与者列表失败：" + e.getMessage());
         }
     }
 
@@ -347,4 +368,28 @@ public class VolunteerTrainingController {
             return Result.error("500", "按主题查询详细培训失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 【新接口】更新培训中某个志愿者的签到状态
+     * API: PUT /volunteerTraining/participation/status
+     * Request Body: { "trainingId": "...", "volunteerId": "...", "isCheckedIn": "是|否" }
+     */
+    @PutMapping("/participation/status")
+    public Result updateParticipationStatus(@RequestBody Map<String, String> payload) {
+        try {
+            String trainingId = payload.get("trainingId");
+            String volunteerId = payload.get("volunteerId");
+            String isCheckedIn = payload.get("isCheckedIn");
+
+            volunteerTrainingService.updateParticipationStatus(trainingId, volunteerId, isCheckedIn);
+            return Result.success("签到状态更新成功");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("500", "更新签到状态失败，服务器内部错误");
+        }
+    }
+
+
 }

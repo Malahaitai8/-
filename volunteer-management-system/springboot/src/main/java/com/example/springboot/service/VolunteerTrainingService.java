@@ -1,5 +1,6 @@
 package com.example.springboot.service;
 
+import com.example.springboot.entity.Volunteer;
 import com.example.springboot.entity.VolunteerTraining;
 import com.example.springboot.exception.CustomException;
 import com.example.springboot.mapper.VolunteerTrainingMapper;
@@ -9,6 +10,7 @@ import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -294,4 +296,45 @@ public class VolunteerTrainingService {
         }
         return volunteerTrainingMapper.selectTrainingsWithOrgNameByTheme(theme);
     }
+
+    /**
+     * 【新方法】根据培训ID获取所有参与的志愿者列表
+     *
+     * @param trainingId 培训ID
+     * @return 参与该培训的志愿者列表
+     * @throws CustomException 如果培训ID为空或培训不存在
+     */
+    public List<Volunteer> getParticipantsByTrainingId(String trainingId) throws CustomException {
+        if (!StringUtils.hasText(trainingId)) {
+            throw new CustomException("培训ID不能为空", "400");
+        }
+        // 可选：检查培训是否存在
+        if (volunteerTrainingMapper.selectById(trainingId) == null) {
+            throw new CustomException("未找到ID为 " + trainingId + " 的培训", "404");
+        }
+        // 调用新创建的Mapper方法
+        return participationMapper.selectVolunteersByTrainingId(trainingId);
+}
+/**
+     * 【新方法】更新志愿者在某项培训中的签到状态
+     *
+     * @param trainingId  培训ID
+     * @param volunteerId 志愿者ID
+     * @param isCheckedIn 新的签到状态
+     * @throws CustomException 如果参数无效或更新失败
+     */
+    @Transactional
+    public void updateParticipationStatus(String trainingId, String volunteerId, String isCheckedIn) throws CustomException {
+        if (!StringUtils.hasText(trainingId) || !StringUtils.hasText(volunteerId) || !StringUtils.hasText(isCheckedIn)) {
+            throw new CustomException("参数不能为空 (trainingId, volunteerId, isCheckedIn)", "400");
+        }
+
+        int updatedRows = participationMapper.updateCheckInStatus(trainingId, volunteerId, isCheckedIn);
+
+        if (updatedRows == 0) {
+            // 可能是因为找不到对应的参与记录
+            throw new CustomException("更新签到状态失败，未找到对应的参与记录", "404");
+        }
+    }
+
 }
