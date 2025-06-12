@@ -22,7 +22,7 @@ public class Result {
         result.setMsg("加载失败");
         return result;
     }
-    public static Result error(String msg,String code){
+    public static Result error(String code, String msg){
         Result result = new Result();
         result.setCode(code);
         result.setMsg(msg);

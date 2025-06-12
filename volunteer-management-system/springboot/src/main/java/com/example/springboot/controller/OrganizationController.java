@@ -260,4 +260,34 @@ public class OrganizationController {
             return Result.error("500", "按名称查询组织失败：" + e.getMessage());
         }
     }
+
+
+        /**
+     * 【新增】获取指定志愿者可以加入的组织列表。
+     * 该接口会排除志愿者已申请、已加入、已退出的组织。
+     * API端点: GET /organization/availableForVolunteer?volunteerId=...&orgName=...&pageNum=...&pageSize=...
+     *
+     * @param volunteerId 志愿者的ID (必填)。
+     * @param orgName 可选的组织名称模糊查询关键词。
+     * @param pageNum 页码。
+     * @param pageSize 每页大小。
+     * @return Result 对象，包含PageInfo<Organization>。
+     */
+    @GetMapping("/availableForVolunteer")
+    public Result getAvailableOrganizationsForVolunteer(
+            @RequestParam String volunteerId,
+            @RequestParam(required = false) String orgName, // 可选的查询参数
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "8") Integer pageSize) { // 默认pageSize为8，以匹配前端卡片布局
+        try {
+            PageInfo<Organization> pageInfo = organizationService.getAvailableOrganizationsForVolunteer(volunteerId, orgName, pageNum, pageSize);
+            return Result.success(pageInfo);
+        } catch (IllegalArgumentException e) {
+            return Result.error("400", e.getMessage());
+        } catch (Exception e) {
+            System.err.println("获取可加入组织列表失败: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("500", "获取可加入组织列表失败，系统内部错误");
+        }
+    }
 }

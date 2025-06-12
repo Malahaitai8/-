@@ -70,4 +70,32 @@ public class VolunteerOrganizationJoinController {
             return Result.error("500", "退出队伍失败，系统内部错误");
         }
     }
+
+
+     /**
+     * API: 志愿者申请加入组织。
+     * 端点: POST /volunteerOrganizationJoin/applyToJoin
+     * 请求体示例: { "volunteerId": "V001", "orgId": "ORG001" }
+     *
+     * @param payload 包含 volunteerId 和 orgId 的请求体Map。
+     * @return 统一封装的 Result 对象，表示操作成功或失败。
+     */
+    @PostMapping("/applyToJoin")
+    public Result applyToJoin(@RequestBody Map<String, String> payload) {
+        try {
+            String volunteerId = payload.get("volunteerId");
+            String orgId = payload.get("orgId");
+
+            volunteerOrganizationJoinService.applyToJoin(volunteerId, orgId);
+            return Result.success("加入申请已提交");
+        } catch (CustomException e) {
+            return Result.error(e.getCode(), e.getMsg());
+        } catch (IllegalArgumentException e) {
+            return Result.error("400", e.getMessage());
+        } catch (Exception e) {
+            System.err.println("申请加入队伍失败: " + e.getMessage());
+            e.printStackTrace();
+            return Result.error("500", "申请加入队伍失败，系统内部错误");
+        }
+    }
 }

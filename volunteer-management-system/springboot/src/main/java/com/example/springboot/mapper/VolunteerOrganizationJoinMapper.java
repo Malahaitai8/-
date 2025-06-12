@@ -124,4 +124,18 @@ public interface VolunteerOrganizationJoinMapper {
      * @return 加入记录列表
      */
     List<VolunteerOrganizationJoin> selectAll(VolunteerOrganizationJoin filterCriteria);
+
+    /**
+     * 查找特定的志愿者和组织之间的加入记录。
+     * 用于检查是否已存在申请或已加入。
+     * @param volunteerId 志愿者ID
+     * @param orgId 组织ID
+     * @return VolunteerOrganizationJoin 实体，如果存在则返回，否则返回 null。
+     */
+    @Select("SELECT volunteerId, orgId, joinTime, memberStatus FROM tbl_VolunteerOrganizationJoin " +
+            "WHERE volunteerId = #{volunteerId} AND orgId = #{orgId}")
+    VolunteerOrganizationJoin selectByVolunteerIdAndOrgId(
+            @Param("volunteerId") String volunteerId,
+            @Param("orgId") String orgId);
+
 }

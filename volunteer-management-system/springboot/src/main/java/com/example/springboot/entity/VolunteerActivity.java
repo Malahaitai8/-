@@ -9,10 +9,10 @@ public class VolunteerActivity {
     private String orgId; // 关联志愿组织机构表 (OrgID)
     private String activityName; // 志愿活动名称 (ActivityName)
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-DD HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date startTime; // 志愿活动开始时间 (StartTime)
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-DD HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date endTime; // 志愿活动结束时间 (EndTime)
 
     private String location; // 活动地点 (Location)
@@ -20,7 +20,7 @@ public class VolunteerActivity {
     private Integer acceptedCount; // 录取人数 (AcceptedCount)
     private String activityStatus; // 志愿活动状态 (ActivityStatus)
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-DD HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date creationTime; // 创建时间 (CreationTime)
 
     private String reviewerAdminId; // 审核管理员ID (ReviewerAdminID)
