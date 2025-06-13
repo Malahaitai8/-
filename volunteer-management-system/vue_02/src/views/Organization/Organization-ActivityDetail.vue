@@ -355,7 +355,6 @@ export default {
         await request.put('/volunteerActivity/participation/check-in', {
           activityId: this.activity.activityId,
           volunteerId: participant.volunteerId,
-          actualPositionId: participant.actualPositionId, // 新增此行
           isCheckedIn: participant.isCheckedIn,
         });
         ElMessage.success('签到状态更新成功！');

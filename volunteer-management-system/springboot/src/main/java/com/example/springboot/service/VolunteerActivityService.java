@@ -424,7 +424,7 @@ public class VolunteerActivityService {
      * @param isCheckedIn 签到状态 ("是" 或 "否")
      */
     @Transactional
-    public void updateCheckInStatus(String activityId, String volunteerId, String actualPositionId, String isCheckedIn) {
+    public void updateCheckInStatus(String activityId, String volunteerId, String isCheckedIn) {
         // [修复] 调用我们刚刚在 Mapper 接口中定义的、正确的新方法
         participationMapper.updateCheckInStatus(volunteerId, activityId, isCheckedIn);
     }

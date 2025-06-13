@@ -172,8 +172,8 @@ public interface VolunteerActivityParticipationMapper {
     void updateOrgToVolunteerRating(@Param("volunteerId") String volunteerId, @Param("activityId") String actualPositionId, @Param("orgToVolunteerRating") Integer orgToVolunteerRating);
 
       // [修复] 新增一个专门用于更新签到状态的方法
-    @Update("UPDATE tbl_VolunteerActivityParticipation SET IsCheckedIn = #{isCheckedIn} WHERE VolunteerID = #{volunteerId} AND ActualPositionID = #{actualPositionId}")
-    void updateCheckInStatus(@Param("volunteerId") String volunteerId, @Param("actualPositionId") String actualPositionId, @Param("isCheckedIn") String isCheckedIn);
+    @Update("UPDATE tbl_VolunteerActivityParticipation SET IsCheckedIn = #{isCheckedIn} WHERE VolunteerID = #{volunteerId} AND ActivityID = #{activityId}")
+    void updateCheckInStatus(@Param("volunteerId") String volunteerId, @Param("activityId") String activityId, @Param("isCheckedIn") String isCheckedIn);
 
 
 }

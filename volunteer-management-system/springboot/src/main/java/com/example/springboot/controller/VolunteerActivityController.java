@@ -475,10 +475,9 @@ public class VolunteerActivityController {
         String activityId = payload.get("activityId");
         String volunteerId = payload.get("volunteerId");
         String isCheckedIn = payload.get("isCheckedIn");
-        String actualPositionId = payload.get("actualPositionId"); // 新增获取
 
         // [修复] 调用服务时传入 actualPositionId
-        volunteerActivityService.updateCheckInStatus(activityId, volunteerId, actualPositionId, isCheckedIn);
+        volunteerActivityService.updateCheckInStatus(activityId, volunteerId, isCheckedIn);
         return Result.success("更新签到状态成功");
     }
 
