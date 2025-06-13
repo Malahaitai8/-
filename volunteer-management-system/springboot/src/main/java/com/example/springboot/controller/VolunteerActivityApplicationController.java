@@ -18,7 +18,7 @@ import java.util.Map;
 @RequestMapping("/api/application") // 定义接口的基础路径
 public class VolunteerActivityApplicationController {
 
-     @Autowired
+    @Autowired
     private VolunteerActivityApplicationService applicationService;
 
     /**
@@ -46,6 +46,7 @@ public class VolunteerActivityApplicationController {
 
     /**
      * 【新增接口】志愿者提交报名申请
+     *
      * @param payload 包含 volunteerId, activityId, intendedPositionId 的请求体
      * @return 操作结果
      */
@@ -64,7 +65,6 @@ public class VolunteerActivityApplicationController {
             return Result.error("500", "报名时发生未知错误: " + e.getMessage());
         }
     }
-
 
 
     @PutMapping("/update-status")
@@ -86,3 +86,4 @@ public class VolunteerActivityApplicationController {
         List<Map<String, Object>> pendingApplications = applicationService.getPendingApplicationsForOrg(orgId);
         return Result.success(pendingApplications);
     }
+}

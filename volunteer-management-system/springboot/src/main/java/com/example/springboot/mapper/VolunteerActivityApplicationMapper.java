@@ -51,44 +51,45 @@ public interface VolunteerActivityApplicationMapper {
      */
     List<VolunteerActivityApplication> selectAll(VolunteerActivityApplication filterCriteria);
 
-     /**
+    /**
      * 检查志愿者是否已对某活动下的某岗位提交了特定状态（如待审核、已通过）的申请
-     * @param volunteerId 志愿者ID
-     * @param activityId 活动ID
+     *
+     * @param volunteerId        志愿者ID
+     * @param activityId         活动ID
      * @param intendedPositionId 意向岗位ID (可以为null，表示检查活动级别申请)
-     * @param statuses 检查的状态列表
+     * @param statuses           检查的状态列表
      * @return 匹配的申请数量
      */
     int checkExistingApplicationByPositionAndStatus(@Param("volunteerId") String volunteerId,
-                                           @Param("activityId") String activityId,
-                                           @Param("intendedPositionId") String intendedPositionId,
-                                           @Param("statuses") List<String> statuses);
+                                                    @Param("activityId") String activityId,
+                                                    @Param("intendedPositionId") String intendedPositionId,
+                                                    @Param("statuses") List<String> statuses);
 
-        /**
+    /**
      * 【最重要的修改】
      * 我们将之前在XML中的JOIN查询，直接放到了下面的 @Select 注解里。
      * SQL语句被写成了一个字符串数组，这样更清晰易读。
      */
     @Select({
-        "SELECT",
-        "    app.ApplicationID       AS applicationId,",
-        "    app.ApplicationStatus   AS applicationStatus,",
-        "    app.ApplicationTime     AS applicationTime,",
-        "    act.ActivityID          AS activityId,",
-        "    act.ActivityName        AS activityName,",
-        "    act.Location            AS location,",
-        "    act.StartTime           AS startTime,",
-        "    pos.PositionName        AS intendedPositionName",
-        "FROM",
-        "    tbl_VolunteerActivityApplication app",
-        "INNER JOIN",
-        "    tbl_VolunteerActivity act ON app.ActivityID = act.ActivityID",
-        "LEFT JOIN",
-        "    tbl_Position pos ON app.IntendedPositionID = pos.PositionID",
-        "WHERE",
-        "    app.VolunteerID = #{volunteerId,jdbcType=CHAR}",
-        "ORDER BY",
-        "    app.ApplicationTime DESC"
+            "SELECT",
+            "    app.ApplicationID       AS applicationId,",
+            "    app.ApplicationStatus   AS applicationStatus,",
+            "    app.ApplicationTime     AS applicationTime,",
+            "    act.ActivityID          AS activityId,",
+            "    act.ActivityName        AS activityName,",
+            "    act.Location            AS location,",
+            "    act.StartTime           AS startTime,",
+            "    pos.PositionName        AS intendedPositionName",
+            "FROM",
+            "    tbl_VolunteerActivityApplication app",
+            "INNER JOIN",
+            "    tbl_VolunteerActivity act ON app.ActivityID = act.ActivityID",
+            "LEFT JOIN",
+            "    tbl_Position pos ON app.IntendedPositionID = pos.PositionID",
+            "WHERE",
+            "    app.VolunteerID = #{volunteerId,jdbcType=CHAR}",
+            "ORDER BY",
+            "    app.ApplicationTime DESC"
     })
     List<Map<String, Object>> selectMyApplicationDetails(@Param("volunteerId") String volunteerId);
 
@@ -135,8 +136,9 @@ public interface VolunteerActivityApplicationMapper {
 
     /**
      * 当申请被批准时，将志愿者、活动和岗位信息插入到参与表中。
-     * @param volunteerId 志愿者ID
-     * @param activityId 活动ID
+     *
+     * @param volunteerId      志愿者ID
+     * @param activityId       活动ID
      * @param actualPositionId 实际参与的岗位ID (来自申请时的意向岗位)
      * @return 插入的行数
      */
@@ -148,9 +150,11 @@ public interface VolunteerActivityApplicationMapper {
 
     /**
      * 检查参与记录是否已存在，防止重复插入
+     *
      * @return 存在的记录数
      */
     @Select("SELECT COUNT(*) FROM tbl_VolunteerActivityParticipation WHERE VolunteerID = #{volunteerId} AND ActivityID = #{activityId}")
     int checkExistingParticipation(@Param("volunteerId") String volunteerId, @Param("activityId") String activityId);
+}
 
 
