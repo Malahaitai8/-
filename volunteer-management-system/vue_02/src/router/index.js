@@ -181,6 +181,11 @@ const routes = [
         name: 'detailed-volunteer-info-for-add',
         component: OrganizationDetailedVolunteerInfoForAdd,
     },
+      {
+     path: '/OrganizationCheckVolunteer',
+      name: '/OrganizationCheckVolunteer',
+      component:OrganizationCheckVolunteer
+},
     {path: '/add-member-for-activity', name: 'add-member-for-activity', component: OrganizationAddMemberForActivity},
     {
         path: '/added-member-for-activity',

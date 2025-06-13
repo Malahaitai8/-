@@ -1,3 +1,4 @@
+
 <template>
   <div class="organization-detail-container">
     <div class="header">
@@ -390,3 +391,8 @@ const getStatusTagType = (status) => {
   }
 }
 </style>
+
+
+
+
+

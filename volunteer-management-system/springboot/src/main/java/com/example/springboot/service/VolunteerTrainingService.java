@@ -1,7 +1,10 @@
 package com.example.springboot.service;
 
+import com.example.springboot.entity.Volunteer;
 import com.example.springboot.entity.VolunteerTraining;
+import com.example.springboot.entity.VolunteerTrainingParticipation;
 import com.example.springboot.exception.CustomException;
+import com.example.springboot.mapper.VolunteerMapper;
 import com.example.springboot.mapper.VolunteerTrainingMapper;
 import com.example.springboot.mapper.VolunteerTrainingParticipationMapper;
 import com.github.pagehelper.PageHelper;
@@ -9,10 +12,12 @@ import com.github.pagehelper.PageInfo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class VolunteerTrainingService {
@@ -294,4 +299,132 @@ public class VolunteerTrainingService {
         }
         return volunteerTrainingMapper.selectTrainingsWithOrgNameByTheme(theme);
     }
+
+
+
+
+   // 在类的顶部注入 VolunteerMapper
+    @Resource
+    private VolunteerMapper volunteerMapper;
+
+
+
+
+
+/**
+     * 【核心】获取指定培训的参与者列表（包含签到状态）
+     * @param trainingId 培训ID
+     * @return 包含志愿者完整信息和签到状态的Map列表
+     */
+    public List<Map<String, Object>> getParticipantsByTrainingId(String trainingId) {
+        if (!StringUtils.hasText(trainingId)) {
+            throw new CustomException("培训ID不能为空", "400");
+        }
+        return participationMapper.selectParticipantsWithStatusByTrainingId(trainingId);
+    }
+
+    /**
+     * 【核心】更新志愿者在某项培训中的签到状态
+     */
+    @Transactional
+    public void updateParticipationStatus(String trainingId, String volunteerId, String isCheckedIn) {
+        if (!StringUtils.hasText(trainingId) || !StringUtils.hasText(volunteerId) || !StringUtils.hasText(isCheckedIn)) {
+            throw new CustomException("参数不能为空 (trainingId, volunteerId, isCheckedIn)", "400");
+        }
+
+        VolunteerTrainingParticipation existingRecord = participationMapper.selectByPrimaryKey(volunteerId, trainingId);
+        if (existingRecord == null) {
+            throw new CustomException("更新签到状态失败，未找到对应的参与记录", "404");
+        }
+
+        VolunteerTrainingParticipation participationToUpdate = new VolunteerTrainingParticipation();
+        participationToUpdate.setVolunteerId(volunteerId);
+        participationToUpdate.setTrainingId(trainingId);
+        participationToUpdate.setIsCheckedIn(isCheckedIn);
+
+        int updatedRows = participationMapper.updateByPrimaryKey(participationToUpdate);
+
+        if (updatedRows == 0) {
+            throw new CustomException("数据库更新失败，请稍后重试", "500");
+        }
+    }
+
+    /**
+     * 获取可添加到指定培训的志愿者列表 (排除已参加的)
+     */
+    public List<Volunteer> getPotentialParticipantsForTraining(String trainingId, String name) {
+        List<Volunteer> allVolunteers = volunteerMapper.searchVolunteersByName(name);
+        List<String> participantIds = participationMapper.selectByTrainingId(trainingId)
+                .stream()
+                .map(VolunteerTrainingParticipation::getVolunteerId)
+                .collect(Collectors.toList());
+
+        return allVolunteers.stream()
+                .filter(v -> !participantIds.contains(v.getVolunteerId()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 将一名志愿者添加到培训中
+     */
+    @Transactional
+    public void enrollVolunteerInTraining(String trainingId, String volunteerId) {
+        if (!StringUtils.hasText(trainingId) || !StringUtils.hasText(volunteerId)) {
+            throw new CustomException("培训ID和志愿者ID均不能为空", "400");
+        }
+
+        VolunteerTrainingParticipation existing = participationMapper.selectByPrimaryKey(volunteerId, trainingId);
+        if (existing != null) {
+            throw new CustomException("该志愿者已参加此培训，请勿重复添加", "409");
+        }
+
+        VolunteerTrainingParticipation newParticipation = new VolunteerTrainingParticipation();
+        newParticipation.setTrainingId(trainingId);
+        newParticipation.setVolunteerId(volunteerId);
+        newParticipation.setIsCheckedIn("否");
+
+        participationMapper.insert(newParticipation);
+    }
+
+
+    /**
+     * 【新增】组织对参与培训的志愿者进行评分
+     * @param trainingId 培训ID
+     * @param volunteerId 志愿者ID
+     * @param rating 评分 (1-10)
+     * @throws CustomException 业务逻辑异常
+     */
+    @Transactional
+    public void rateParticipantByOrg(String trainingId, String volunteerId, Integer rating) throws CustomException {
+        // 1. 验证参数
+        if (!StringUtils.hasText(trainingId) || !StringUtils.hasText(volunteerId) || rating == null) {
+            throw new CustomException("400", "培训ID、志愿者ID和评分均不能为空");
+        }
+        if (rating < 1 || rating > 10) {
+            throw new CustomException("400", "评分必须在1到10之间");
+        }
+
+        // 2. 检查培训状态
+        VolunteerTraining training = volunteerTrainingMapper.selectById(trainingId);
+        if (training == null) {
+            throw new CustomException("404", "未找到ID为 " + trainingId + " 的培训");
+        }
+        if (!"已结束".equals(training.getTrainingStatus())) {
+            throw new CustomException("403", "培训尚未结束，无法进行评分");
+        }
+
+        // 3. 检查参与记录是否存在
+        VolunteerTrainingParticipation participation = participationMapper.selectByPrimaryKey(volunteerId, trainingId);
+        if (participation == null) {
+            throw new CustomException("404", "未找到该志愿者的参与记录");
+        }
+
+        // 4. 更新评分
+        int updatedRows = participationMapper.updateOrgToVolunteerRating(volunteerId, trainingId, rating);
+        if (updatedRows == 0) {
+            // 此情况理论上较少发生，因为前面已经检查过记录存在
+            throw new CustomException("500", "数据库更新评分失败");
+        }
+    }
+
 }

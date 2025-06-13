@@ -1,9 +1,11 @@
 package com.example.springboot.mapper;
 
+import com.example.springboot.entity.Volunteer;
 import com.example.springboot.entity.VolunteerTrainingParticipation;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface VolunteerTrainingParticipationMapper {
 
@@ -74,19 +76,19 @@ public interface VolunteerTrainingParticipationMapper {
      */
     List<VolunteerTrainingParticipation> selectAll(VolunteerTrainingParticipation filterCriteria);
 
-    /**
-     * 更新签到状态
-     *
-     * @param volunteerId 志愿者ID
-     * @param trainingId  培训ID
-     * @param isCheckedIn 签到状态 ('是' 或 '否')
-     * @return 影响行数
-     */
-    @Update("UPDATE tbl_VolunteerTrainingParticipation SET IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR} " +
-            "WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND TrainingID = #{trainingId,jdbcType=CHAR}")
-    int updateCheckInStatus(@Param("volunteerId") String volunteerId,
-                            @Param("trainingId") String trainingId,
-                            @Param("isCheckedIn") String isCheckedIn);
+//    /**
+//     * 更新签到状态
+//     *
+//     * @param volunteerId 志愿者ID
+//     * @param trainingId  培训ID
+//     * @param isCheckedIn 签到状态 ('是' 或 '否')
+//     * @return 影响行数
+//     */
+//    @Update("UPDATE tbl_VolunteerTrainingParticipation SET IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR} " +
+//            "WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND TrainingID = #{trainingId,jdbcType=CHAR}")
+//    int updateCheckInStatus(@Param("volunteerId") String volunteerId,
+//                            @Param("trainingId") String trainingId,
+//                            @Param("isCheckedIn") String isCheckedIn);
 
     /**
      * 更新组织对志愿者的评分
@@ -131,4 +133,55 @@ public interface VolunteerTrainingParticipationMapper {
     int updateVolunteerRating(@Param("volunteerId") String volunteerId,
                               @Param("trainingId") String trainingId,
                               @Param("rating") Integer rating);
+
+
+    /**
+     * 【已修改】根据培训ID查询所有参与的志愿者详细信息，并包含签到状态
+     *
+     * @param trainingId 培训ID
+     * @return 包含签到状态的志愿者对象列表
+     */
+    @Select("SELECT v.*, p.IsCheckedIn as isCheckedIn FROM tbl_Volunteer v " +
+            "JOIN tbl_VolunteerTrainingParticipation p ON v.VolunteerID = p.VolunteerID " +
+            "WHERE p.TrainingID = #{trainingId}")
+    List<Volunteer> selectVolunteersByTrainingId(@Param("trainingId") String trainingId);
+
+    /**
+     * 【已修改】更新指定培训中某个志愿者的签到状态
+     *
+     * @param trainingId  培训ID
+     * @param volunteerId 志愿者ID
+     * @param isCheckedIn 签到状态 ("是" 或 "否")
+     * @return 更新的行数
+     */
+    @Update("UPDATE tbl_VolunteerTrainingParticipation " +
+            "SET IsCheckedIn = #{isCheckedIn} " +
+            "WHERE TrainingID = #{trainingId} AND VolunteerID = #{volunteerId}")
+    int updateCheckInStatus(@Param("trainingId") String trainingId,
+                            @Param("volunteerId") String volunteerId,
+                            @Param("isCheckedIn") String isCheckedIn);
+
+
+    /**
+     * 【核心】联表查询参与者的详细信息及其在该培训中的特定状态
+     *
+     * @return 返回一个Map列表，每个Map代表一个带有签到状态的参与者
+     */
+    @Select("SELECT " +
+            "    v.VolunteerID as volunteerId, " +
+            "    v.Name as name, " +
+            "    v.PhoneNumber as phone, " +
+            "    v.Gender as gender, " +
+            "    v.PoliticalStatus as politicalStatus, " +
+            "    v.HighestEducation as highestEducation, " +
+            "    v.ServiceCategory as serviceCategory, " +
+            "    p.IsCheckedIn as isCheckedIn, " +
+            "    p.OrgToVolunteerRating as orgToVolunteerRating, " +
+            "    p.VolunteerToOrgRating as volunteerToOrgRating " +
+            "FROM tbl_Volunteer v " +
+            "JOIN tbl_VolunteerTrainingParticipation p ON v.VolunteerID = p.VolunteerID " +
+            "WHERE p.TrainingID = #{trainingId}")
+    List<Map<String, Object>> selectParticipantsWithStatusByTrainingId(@Param("trainingId") String trainingId);
+
+
 }

@@ -464,4 +464,37 @@ public class VolunteerActivityController {
         List<VolunteerActivity> activities = volunteerActivityService.findAvailableActivitiesForVolunteer(filter, volunteerId);
         return Result.success(activities);
     }
+
+
+ /**
+     * 更新志愿者签到状态
+     */
+    @PutMapping("/participation/check-in")
+    public Result updateCheckInStatus(@RequestBody Map<String, String> payload) {
+        // [修复] 从请求体中获取 actualPositionId
+        String activityId = payload.get("activityId");
+        String volunteerId = payload.get("volunteerId");
+        String isCheckedIn = payload.get("isCheckedIn");
+        String actualPositionId = payload.get("actualPositionId"); // 新增获取
+
+        // [修复] 调用服务时传入 actualPositionId
+        volunteerActivityService.updateCheckInStatus(activityId, volunteerId, actualPositionId, isCheckedIn);
+        return Result.success("更新签到状态成功");
+    }
+
+    /**
+     * 组织为志愿者评分
+     */
+    @PutMapping("/rate-participant")
+    public Result rateParticipant(@RequestBody Map<String, Object> payload) {
+        // [修复] 从请求体中获取 activityId, volunteerId, actualPositionId, 和 rating
+        String activityId = (String) payload.get("activityId");
+        String volunteerId = (String) payload.get("volunteerId");
+        //String actualPositionId = (String) payload.get("actualPositionId"); // 新增获取
+        Integer rating = (Integer) payload.get("rating");
+
+        // [修复] 调用服务时传入 actualPositionId
+        volunteerActivityService.rateParticipantByOrg(activityId, volunteerId, rating);
+        return Result.success("评价成功");
+    }
 }

@@ -86,4 +86,3 @@ public class VolunteerActivityApplicationController {
         List<Map<String, Object>> pendingApplications = applicationService.getPendingApplicationsForOrg(orgId);
         return Result.success(pendingApplications);
     }
-}

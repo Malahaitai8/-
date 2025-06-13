@@ -20,21 +20,21 @@
          are defined with annotations in the Mapper interface for simplicity.
     -->
 
-    <update id="updateByPrimaryKey" parameterType="com.example.springboot.entity.VolunteerTrainingParticipation">
-        UPDATE tbl_VolunteerTrainingParticipation
-        <set>
-            <if test="isCheckedIn != null and isCheckedIn != ''">
-                IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR},
-            </if>
-            <if test="orgToVolunteerRating != null">
-                OrgToVolunteerRating = #{orgToVolunteerRating,jdbcType=INTEGER},
-            </if>
-            <if test="volunteerToOrgRating != null">
-                VolunteerToOrgRating = #{volunteerToOrgRating,jdbcType=INTEGER},
-            </if>
-        </set>
-        WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND TrainingID = #{trainingId,jdbcType=CHAR}
-    </update>
+<!--    <update id="updateByPrimaryKey" parameterType="com.example.springboot.entity.VolunteerTrainingParticipation">-->
+<!--        UPDATE tbl_VolunteerTrainingParticipation-->
+<!--        <set>-->
+<!--            <if test="isCheckedIn != null and isCheckedIn != ''">-->
+<!--                IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR},-->
+<!--            </if>-->
+<!--            <if test="orgToVolunteerRating != null">-->
+<!--                OrgToVolunteerRating = #{orgToVolunteerRating,jdbcType=INTEGER},-->
+<!--            </if>-->
+<!--            <if test="volunteerToOrgRating != null">-->
+<!--                VolunteerToOrgRating = #{volunteerToOrgRating,jdbcType=INTEGER},-->
+<!--            </if>-->
+<!--        </set>-->
+<!--        WHERE VolunteerID = #{volunteerId,jdbcType=CHAR} AND TrainingID = #{trainingId,jdbcType=CHAR}-->
+<!--    </update>-->
 
     <select id="selectAll" resultMap="BaseResultMap" parameterType="com.example.springboot.entity.VolunteerTrainingParticipation">
         SELECT
@@ -68,4 +68,24 @@
         ORDER BY VolunteerID
     </select>
 
+    <!--
+      动态更新SQL：只会更新传入对象中不为null的字段。
+      这是更新签到、评分等状态的标准做法。
+    -->
+    <update id="updateByPrimaryKey" parameterType="com.example.springboot.entity.VolunteerTrainingParticipation">
+        UPDATE tbl_VolunteerTrainingParticipation
+        <set>
+            <if test="isCheckedIn != null">
+                IsCheckedIn = #{isCheckedIn,jdbcType=NCHAR},
+            </if>
+            <if test="orgToVolunteerRating != null">
+                OrgToVolunteerRating = #{orgToVolunteerRating,jdbcType=INTEGER},
+            </if>
+            <if test="volunteerToOrgRating != null">
+                VolunteerToOrgRating = #{volunteerToOrgRating,jdbcType=INTEGER},
+            </if>
+        </set>
+        WHERE VolunteerID = #{volunteerId,jdbcType=CHAR}
+          AND TrainingID = #{trainingId,jdbcType=CHAR}
+    </update>
 </mapper>

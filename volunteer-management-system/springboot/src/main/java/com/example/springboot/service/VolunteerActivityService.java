@@ -2,10 +2,12 @@ package com.example.springboot.service;
 
 import com.example.springboot.entity.Organization;
 import com.example.springboot.entity.VolunteerActivity;
+import com.example.springboot.entity.VolunteerActivityParticipation;
 import com.example.springboot.entity.VolunteerTraining; // 保留此行，如果其他非活动相关方法（如 reviewTraining）需要使用
 import com.example.springboot.exception.CustomException;
 import com.example.springboot.mapper.VolunteerActivityMapper;
 import com.example.springboot.mapper.OrganizationMapper;
+import com.example.springboot.mapper.VolunteerActivityParticipationMapper;
 import com.example.springboot.mapper.VolunteerTrainingMapper; // 保留此行，如果其他非活动相关方法需要使用
 import com.github.pagehelper.PageHelper; // 保留此行，如果 selectPage 等方法需要使用
 import com.github.pagehelper.PageInfo; // 保留此行，如果 selectPage 等方法需要使用
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -29,6 +33,8 @@ public class VolunteerActivityService {
 
     @Resource // 确保注入了 VolunteerTrainingMapper，如果这个Service确实也处理了Training相关逻辑
     private VolunteerTrainingMapper volunteerTrainingMapper;
+    @Resource
+    private VolunteerActivityParticipationMapper participationMapper;
 
     // 定义合法的活动状态常量
     private static final List<String> VALID_ACTIVITY_STATUSES = Arrays.asList(
@@ -401,6 +407,26 @@ public class VolunteerActivityService {
             filter = new VolunteerActivity();
         }
         return volunteerActivityMapper.selectAvailableActivitiesForVolunteer(filter, volunteerId);
+    }
+
+
+
+    @Transactional
+    public void rateParticipantByOrg(String activityId, String volunteerId,Integer rating) {
+        // [修复] 使用带有 actualPositionId 的 Mapper 方法
+        participationMapper.updateOrgToVolunteerRating(volunteerId, activityId, rating);
+    }
+
+    /**
+     * 【新增】更新志愿者的签到状态
+     * @param activityId 活动ID
+     * @param volunteerId 志愿者ID
+     * @param isCheckedIn 签到状态 ("是" 或 "否")
+     */
+    @Transactional
+    public void updateCheckInStatus(String activityId, String volunteerId, String actualPositionId, String isCheckedIn) {
+        // [修复] 调用我们刚刚在 Mapper 接口中定义的、正确的新方法
+        participationMapper.updateCheckInStatus(volunteerId, activityId, isCheckedIn);
     }
 
     // 可以添加其他 VolunteerActivityService 独有的方法

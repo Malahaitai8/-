@@ -1,444 +1,1122 @@
 <template>
   <div class="training-detail-container">
-    <div class="detail-card">
-      <div class="header-section">
-        <button @click="goBack" class="back-button">
-          ← 返回
-        </button>
-        <h1 class="page-title">培训详情</h1>
-      </div>
+    <!-- 页面头部 -->
+    <div class="header">
+      <h1>培训详情</h1>
+    </div>
 
-      <div class="content-section">
+    <!-- 主要内容区域 -->
+    <div class="content-wrapper">
+      <el-card class="main-card">
+        <!-- 加载状态 -->
         <div v-if="loading" class="loading-section">
           <div class="loading-spinner"></div>
           <p>加载中...</p>
         </div>
 
+        <!-- 错误状态 -->
         <div v-else-if="error" class="error-section">
-          <p class="error-message">{{ error }}</p>
+          <div class="error-icon">⚠️</div>
+          <p>{{ error }}</p>
+          <el-button @click="fetchTrainingDetail" type="primary">重试</el-button>
         </div>
 
-        <div v-else-if="!training" class="error-section">
-          <p class="error-message">未找到培训信息</p>
-        </div>
-
-        <div v-else>
+        <!-- 培训详情内容 -->
+        <div v-else-if="training" class="training-detail">
           <!-- 基本信息 -->
-          <div class="info-card">
-            <h2 class="section-title">基本信息</h2>
-            <div class="info-grid">
-              <div class="info-item">
-                <label class="info-label">培训名称</label>
-                <div class="info-value">{{ training.trainingName || '--' }}</div>
-              </div>
-              <div class="info-item">
-                <label class="info-label">培训主题</label>
-                <div class="info-value">{{ training.theme || '--' }}</div>
-              </div>
-              <div class="info-item">
-                <label class="info-label">培训状态</label>
-                <div class="info-value">
-                  <span :class="getStatusClass(training.trainingStatus)">{{ training.trainingStatus || '--' }}</span>
+          <div class="info-section">
+            <div class="section-header">
+              <h2>基本信息</h2>
+              <div class="header-controls">
+                <el-tag :class="getStatusClass(training.trainingStatus)" class="status-tag">
+                  {{ training.trainingStatus }}
+                </el-tag>
+                <el-button
+                    v-if="!isEditing"
+                    @click="startEdit"
+                    type="primary"
+                    class="edit-btn">
+                  修改
+                </el-button>
+                <div v-else class="edit-controls">
+                  <el-button @click="saveChanges" type="success" :loading="isSaving">保存</el-button>
+                  <el-button @click="cancelEdit" type="info">取消</el-button>
                 </div>
               </div>
+            </div>
+
+            <div class="info-grid">
+              <!-- 培训名称 -->
               <div class="info-item">
-                <label class="info-label">培训ID</label>
-                <div class="info-value">{{ training.trainingId || '--' }}</div>
+                <label class="info-label">培训名称</label>
+                <div v-if="!isEditing" class="info-value">{{ training.trainingName || '-' }}</div>
+                <el-input v-else v-model="editForm.trainingName" class="edit-input"/>
+              </div>
+
+              <!-- 培训状态 -->
+              <div class="info-item">
+                <label class="info-label">培训状态</label>
+                <div v-if="!isEditing" class="info-value">{{ training.trainingStatus || '-' }}</div>
+                <el-select v-else v-model="editForm.trainingStatus" class="edit-input">
+                  <el-option label="待审核" value="待审核"/>
+                  <el-option label="进行中" value="进行中"/>
+                  <el-option label="已结束" value="已结束"/>
+                </el-select>
+              </div>
+
+              <!-- 培训地点 -->
+              <div class="info-item">
+                <label class="info-label">培训地点</label>
+                <div v-if="!isEditing" class="info-value">{{ training.location || '-' }}</div>
+                <el-input v-else v-model="editForm.location" class="edit-input"/>
+              </div>
+
+              <!-- 创建时间 -->
+              <div class="info-item">
+                <label class="info-label">创建时间</label>
+                <div class="info-value">{{ formatDateTime(training.creationTime) || '-' }}</div>
+              </div>
+
+              <!-- 招募人数 -->
+              <div class="info-item">
+                <label class="info-label">招募人数</label>
+                <div v-if="!isEditing" class="info-value">{{ training.recruitmentCount || '-' }}</div>
+                <el-input-number v-else v-model="editForm.recruitmentCount" :min="0" class="edit-input"/>
+              </div>
+
+              <!-- 负责人联系电话 -->
+              <div class="info-item">
+                <label class="info-label">负责人联系电话</label>
+                <div v-if="!isEditing" class="info-value">{{ training.contactPersonPhone || '-' }}</div>
+                <el-input v-else v-model="editForm.contactPersonPhone" class="edit-input"/>
+              </div>
+
+              <!-- 审核管理员ID -->
+              <div class="info-item">
+                <label class="info-label">审核管理员ID</label>
+                <div class="info-value">{{ training.reviewerAdminId || '-' }}</div>
+              </div>
+
+              <!-- 培训评分 -->
+              <div class="info-item">
+                <label class="info-label">培训评分</label>
+                <div v-if="!isEditing" class="info-value">{{ training.trainingRating || '-' }}</div>
+                <el-input-number v-else v-model="editForm.trainingRating" :min="0" :max="10" :precision="1" class="edit-input"/>
+              </div>
+
+              <!-- 开始时间 (自动同步，不可编辑) -->
+              <div class="info-item">
+                <label class="info-label">开始时间</label>
+                <div class="info-value">
+                  {{ formatDateTime(training.startTime) || '-' }}
+                  <el-tooltip v-if="isEditing" content="此字段由系统根据时段安排自动同步" placement="top">
+                    <el-icon style="margin-left: 4px; color: #909399;">
+                      <InfoFilled/>
+                    </el-icon>
+                  </el-tooltip>
+                </div>
+              </div>
+
+              <!-- 结束时间 (自动同步，不可编辑) -->
+              <div class="info-item">
+                <label class="info-label">结束时间</label>
+                <div class="info-value">
+                  {{ formatDateTime(training.endTime) || '-' }}
+                  <el-tooltip v-if="isEditing" content="此字段由系统根据时段安排自动同步" placement="top">
+                    <el-icon style="margin-left: 4px; color: #909399;">
+                      <InfoFilled/>
+                    </el-icon>
+                  </el-tooltip>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- 时间安排 -->
-          <div class="info-card">
-            <h2 class="section-title">时间安排</h2>
-            <div class="info-grid">
-              <div class="info-item">
-                <label class="info-label">开始时间</label>
-                <div class="info-value">{{ formatDateTime(training.startTime) }}</div>
+          <div class="info-section">
+            <div class="section-header">
+              <h2>时间安排</h2>
+              <div class="header-actions">
+                <el-tag class="count-tag">共 {{ timeslots.length }} 个时段</el-tag>
+                <el-button
+                    type="primary"
+                    size="small"
+                    @click="showAddTimeslotDialog = true"
+                    icon="el-icon-plus"
+                    class="add-timeslot-btn"
+                >
+                  添加时段
+                </el-button>
               </div>
-              <div class="info-item">
-                <label class="info-label">结束时间</label>
-                <div class="info-value">{{ formatDateTime(training.endTime) }}</div>
-              </div>
-              <div class="info-item">
-                <label class="info-label">培训地点</label>
-                <div class="info-value">{{ training.location || '--' }}</div>
-              </div>
-              <div class="info-item">
-                <label class="info-label">创建时间</label>
-                <div class="info-value">{{ formatDateTime(training.creationTime) }}</div>
+            </div>
+
+            <div v-if="isLoadingTimeslots" class="loading-section mini">
+              <div class="loading-spinner small"></div>
+              <p>加载时段信息中...</p>
+            </div>
+            <div v-else-if="timeslots.length === 0" class="empty-section">
+              <p>暂无时段信息</p>
+            </div>
+            <div v-else class="timeslots-container">
+              <div v-for="(slot, index) in timeslots" :key="slot.timeslotId" class="timeslot-card">
+                <div class="timeslot-number">{{ index + 1 }}</div>
+                <div class="timeslot-content">
+                  <div class="timeslot-time">
+                    <span class="start-time">{{ formatDateTime(slot.startTime) }}</span>
+                    <span class="separator">至</span>
+                    <span class="end-time">{{ formatDateTime(slot.endTime) }}</span>
+                  </div>
+                  <div class="timeslot-duration">
+                    持续: {{ calculateDuration(slot.startTime, slot.endTime) }}
+                  </div>
+                </div>
+                <div class="timeslot-actions">
+                  <el-button
+                      type="danger"
+                      size="small"
+                      @click="deleteTimeslot(slot.timeslotId)"
+                      icon="el-icon-delete"
+                      class="delete-timeslot-btn"
+                      title="删除时段"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- 人员信息 -->
-          <div class="info-card">
-            <h2 class="section-title">人员信息</h2>
-            <div class="info-grid">
-              <div class="info-item">
-                <label class="info-label">招募人数</label>
-                <div class="info-value">{{ training.recruitmentCount || 0 }}</div>
+          <!-- 参与志愿者 -->
+          <div class="info-section">
+            <div class="section-header">
+              <h2>参与志愿者</h2>
+              <div class="header-right">
+                <el-tag class="count-tag">共 {{ participants.length }} 名志愿者</el-tag>
+                <el-button
+                  type="primary"
+                  size="small"
+                  @click="openAddParticipantDialog"
+                  class="add-timeslot-btn"
+                  icon="el-icon-plus"
+                >
+                  添加培训人员
+                </el-button>
               </div>
-              <div class="info-item">
-                <label class="info-label">联系电话</label>
-                <div class="info-value">{{ training.contactPersonPhone || '--' }}</div>
-              </div>
-              <div class="info-item">
-                <label class="info-label">审核管理员ID</label>
-                <div class="info-value">{{ training.reviewerAdminId || '--' }}</div>
-              </div>
-              <div class="info-item">
-                <label class="info-label">培训评分</label>
-                <div class="info-value">{{ training.trainingRating || '--' }}</div>
+            </div>
+
+            <div v-if="isLoadingParticipants" class="loading-section mini">
+              <div class="loading-spinner small"></div>
+              <p>加载参与者信息中...</p>
+            </div>
+            <div v-else-if="participants.length === 0" class="empty-section">
+              <p>暂无参与者信息</p>
+            </div>
+            <div v-else class="participants-container">
+              <div v-for="participant in participants" :key="participant.volunteerId" class="participant-card">
+                <div class="participant-header">
+                  <div class="participant-info">
+                    <h3 class="participant-name">{{ participant.name }}</h3>
+                  </div>
+                  <div class="participant-status">
+                    <el-switch
+                        v-model="participant.isCheckedIn"
+                        active-value="是"
+                        inactive-value="否"
+                        @change="updateCheckInStatus(participant)"
+                        inline-prompt
+                        style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
+                        active-text="已签到"
+                        inactive-text="未签到"
+                    />
+                  </div>
+                </div>
+                <div class="participant-details">
+                  <div class="detail-row">
+                    <span class="detail-label">用户ID:</span>
+                    <span class="detail-value">{{ participant.volunteerId || '-' }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">联系电话:</span>
+                    <span class="detail-value">{{ participant.phone || '-' }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">性别:</span>
+                    <span class="detail-value">{{ participant.gender || '-' }}</span>
+                  </div>
+                   <div class="detail-row">
+                    <span class="detail-label">政治面貌:</span>
+                    <span class="detail-value">{{ participant.politicalStatus || '-' }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">学历:</span>
+                    <span class="detail-value">{{ participant.highestEducation || '-' }}</span>
+                  </div>
+                   <div class="detail-row">
+                    <span class="detail-label">服务类别:</span>
+                    <span class="detail-value">{{ participant.serviceCategory || '-' }}</span>
+                  </div>
+                  <div class="detail-row" v-if="participant.orgToVolunteerRating">
+                    <span class="detail-label">组织评分:</span>
+                    <div class="rating-display">
+                      <el-rate
+                          v-model="participant.orgToVolunteerRating"
+                          disabled
+                          show-score
+                          text-color="#ff9900"
+                          size="small"
+                      />
+                    </div>
+                  </div>
+                  <div class="detail-row" v-if="participant.volunteerToOrgRating">
+                    <span class="detail-label">志愿者评分:</span>
+                    <div class="rating-display">
+                      <el-rate
+                          v-model="participant.volunteerToOrgRating"
+                          disabled
+                          show-score
+                          text-color="#ff9900"
+                          size="small"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <!-- 评价按钮区域 -->
+                <div class="participant-actions">
+                  <el-button
+                    type="primary"
+                    size="small"
+                    class="rate-btn"
+                    :disabled="training.trainingStatus !== '已结束' || !!participant.orgToVolunteerRating"
+                    :title="getRateButtonTooltip(participant)"
+                    @click="openRateDialog(participant)"
+                  >
+                    {{ participant.orgToVolunteerRating ? '已评价' : '评价' }}
+                  </el-button>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </el-card>
+    </div>
+
+    <!-- Add Participant Dialog -->
+    <el-dialog
+      v-model="showAddParticipantDialog"
+      title="添加培训人员"
+      width="60%"
+      top="5vh"
+    >
+      <div class="dialog-search-bar">
+        <el-input
+          v-model="addParticipantSearchQuery"
+          placeholder="按姓名搜索志愿者"
+          clearable
+          @keyup.enter="fetchAddableVolunteers"
+          @clear="fetchAddableVolunteers"
+        >
+          <template #append>
+            <el-button @click="fetchAddableVolunteers" :icon="InfoFilled">搜索</el-button>
+          </template>
+        </el-input>
       </div>
+      <el-table
+        :data="addableVolunteers"
+        v-loading="isFetchingAddable"
+        style="width: 100%"
+        height="50vh"
+        border
+        stripe
+      >
+        <el-table-column prop="volunteerId" label="志愿者ID" width="180"></el-table-column>
+        <el-table-column prop="name" label="姓名" width="120"></el-table-column>
+        <el-table-column prop="phone" label="电话"></el-table-column>
+        <el-table-column prop="gender" label="性别" width="80"></el-table-column>
+        <el-table-column label="操作" width="100" fixed="right">
+          <template #default="scope">
+            <el-button size="small" type="success" @click="handleAddParticipant(scope.row)">添加</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
+
+    <!-- 添加时段对话框 -->
+    <el-dialog
+        v-model="showAddTimeslotDialog"
+        title="添加时段"
+        width="500px"
+        :before-close="handleTimeslotDialogClose"
+    >
+      <el-form
+          :model="addTimeslotForm"
+          :rules="timeslotRules"
+          ref="timeslotFormRef"
+          label-width="80px"
+      >
+        <el-form-item label="开始时间" prop="startTime">
+          <el-date-picker
+              v-model="addTimeslotForm.startTime"
+              type="datetime"
+              placeholder="选择开始时间"
+              format="YYYY-MM-DD HH:mm:ss"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              style="width: 100%"
+          />
+        </el-form-item>
+
+        <el-form-item label="结束时间" prop="endTime">
+          <el-date-picker
+              v-model="addTimeslotForm.endTime"
+              type="datetime"
+              placeholder="选择结束时间"
+              format="YYYY-MM-DD HH:mm:ss"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              style="width: 100%"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showAddTimeslotDialog = false">取消</el-button>
+          <el-button
+              type="primary"
+              @click="handleAddTimeslot"
+              :loading="isAddingTimeslot"
+          >
+            提交
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 评价志愿者对话框 -->
+    <el-dialog v-model="rateDialog.visible" title="评价志愿者表现" width="400px" @close="resetRateDialog">
+      <div class="rate-dialog-content">
+        <p>正在为志愿者 <strong>{{ rateDialog.participantName }}</strong> 评分</p>
+        <el-rate
+          v-model="rateDialog.score"
+          :max="10"
+          show-score
+          score-template="{value} 分"
+          size="large"
+        />
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="rateDialog.visible = false">取消</el-button>
+          <el-button type="primary" @click="submitRating" :loading="rateDialog.isSubmitting">提交评价</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 操作按钮 -->
+    <div class="button-group">
+      <el-button @click="goBack" class="back-btn">返回</el-button>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+<script>
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { InfoFilled } from '@element-plus/icons-vue'
 import request from '@/utils/request.js'
+import { ref, reactive, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-const route = useRoute()
-const router = useRouter()
-const training = ref(null)
-const loading = ref(true)
-const error = ref(null)
+export default {
+  name: 'OrganizationTrainingDetail',
+  components: {
+    InfoFilled
+  },
+  setup() {
+    const route = useRoute()
+    const router = useRouter()
+    const training = ref(null)
+    const timeslots = ref([])
+    const participants = ref([])
+    const loading = ref(true)
+    const isLoadingTimeslots = ref(false)
+    const isLoadingParticipants = ref(false)
+    const error = ref(null)
+    const isEditing = ref(false)
+    const isSaving = ref(false)
+    const showAddTimeslotDialog = ref(false)
+    const isAddingTimeslot = ref(false)
+    const timeslotFormRef = ref(null)
+    const editForm = ref({})
 
-// 获取培训详情
-const loadTrainingDetail = async () => {
-  const trainingId = route.params.id
-  console.log('获取培训详情，ID:', trainingId)
-  
-  if (!trainingId) {
-    error.value = '缺少培训ID参数'
-    loading.value = false
-    return
-  }
+    const showAddParticipantDialog = ref(false)
+    const addableVolunteers = ref([])
+    const isFetchingAddable = ref(false)
+    const addParticipantSearchQuery = ref('')
 
-  try {
-    loading.value = true
-    error.value = null
-    
-    const res = await request.get(`/volunteerTraining/get/${trainingId}`)
-    console.log('API响应:', res)
-    
-    if (res.code === '200' && res.data) {
-      training.value = res.data
-      console.log('培训数据:', training.value)
-    } else {
-      error.value = res.msg || '获取培训详情失败'
+    const addTimeslotForm = reactive({
+      startTime: '',
+      endTime: '',
+    })
+
+    // 新增：评价志愿者的对话框状态
+    const rateDialog = reactive({
+      visible: false,
+      isSubmitting: false,
+      score: 0,
+      participantId: null,
+      participantName: '',
+    })
+
+    const timeslotRules = {
+      startTime: [
+        { required: true, message: '请选择开始时间', trigger: 'change' }
+      ],
+      endTime: [
+        { required: true, message: '请选择结束时间', trigger: 'change' }
+      ]
     }
-  } catch (err) {
-    console.error('加载培训详情失败:', err)
-    error.value = '网络错误或服务器异常'
-  } finally {
-    loading.value = false
+
+    const fetchTrainingDetail = async () => {
+      loading.value = true
+      error.value = null
+      try {
+        const res = await request.get(`/volunteerTraining/get/${route.params.id}`)
+        if (res.code === '200' && res.data) {
+          training.value = res.data
+          await Promise.all([
+            fetchTimeslots(),
+            fetchParticipants()
+          ])
+        } else {
+          error.value = res.msg || '获取培训详情失败'
+        }
+      } catch (err) {
+        console.error(err)
+        error.value = '网络错误，无法加载培训详情'
+      } finally {
+        loading.value = false
+      }
+    }
+
+    const fetchTimeslots = async () => {
+      if (!training.value?.trainingId) return
+      isLoadingTimeslots.value = true
+      try {
+        const res = await request.get(`/activityTimeslot/byEvent/${training.value.trainingId}`)
+        if (res.code === '200') {
+          timeslots.value = res.data || []
+        } else {
+          ElMessage.error(res.msg || '获取时段列表失败')
+        }
+      } catch (err) {
+        console.error('获取时段列表失败:', err)
+        ElMessage.error('网络错误，获取时段列表失败')
+      } finally {
+        isLoadingTimeslots.value = false
+      }
+    }
+
+    const fetchParticipants = async () => {
+      isLoadingParticipants.value = true
+      try {
+        const res = await request.get(`/volunteerTraining/${route.params.id}/participants`)
+        if (res.code === '200' && res.data) {
+          participants.value = res.data.map(p => {
+            return {
+              ...p,
+              isCheckedIn: p.isCheckedIn && p.isCheckedIn.trim() === '是' ? '是' : '否'
+            };
+          });
+        } else {
+           participants.value = []
+           ElMessage.error(res.msg || '获取参与者列表失败');
+        }
+      } catch (err)
+ {
+        console.error('获取参与者信息出错:', err)
+        ElMessage.error('网络错误，获取参与者信息失败');
+      } finally {
+        isLoadingParticipants.value = false
+      }
+    }
+
+    const updateCheckInStatus = async (participant) => {
+      const originalStatus = participant.isCheckedIn === '是' ? '否' : '是'
+      try {
+        const payload = {
+          trainingId: route.params.id,
+          volunteerId: participant.volunteerId,
+          isCheckedIn: participant.isCheckedIn,
+        };
+        const res = await request.put('/volunteerTraining/participation/status', payload);
+        if (res.code === '200') {
+          ElMessage.success('签到状态更新成功！');
+        } else {
+          participant.isCheckedIn = originalStatus;
+          ElMessage.error(res.msg || '更新失败');
+        }
+      } catch (err) {
+        participant.isCheckedIn = originalStatus;
+        console.error('更新签到状态出错:', err);
+        ElMessage.error('网络错误，更新签到状态失败');
+      }
+    };
+
+    const openAddParticipantDialog = () => {
+      addParticipantSearchQuery.value = ''
+      fetchAddableVolunteers();
+      showAddParticipantDialog.value = true
+    }
+
+    const fetchAddableVolunteers = async () => {
+      isFetchingAddable.value = true
+      try {
+        const res = await request.get(`/volunteerTraining/${route.params.id}/potential-participants`, {
+          params: { name: addParticipantSearchQuery.value }
+        })
+        if (res.code === '200') {
+          addableVolunteers.value = res.data || []
+        } else {
+          ElMessage.error(res.msg || '获取可添加志愿者列表失败')
+        }
+      } catch (err) {
+        console.error('获取可添加志愿者列表失败:', err)
+        ElMessage.error('网络错误，获取可添加志愿者列表失败')
+      } finally {
+        isFetchingAddable.value = false
+      }
+    }
+
+    const handleAddParticipant = async (volunteer) => {
+      try {
+        const res = await request.post('/volunteerTraining/enroll-participant', {
+          trainingId: route.params.id,
+          volunteerId: volunteer.volunteerId
+        })
+        if (res.code === '200') {
+          ElMessage.success(`已成功添加志愿者: ${volunteer.name}`)
+          await fetchParticipants()
+          addableVolunteers.value = addableVolunteers.value.filter(v => v.volunteerId !== volunteer.volunteerId)
+        } else {
+          ElMessage.error(res.msg || '添加失败')
+        }
+      } catch (err) {
+        console.error('添加志愿者失败:', err)
+        ElMessage.error('网络错误，添加志愿者失败')
+      }
+    }
+
+
+    const handleAddTimeslot = async () => {
+      if (!addTimeslotForm.startTime || !addTimeslotForm.endTime) {
+        ElMessage.warning('请选择开始时间和结束时间')
+        return
+      }
+
+      const startTime = new Date(addTimeslotForm.startTime)
+      const endTime = new Date(addTimeslotForm.endTime)
+      if (startTime >= endTime) {
+        ElMessage.warning('开始时间不能晚于或等于结束时间')
+        return
+      }
+
+      isAddingTimeslot.value = true
+      try {
+        const payload = {
+          eventId: training.value.trainingId,
+          startTime: addTimeslotForm.startTime,
+          endTime: addTimeslotForm.endTime,
+        }
+
+        const res = await request.post('/activityTimeslot', payload, {
+          timeout: 10000
+        })
+
+        if (res.code === '200') {
+          ElMessage.success('时段添加成功！')
+          showAddTimeslotDialog.value = false
+          addTimeslotForm.startTime = ''
+          addTimeslotForm.endTime = ''
+          await fetchTimeslots()
+          await fetchTrainingDetail()
+        } else {
+          ElMessage.error(res.msg || '添加时段失败')
+        }
+      } catch (err) {
+        console.error('添加时段出错:', err)
+        if (err.code === 'ECONNABORTED') {
+          ElMessage.error('请求超时，请检查网络连接或稍后重试')
+        } else if (err.response) {
+          ElMessage.error(err.response.data.msg || '添加时段失败')
+        } else {
+          ElMessage.error('网络错误，添加时段失败')
+        }
+      } finally {
+        isAddingTimeslot.value = false
+      }
+    }
+
+    const deleteTimeslot = async (timeslotId) => {
+      try {
+        await ElMessageBox.confirm('确定要删除这个时段吗？', '确认删除', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        })
+
+        const res = await request.delete(`/activityTimeslot/${timeslotId}/${training.value.trainingId}`)
+        if (res.code === '200') {
+          ElMessage.success('时段删除成功！')
+          await fetchTimeslots()
+          await fetchTrainingDetail()
+        } else {
+          ElMessage.error(res.msg || '删除时段失败')
+        }
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('删除时段失败:', error)
+          ElMessage.error('网络错误，删除时段失败')
+        }
+      }
+    }
+
+    const startEdit = () => {
+      isEditing.value = true
+      editForm.value = {
+        ...training.value,
+        startTime: training.value.startTime ? new Date(training.value.startTime).toISOString().slice(0, 19) : null,
+        endTime: training.value.endTime ? new Date(training.value.endTime).toISOString().slice(0, 19) : null
+      }
+    }
+
+    const cancelEdit = () => {
+      isEditing.value = false
+      editForm.value = {}
+    }
+
+    const saveChanges = async () => {
+      isSaving.value = true
+      try {
+        const res = await request.put(`/volunteerTraining/update`, editForm.value)
+        if (res.code === '200') {
+          ElMessage.success('培训信息更新成功！')
+          isEditing.value = false
+          await fetchTrainingDetail()
+        } else {
+          ElMessage.error(res.msg || '更新失败')
+        }
+      } catch (error) {
+        console.error('更新培训信息出错:', error)
+        ElMessage.error('更新失败: ' + error.message)
+      } finally {
+        isSaving.value = false
+      }
+    }
+
+    // --- 新增评价功能相关方法 ---
+    const getRateButtonTooltip = (participant) => {
+      if (training.value.trainingStatus !== '已结束') {
+        return '培训结束后方可评价';
+      }
+      if (!!participant.orgToVolunteerRating) {
+        return `已评分为: ${participant.orgToVolunteerRating}分`;
+      }
+      return '评价该志愿者的表现';
+    };
+
+    const openRateDialog = (participant) => {
+      rateDialog.participantId = participant.volunteerId;
+      rateDialog.participantName = participant.name;
+      rateDialog.score = participant.orgToVolunteerRating || 0;
+      rateDialog.visible = true;
+    };
+
+    const resetRateDialog = () => {
+      rateDialog.visible = false;
+      rateDialog.isSubmitting = false;
+      rateDialog.score = 0;
+      rateDialog.participantId = null;
+      rateDialog.participantName = '';
+    };
+
+    const submitRating = async () => {
+      if (rateDialog.score === 0) {
+        ElMessage.warning('请选择评分');
+        return;
+      }
+      rateDialog.isSubmitting = true;
+      try {
+        const payload = {
+          trainingId: route.params.id,
+          volunteerId: rateDialog.participantId,
+          rating: rateDialog.score,
+        };
+        const res = await request.put('/volunteerTraining/org-rate-volunteer', payload);
+        if (res.code === '200') {
+          ElMessage.success('评价成功！');
+          resetRateDialog();
+          await fetchParticipants(); // 刷新参与者列表以显示新评分
+        } else {
+          ElMessage.error(res.msg || '评价失败');
+        }
+      } catch (err) {
+        console.error('评价志愿者失败:', err);
+        ElMessage.error('网络错误，评价失败');
+      } finally {
+        rateDialog.isSubmitting = false;
+      }
+    };
+
+    // --- 辅助方法 ---
+
+    const formatDateTime = (dateString) => {
+      if (!dateString) return '-'
+      try {
+        const date = new Date(dateString)
+        return date.toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      } catch (error) {
+        return dateString
+      }
+    }
+
+    const calculateDuration = (startTime, endTime) => {
+      if (!startTime || !endTime) return '-'
+      try {
+        const start = new Date(startTime)
+        const end = new Date(endTime)
+        const duration = end - start
+        const hours = Math.floor(duration / (1000 * 60 * 60))
+        const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60))
+        return `${hours}小时${minutes}分钟`
+      } catch (error) {
+        return '-'
+      }
+    }
+
+    const getStatusClass = (status) => {
+      if (!status) return ''
+      const statusMap = {
+        '待审核': 'status-pending',
+        '审核通过': 'status-approved',
+        '审核不通过': 'status-rejected',
+        '已取消': 'status-cancelled',
+        '已完成': 'status-completed',
+        '进行中': 'status-in-progress'
+      }
+      return `status-tag ${statusMap[status] || 'status-unknown'}`
+    }
+
+    const handleTimeslotDialogClose = () => {
+      showAddTimeslotDialog.value = false
+      addTimeslotForm.startTime = ''
+      addTimeslotForm.endTime = ''
+    }
+
+    const goBack = () => {
+      router.back()
+    }
+
+    onMounted(() => {
+      fetchTrainingDetail()
+    })
+
+    return {
+      training,
+      timeslots,
+      participants,
+      loading,
+      isLoadingTimeslots,
+      isLoadingParticipants,
+      error,
+      isEditing,
+      isSaving,
+      showAddTimeslotDialog,
+      isAddingTimeslot,
+      timeslotFormRef,
+      editForm,
+      addTimeslotForm,
+      timeslotRules,
+      formatDateTime,
+      calculateDuration,
+      getStatusClass,
+      handleAddTimeslot,
+      deleteTimeslot,
+      startEdit,
+      cancelEdit,
+      saveChanges,
+      handleTimeslotDialogClose,
+      goBack,
+      fetchTrainingDetail,
+      updateCheckInStatus,
+      showAddParticipantDialog,
+      addableVolunteers,
+      isFetchingAddable,
+      addParticipantSearchQuery,
+      openAddParticipantDialog,
+      fetchAddableVolunteers,
+      handleAddParticipant,
+      InfoFilled,
+      // 导出评价相关
+      rateDialog,
+      openRateDialog,
+      resetRateDialog,
+      submitRating,
+      getRateButtonTooltip
+    }
   }
 }
-
-// 格式化日期时间
-const formatDateTime = (datetime) => {
-  if (!datetime) return '--'
-  try {
-    return new Date(datetime).toLocaleString('zh-CN')
-  } catch (e) {
-    return '--'
-  }
-}
-
-// 根据培训状态返回不同的CSS类
-const getStatusClass = (status) => {
-  if (!status) return 'status-pending'
-  
-  switch (status) {
-    case '待审核': return 'status-pending'
-    case '审核通过': return 'status-approved'
-    case '进行中': return 'status-approved'
-    case '已结束': return 'status-cancelled'
-    case '审核不通过': return 'status-rejected'
-    case '已停用': return 'status-rejected'
-    default: return 'status-pending'
-  }
-}
-
-// 返回上一页
-const goBack = () => {
-  router.go(-1)
-}
-
-onMounted(() => {
-  loadTrainingDetail()
-})
 </script>
 
 <style scoped>
 .training-detail-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
   padding: 20px;
-  position: relative;
 }
 
-.training-detail-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 20% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 30%, rgba(118, 75, 162, 0.2) 0%, transparent 40%);
-  pointer-events: none;
+.header {
+  text-align: center;
+  margin-bottom: 30px;
 }
 
-.detail-card {
-  max-width: 1400px;
-  margin: 0 auto;
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 24px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15), 
-              0 10px 20px rgba(0, 0, 0, 0.1),
-              inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  overflow: hidden;
-  position: relative;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.header-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%);
-  color: white;
-  padding: 40px 50px;
-  position: relative;
-  overflow: hidden;
-}
-
-.header-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
-              radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-.back-button {
-  background: rgba(255, 255, 255, 0.25);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  padding: 14px 28px;
-  border-radius: 30px;
-  cursor: pointer;
-  font-size: 16px;
+.header h1 {
+  font-size: 28px;
+  color: #333;
+  margin: 0;
   font-weight: 600;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(15px);
+}
+
+.content-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 30px 20px;
+  min-height: calc(100vh - 80px);
   position: relative;
-  z-index: 10;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 2;
 }
 
-.back-button:hover {
-  background: rgba(255, 255, 255, 0.35);
-  border-color: rgba(255, 255, 255, 0.6);
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+.main-card {
+  width: 100%;
+  max-width: 1800px;
+  min-height: 700px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(255, 51, 51, 0.2);
+  border: 1px solid rgba(255, 51, 51, 0.1);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
 }
 
-.page-title {
-  margin: 25px 0 0 0;
-  font-size: 36px;
-  font-weight: 800;
-  text-align: center;
-  position: relative;
-  z-index: 10;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  letter-spacing: 1px;
-}
-
-.content-section {
+.main-card :deep(.el-card__body) {
   padding: 40px;
+  min-height: 600px;
 }
 
-.loading-section,
-.error-section {
+.loading-section, .error-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
   text-align: center;
-  padding: 80px 40px;
+}
+
+.loading-section.mini {
+  padding: 2rem;
+  min-height: 120px;
 }
 
 .loading-spinner {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border: 4px solid #f3f3f3;
   border-top: 4px solid #ff3333;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
+  margin-bottom: 1rem;
+}
+
+.loading-spinner.small {
+  width: 24px;
+  height: 24px;
+  border-width: 3px;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-.error-message {
-  color: #ff3333;
-  font-size: 18px;
-  font-weight: 500;
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
 }
 
-.info-card {
-  background: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
-  border: 1px solid rgba(102, 126, 234, 0.1);
-  border-radius: 20px;
-  padding: 36px;
-  margin-bottom: 28px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06),
-              0 2px 8px rgba(102, 126, 234, 0.1);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+.info-section {
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
-.info-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.section-header {
+  background: linear-gradient(135deg, #ff3333, #ff6666);
+  color: white;
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.info-card:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12),
-              0 8px 16px rgba(102, 126, 234, 0.15);
+.section-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
 }
 
-.info-card:hover::before {
-  opacity: 1;
+.header-actions, .header-controls, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-.section-title {
-  color: #667eea;
-  font-size: 26px;
-  font-weight: 800;
-  margin: 0 0 28px 0;
-  padding-bottom: 16px;
-  border-bottom: 3px solid transparent;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%) bottom / 100% 3px no-repeat;
+.add-timeslot-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 8px 16px;
+}
+
+.add-timeslot-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.status-tag {
   display: inline-block;
-  position: relative;
-  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
 }
+
+.status-pending { background-color: #e6a23c; }
+.status-approved { background-color: #67c23a; }
+.status-rejected { background-color: #f56c6c; }
+.status-cancelled { background-color: #909399; }
+.status-completed { background-color: #409eff; }
+.status-in-progress { background-color: #67c23a; }
+.status-unknown { background-color: #909399; }
+
+.count-tag {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  font-size: 14px;
+  padding: 6px 12px;
+}
+
+.edit-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+}
+.edit-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+.edit-controls { display: flex; gap: 10px; }
 
 .info-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+  padding: 30px;
 }
+.info-item { display: flex; flex-direction: column; gap: 8px; }
+.info-label { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 5px; }
+.info-value { padding: 12px 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #ff3333; font-size: 14px; color: #666; min-height: 20px; }
+.edit-input { width: 100%; }
+.edit-input :deep(.el-input__wrapper) { border-radius: 8px; border: 1px solid #dcdfe6; transition: all 0.3s ease; }
+.edit-input :deep(.el-input__wrapper:hover) { border-color: #ff6666; }
+.edit-input :deep(.el-input.is-focus .el-input__wrapper) { border-color: #ff3333; box-shadow: 0 0 0 2px rgba(255, 51, 51, 0.2); }
 
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.timeslots-container { padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+.timeslot-card { display: flex; align-items: center; padding: 20px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #ff3333; transition: all 0.3s ease; position: relative; }
+.timeslot-number { width: 24px; height: 24px; background: #ff3333; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 15px; }
+.timeslot-content { flex: 1; }
+.timeslot-time { font-size: 14px; color: #333; margin-bottom: 5px; }
+.separator { margin: 0 8px; color: #999; }
+.timeslot-duration { font-size: 12px; color: #666; }
+.timeslot-actions { margin-left: 15px; }
+
+.participants-container { padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+.participant-card { background: #f8f9fa; border-radius: 12px; border-left: 4px solid #ff3333; overflow: hidden; display: flex; flex-direction: column; }
+.participant-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: white; border-bottom: 1px solid #eee; }
+.participant-info { flex: 1; }
+.participant-name { margin: 0; font-size: 16px; font-weight: 600; color: #333; }
+.participant-details { padding: 15px 20px; flex-grow: 1; }
+.detail-row { display: flex; align-items: center; margin-bottom: 10px; font-size: 14px; }
+.detail-row:last-child { margin-bottom: 0; }
+.detail-label { width: 80px; color: #666; flex-shrink: 0; }
+.detail-value { flex: 1; color: #333; word-break: break-all; }
+.rating-display { flex: 1; }
+
+/* 新增：评价按钮和对话框样式 */
+.participant-actions {
+  margin-top: 15px;
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  text-align: right;
+  background-color: #fff;
 }
-
-.info-label {
+.rate-btn {
+  background-color: #ff3333;
+  border-color: #ff3333;
+  color: white;
+}
+.rate-btn:hover {
+  background-color: #ff6666;
+  border-color: #ff6666;
+}
+.rate-btn:disabled {
+  background-color: #fab9bb;
+  border-color: #fab9bb;
+  color: white;
+}
+.rate-dialog-content {
+  text-align: center;
+  padding: 20px 0;
+}
+.rate-dialog-content p {
+  margin-bottom: 20px;
   font-size: 16px;
-  font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: #333;
+}
+:deep(.el-rate__text) {
+  color: #ff9900;
 }
 
-.info-value {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  padding: 18px 24px;
-  border-radius: 14px;
-  border-left: 4px solid #667eea;
-  min-height: 20px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
+.dialog-search-bar { margin-bottom: 20px; }
+.empty-section { padding: 40px; text-align: center; color: #909399; }
+.button-group { display: flex; justify-content: center; margin-top: 30px; padding-bottom: 30px; }
+.back-btn { min-width: 120px; }
 
-.info-value:hover {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-left-color: #764ba2;
-  transform: translateX(3px);
-}
-
-.status-pending {
-  background: #fff3cd;
-  color: #856404;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.status-approved {
-  background: #d4edda;
-  color: #155724;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.status-rejected {
-  background: #f8d7da;
-  color: #721c24;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.status-cancelled {
-  background: #e2e3e5;
-  color: #383d41;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-@media (max-width: 768px) {
-  .training-detail-container {
-    padding: 10px;
-  }
-  
-  .header-section,
-  .content-section {
-    padding: 20px;
-  }
-  
-  .page-title {
-    font-size: 24px;
-  }
-  
-  .info-card {
-    padding: 20px;
-  }
-  
-  .section-title {
-    font-size: 20px;
-  }
-}
-</style> 
+:deep(.el-dialog) { border-radius: 12px; overflow: hidden; }
+:deep(.el-dialog__header) { background: linear-gradient(135deg, #ff3333, #ff6666); color: white; padding: 20px; margin: 0; }
+:deep(.el-dialog__title) { color: white; font-size: 18px; font-weight: 600; }
+:deep(.el-dialog__headerbtn .el-dialog__close) { color: white; }
+:deep(.el-dialog__body) { padding: 30px; }
+:deep(.el-dialog__footer) { padding: 20px; border-top: 1px solid #eee; }
+</style>

@@ -12,8 +12,8 @@ public interface ActivityTimeslotMapper {
      * @param timeslot 活动时段对象
      * @return 影响行数
      */
-    @Insert("INSERT INTO tbl_ActivityTimeslot (TimeslotID, EventID, StartTime, EndTime) " +
-            "VALUES (#{timeslotId,jdbcType=CHAR}, #{eventId,jdbcType=CHAR}, #{startTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP})")
+    @Insert("INSERT INTO tbl_ActivityTimeslot (EventID, StartTime, EndTime) " +
+            "VALUES (#{eventId,jdbcType=CHAR}, #{startTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP})")
     int insert(ActivityTimeslot timeslot);
 
     /**

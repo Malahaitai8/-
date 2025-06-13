@@ -1,5 +1,6 @@
 package com.example.springboot.mapper;
 
+import com.example.springboot.entity.Volunteer;
 import com.example.springboot.entity.VolunteerActivity;
 import org.apache.ibatis.annotations.*;
 
@@ -106,5 +107,20 @@ public interface VolunteerActivityMapper {
         "</script>"
     })
     List<VolunteerActivity> selectAvailableActivitiesForVolunteer(@Param("filter") VolunteerActivity filter, @Param("volunteerId") String volunteerId);
+
+    @Select("select * from tbl_VolunteerActivity where ActivityID = #{id}")
+    VolunteerActivity getById(String id);
+
+
+
+
+    // 在 VolunteerMapper 接口中新增此方法
+
+    /**
+     * 【新方法】根据姓名模糊查询所有志愿者
+     * @param name 志愿者姓名关键词
+     * @return 志愿者列表
+     */
+    List<Volunteer> findByNameContaining(@Param("name") String name);
 
 }

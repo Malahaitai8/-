@@ -154,4 +154,3 @@ public interface VolunteerActivityApplicationMapper {
     int checkExistingParticipation(@Param("volunteerId") String volunteerId, @Param("activityId") String activityId);
 
 
-}

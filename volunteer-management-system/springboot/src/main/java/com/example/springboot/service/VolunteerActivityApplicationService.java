@@ -72,6 +72,21 @@ public class VolunteerActivityApplicationService {
 
     //修改的代码都在下面
 
+
+
+
+
+
+
+
+/**
+     * 【重要修改】更新申请状态，并在通过时自动创建参与记录。
+     * 使用 @Transactional 注解确保数据库操作的原子性。
+     *
+     * @param applicationId 申请ID
+     * @param status        新的状态 (例如 "已通过", "已拒绝")
+     * @return 更新的行数
+     */
     @Transactional // 2. 添加注解，启用事务管理
     public int updateApplicationStatus(String applicationId, String status) {
         // 3. 当申请被批准时，执行核心逻辑

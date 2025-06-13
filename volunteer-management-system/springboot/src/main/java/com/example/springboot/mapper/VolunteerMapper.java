@@ -100,4 +100,19 @@ public interface VolunteerMapper {
      */
     @Select("SELECT StarLevel FROM Volunteer_Stars WHERE VolunteerID = #{volunteerId}")
     Integer findStarLevelByVolunteerID(String volunteerId);
+
+    /**
+     * 【新方法-已重命名】根据姓名模糊搜索所有志愿者
+     * @param name 志愿者姓名关键词
+     * @return 志愿者列表
+     */
+    @Select("<script>" +
+            "SELECT * FROM tbl_Volunteer" +
+            "<where>" +
+            "  <if test='name != null and name != \"\"'>" +
+            "    AND Name LIKE CONCAT('%', #{name}, '%')" +
+            "  </if>" +
+            "</where>" +
+            "</script>")
+    List<Volunteer> searchVolunteersByName(@Param("name") String name);
 }

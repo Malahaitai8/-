@@ -227,4 +227,112 @@ onMounted(() => {
     height: 100px;
   }
 }
+
+.logo {
+  height: 40px;
+  margin-right: 15px;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.welcome-message {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Content area styling */
+.content-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 72px); /* Adjust based on header height */
+  padding: 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.main-card {
+  width: 100%;
+  max-width: 1200px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+}
+
+.main-card :deep(.el-card__body) {
+  padding: 50px;
+}
+
+/* Button grid styling */
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
+}
+
+.grid-button {
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 500;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ff5f6d, #ff3333);
+  box-shadow: 0 4px 15px rgba(255, 51, 51, 0.3);
+}
+
+.grid-button .el-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.grid-button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(255, 51, 51, 0.4);
+  background: linear-gradient(135deg, #ff6b7a, #ff4d4d);
+}
+
+.grid-button:active {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 51, 51, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    padding: 15px;
+  }
+  .header-content {
+    margin-bottom: 10px;
+  }
+  .content-wrapper {
+    padding: 20px;
+    align-items: flex-start;
+    padding-top: 40px;
+  }
+  .main-card :deep(.el-card__body) {
+    padding: 30px;
+  }
+  .button-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .grid-button {
+    height: 100px;
+  }
+}
 </style>
